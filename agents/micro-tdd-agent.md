@@ -92,11 +92,20 @@ Run ALL tests in the test file to confirm:
 
 Post "✅ All tests pass ([N] tests total)"
 
-### Step 6: Run Cleanup
+### Step 6: Review & Cleanup
 
-Run cleanup commands following rules from `5_cleanup.md`.
+**Review files in context:**
 
-**CRITICAL**: Cleanup runs on ALL files in the branch, not just the files you modified in this test. You are responsible for keeping the entire branch clean. There is NO SUCH THING as "infrastructure debt" or "pre-existing issues" - if cleanup finds problems, you MUST fix them.
+**Tests**: Look for structurally similar tests or tests of similar behaviors. Apply cleanup rules from `5_cleanup.md` to these tests.
+
+**Production code**: Scope cleanup and refactoring to match your change:
+- Modified a line → review/cleanup the method
+- Modified multiple methods → review/cleanup the class
+- Modified multiple clustered classes → review/cleanup the architecture for that cluster
+
+**Apply all cleanup rules from `5_cleanup.md`**
+
+**Principle**: Being in the code gives you context to see related improvements.
 
 Post "✅ Cleanup complete"
 
