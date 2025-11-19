@@ -73,7 +73,19 @@ Use the commit message provided in the slice requirements.
 
 ### 6. REPORT 📋
 
-Write report to `tmp/tdd_agent_report_[timestamp].md` with:
+Write report using the `~/.ai/scripts/generic/write-agent-report.sh` helper script:
+
+```bash
+cat <<EOF | ~/.ai/scripts/generic/write-agent-report.sh tdd-agent [agent_id] [date]
+# Report content here
+EOF
+```
+
+The script creates reports in: `~/.ai/wip/agent_reports/tdd-agent/<agent_id>-<date>.report.md`
+- `<agent_id>`: Auto-generated timestamp (YYYYMMDD_HHMMSS) unless provided
+- `<date>`: Auto-generated ISO date (YYYY-MM-DD) unless provided
+
+Report structure:
 
 **Structure:**
 ```markdown
@@ -149,6 +161,8 @@ Agent should receive:
 
 ## Output Format
 
-**Only return:** Path to report file in `tmp/`
+**Only return:** The path to the report file (printed by the script)
 
-Example: `tmp/tdd_agent_report_20250129_143022.md`
+The `write-agent-report.sh` script automatically prints the full path to the created file.
+
+Example: `~/.ai/wip/agent_reports/tdd-agent/20250129_143022-2025-01-29.report.md`

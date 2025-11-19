@@ -196,9 +196,24 @@ Verify implementation matches slice requirements from plan:
 
 ### Step 8: Write Validation Report
 
-**Write validation report** to:
-- Filepath: `tmp/tdd_validation_reports/validation_slice[N]_[short_commit_hash].md`
-- Use format: `validation_slice1_a1b2c3d4.md` (use short 8-char hash)
+Write validation report using the `~/.ai/scripts/generic/write-validation-report.sh` helper script:
+
+```bash
+cat <<EOF | ~/.ai/scripts/generic/write-validation-report.sh <report_being_validated> <pass|fail> [date]
+# Validation report content here
+EOF
+```
+
+The script creates reports in: `~/.ai/wip/agent_reports/tdd-validation-agent/<report_base_name>-<date>.<pass|fail>.md`
+
+Arguments:
+- `<report_being_validated>`: Path or filename of the TDD report being validated (e.g., `20250129_143022-2025-01-29.report.md`)
+- `<pass|fail>`: Either `pass` or `fail` based on validation verdict
+- `[date]`: Optional ISO date (YYYY-MM-DD), auto-generated if omitted
+
+Example: If validating `20250129_143022-2025-01-29.report.md`, report would be:
+- `~/.ai/wip/agent_reports/tdd-validation-agent/20250129_143022-2025-01-29-2025-01-29.pass.md` (if passed)
+- `~/.ai/wip/agent_reports/tdd-validation-agent/20250129_143022-2025-01-29-2025-01-29.fail.md` (if failed)
 
 **Report must include:**
 
@@ -253,7 +268,11 @@ Verify implementation matches slice requirements from plan:
 
 ### Step 9: Return Filepath
 
-**Return**: Only the filepath to your report (e.g., "Validation report written to tmp/tdd_validation_reports/validation_slice1_a1b2c3d4.md")
+**Return**: Only the filepath to your report (printed by the script)
+
+The `write-validation-report.sh` script automatically prints the full path to the created file.
+
+Example: `~/.ai/wip/agent_reports/tdd-validation-agent/20250129_143022-2025-01-29-2025-01-29.pass.md`
 
 ---
 
