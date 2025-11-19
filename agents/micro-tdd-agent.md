@@ -109,19 +109,55 @@ Run ALL tests in the test file again to confirm cleanup didn't break anything:
 
 Post "✅ All tests still passing after cleanup"
 
-### Step 8: Report
+### Step 8: Create Commit
 
-Return a simple JSON report:
+Use the commit-agent to create a commit for the changes:
 
-```json
-{
-  "status": "success",
-  "test_name": "name of test written",
-  "test_count_before": N,
-  "test_count_after": N+1,
-  "all_tests_pass": true,
-  "files_modified": ["path/to/test.rb", "path/to/impl.rb"]
-}
+Launch the commit-agent which will:
+- Examine the changes (new test + implementation)
+- Draft a concise commit message following rules
+- Create the commit automatically
+
+Post "✅ Commit created: [commit hash] [first line of message]"
+
+### Step 9: Write Report
+
+Write a report using `~/.ai/scripts/generic/write-agent-report.sh`, including commit information:
+
+```bash
+cat <<EOF | ~/.ai/scripts/generic/write-agent-report.sh micro-tdd-agent
+# Micro TDD Report - [Test Name]
+
+## Test Written
+- Test name: [name of test]
+- Test file: [path to test file]
+
+## Implementation
+- Files modified: [list of files]
+- Test count: [N before] → [N+1 after]
+
+## Verification
+- ✅ Test failed initially (red)
+- ✅ Test passes after implementation (green)
+- ✅ All tests pass after cleanup (blue)
+
+## Commit
+- Hash: [commit hash]
+- Message: [first line of commit message]
+
+## Status
+✅ Success
+EOF
+```
+
+Post "✅ Report written: [report path]"
+
+### Step 10: Return
+
+Return only the report path:
+
+```
+[full path to report]
 ```
 
 ## Quality Standards
@@ -159,6 +195,8 @@ All quality standards are defined in `~/.ai/rules/*`. Key rules:
 - ✅ All tests still pass after cleanup
 - ✅ No branching in test
 - ✅ Test is specific to one behavior
+- ✅ Commit created with proper message
+- ✅ Report written with commit info
 
 ## Failure Cases
 
@@ -180,17 +218,13 @@ All quality standards are defined in `~/.ai/rules/*`. Key rules:
 5. Runs tests → confirms all 53 tests pass
 6. Runs cleanup (linter, typechecker) → passes
 7. Runs tests again → confirms all 53 tests still pass
-8. Returns JSON report
+8. Creates commit using commit-agent → abc123de
+9. Writes report including commit info
+10. Returns report path
 
 **Output**:
-```json
-{
-  "status": "success",
-  "test_name": "creates config file when missing",
-  "test_count_before": 52,
-  "test_count_after": 53,
-  "all_tests_pass": true
-}
+```
+~/.ai/wip/agent_reports/micro-tdd-agent/20250119_143022-2025-01-19.report.md
 ```
 
 ## Usage Pattern
@@ -198,12 +232,12 @@ All quality standards are defined in `~/.ai/rules/*`. Key rules:
 This agent is called MULTIPLE TIMES to implement a feature incrementally:
 
 ```
-Call 1: "Test loads config when it exists" → 1 test passes, cleanup runs, 53 total
-Call 2: "Test saves config after run" → 1 test passes, cleanup runs, 54 total
-Call 3: "Test creates config dir if missing" → 1 test passes, cleanup runs, 55 total
+Call 1: "Test loads config when it exists" → test passes, cleanup runs, commit created, report written
+Call 2: "Test saves config after run" → test passes, cleanup runs, commit created, report written
+Call 3: "Test creates config dir if missing" → test passes, cleanup runs, commit created, report written
 ```
 
-Each call is one complete red-green-blue cycle with verification.
+Each call is one complete red-green-blue cycle with commit and report.
 
 ## Why This Approach
 
