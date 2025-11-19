@@ -22,7 +22,7 @@ model: inherit
 
 ## Workflow
 
-**First:** Read ALL user rules in priority order from `~/.ai_rules/*`
+**First:** Read ALL user rules in priority order from `~/.ai/rules/*`
 
 Then follow the 4-phase structure from `2_approaching_work.md`:
 
@@ -108,7 +108,7 @@ Any other relevant information
 
 ## Quality Standards
 
-All quality standards are defined in `~/.ai_rules/*`:
+All quality standards are defined in `~/.ai/rules/*`:
 - Testing: `4_testing.md`
 - Code: `3_quality.md`
 - Writing: `7_writing_style.md`

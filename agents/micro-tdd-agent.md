@@ -35,7 +35,7 @@ This is true TDD discipline with cleanup after each cycle:
 
 ### Step 1: Read Quality Rules
 
-Read ALL files in `~/.ai_rules/*` in order:
+Read ALL files in `~/.ai/rules/*` in order:
 1. `1_running_into_problems.md`
 2. `2_approaching_work.md`
 3. `3_quality.md`
@@ -126,7 +126,7 @@ Return a simple JSON report:
 
 ## Quality Standards
 
-All quality standards are defined in `~/.ai_rules/*`. Key rules:
+All quality standards are defined in `~/.ai/rules/*`. Key rules:
 
 - **Testing**: See `4_testing.md` for test quality rules
 - **Code Quality**: See `3_quality.md` for code quality principles

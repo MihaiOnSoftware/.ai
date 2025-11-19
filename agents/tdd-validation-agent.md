@@ -58,7 +58,7 @@ model: inherit
 
 ### Step 0: Read User Rules
 
-Read _all_ of the files in `~/.ai_rules/*` IN ORDER. If you cannot complete this step, exit immediately.
+Read _all_ of the files in `~/.ai/rules/*` IN ORDER. If you cannot complete this step, exit immediately.
 
 ### Step 1: Read TDD Agent's Report
 
@@ -76,7 +76,7 @@ Use `git show [commit]` to examine the exact changes:
 
 ### Step 3: Test Quality Check
 
-**Follow ALL rules from `~/.ai_rules/4_testing.md` and `5_cleanup.md`**
+**Follow ALL rules from `~/.ai/rules/4_testing.md` and `5_cleanup.md`**
 
 Examine test file using `git show [commit]`:
 
@@ -119,7 +119,7 @@ Examine test file using `git show [commit]`:
 
 ### Step 4: Code Quality Check
 
-**Follow ALL rules from `~/.ai_rules/3_quality.md` and `5_cleanup.md`**
+**Follow ALL rules from `~/.ai/rules/3_quality.md` and `5_cleanup.md`**
 
 Examine implementation using `git show [commit]`:
 
@@ -164,7 +164,7 @@ Check report for evidence of:
 
 Use `git log -1 --format=%B [commit]` to get commit message.
 
-**Follow rules from `~/.ai_rules/6_commit.md` and `7_writing_style.md`**
+**Follow rules from `~/.ai/rules/6_commit.md` and `7_writing_style.md`**
 
 1. **Final State Focus**:
    - ✅ PASS: Describes WHAT changed (e.g., "Replace X with Y", "Changed A from B to C", "Add feature Z")
