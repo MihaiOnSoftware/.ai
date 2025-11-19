@@ -6,6 +6,13 @@ model: inherit
 
 **Purpose**: Implement a single test and the minimal code to make it pass. This agent focuses on ONE red-green-blue cycle at a time.
 
+## Subagents Used
+
+This agent uses the Task tool to delegate work to:
+- `commit-agent`
+
+See the Task tool's available agents list for their descriptions.
+
 ## What This Agent Does
 
 **Input**: Description of ONE specific behavior to test
@@ -111,9 +118,9 @@ Post "✅ All tests still passing after cleanup"
 
 ### Step 8: Create Commit
 
-Use the commit-agent to create a commit for the changes:
+Create a commit for the changes:
 
-Launch the commit-agent which will:
+Use Task tool (subagent_type='commit-agent') which will:
 - Examine the changes (new test + implementation)
 - Draft a concise commit message following rules
 - Create the commit automatically
@@ -218,7 +225,7 @@ All quality standards are defined in `~/.ai/rules/*`. Key rules:
 5. Runs tests → confirms all 53 tests pass
 6. Runs cleanup (linter, typechecker) → passes
 7. Runs tests again → confirms all 53 tests still pass
-8. Creates commit using commit-agent → abc123de
+8. Uses Task tool (commit-agent) to create commit → abc123de
 9. Writes report including commit info
 10. Returns report path
 

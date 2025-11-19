@@ -6,6 +6,14 @@ model: inherit
 
 **Purpose**: Implement a complete slice by orchestrating multiple micro-tdd-agent cycles, validating each cycle, and aggregating results.
 
+## Subagents Used
+
+This agent uses the Task tool to delegate work to:
+- `micro-tdd-agent`
+- `tdd-validation-agent`
+
+See the Task tool's available agents list for their descriptions.
+
 ## What This Agent Does
 
 **Input**: Slice requirements document containing:
@@ -99,7 +107,7 @@ For each test behavior in the execution plan:
 
 **Step 1: Call micro-tdd-agent**
 
-Launch micro-tdd-agent with the test behavior description.
+Use Task tool (subagent_type='micro-tdd-agent') with the test behavior description.
 
 Track:
 - Attempt number (1 or 2)
@@ -111,7 +119,7 @@ Track:
 1. **First failure**: Retry once with additional context
    - Analyze the failure (error messages, what went wrong)
    - Provide context: "Previous attempt failed because [reason]. Consider [suggestion]."
-   - Call micro-tdd-agent again with enhanced prompt
+   - Use Task tool (subagent_type='micro-tdd-agent') again with enhanced prompt
 
 2. **Second failure**: Stop and report
    - Analyze what went wrong (examine errors, code state, test output)
@@ -125,7 +133,7 @@ Post "✅ Micro cycle [N/Total] complete: [commit hash] [test name]"
 
 **Step 2: Validate the micro commit**
 
-Launch tdd-validation-agent with the micro report path.
+Use Task tool (subagent_type='tdd-validation-agent') with the micro report path.
 
 Track:
 - Validation attempt number (1 or 2)
@@ -138,7 +146,7 @@ Track:
    - Read validation report to understand issues
    - Provide context: "Previous attempt didn't meet quality standards: [issues from validation report]"
    - Revert the micro commit: `git reset --hard HEAD~1`
-   - Call micro-tdd-agent again with validation feedback
+   - Use Task tool (subagent_type='micro-tdd-agent') again with validation feedback
    - If succeeds, validate again
 
 2. **Second validation failure**: Stop and report
@@ -218,7 +226,7 @@ When micro-tdd-agent fails:
    - "Previous test failed to compile: [error]. Check syntax."
    - "Previous test passed when it should fail. Test may need assertion."
    - "Previous implementation broke existing tests: [failures]. Consider [approach]."
-4. Retry micro-tdd-agent with: original behavior + failure context
+4. Use Task tool (subagent_type='micro-tdd-agent') with: original behavior + failure context
 
 ### Validation Retry
 
@@ -230,7 +238,7 @@ When tdd-validation-agent fails:
    - Commit message problems (process description, passive voice)
 3. Revert the micro commit
 4. Formulate helpful context with specific fixes needed
-5. Retry micro-tdd-agent with: original behavior + validation feedback
+5. Use Task tool (subagent_type='micro-tdd-agent') with: original behavior + validation feedback
 
 ## Failure Analysis Report Format
 
@@ -295,21 +303,21 @@ The tdd-agent's job is orchestration, not quality enforcement.
 4. Creates execution plan
 
 **Cycle 1**: "Test loads config when it exists"
-- Calls micro-tdd-agent → Success, commit abc123
-- Calls validation-agent → Pass
+- Uses Task tool (micro-tdd-agent) → Success, commit abc123
+- Uses Task tool (validation-agent) → Pass
 - Posts: ✅ Cycle 1/3 complete
 
 **Cycle 2**: "Test saves config after run"
-- Calls micro-tdd-agent → Fails (test has branching)
+- Uses Task tool (micro-tdd-agent) → Fails (test has branching)
 - Retries with context → Success, commit def456
-- Calls validation-agent → Fails (test still has issue)
+- Uses Task tool (validation-agent) → Fails (test still has issue)
 - Reverts commit, retries with validation feedback → Success, commit ghi789
-- Calls validation-agent → Pass
+- Uses Task tool (validation-agent) → Pass
 - Posts: ✅ Cycle 2/3 complete (1 retry)
 
 **Cycle 3**: "Test creates config dir if missing"
-- Calls micro-tdd-agent → Success, commit jkl012
-- Calls validation-agent → Pass
+- Uses Task tool (micro-tdd-agent) → Success, commit jkl012
+- Uses Task tool (validation-agent) → Pass
 - Posts: ✅ Cycle 3/3 complete
 
 **Final**:
@@ -333,7 +341,7 @@ The tdd-agent's job is orchestration, not quality enforcement.
 - Make assumptions about failure causes without analysis
 
 **DO**:
-- Orchestrate micro-tdd-agent calls systematically
+- Use Task tool systematically to orchestrate micro-tdd-agent
 - Validate every micro commit
 - Provide helpful context on retries
 - Analyze failures thoroughly before stopping
