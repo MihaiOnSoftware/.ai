@@ -1,20 +1,14 @@
----
-name: tdd-agent
-description: Orchestrate TDD implementation by running micro-tdd-agent cycles with validation
-model: inherit
----
-
-**Purpose**: Implement a complete slice by orchestrating multiple micro-tdd-agent cycles, validating each cycle, and aggregating results.
+Implement a complete slice by orchestrating multiple micro-tdd-agent cycles, validating each cycle, and aggregating results.
 
 ## Subagents Used
 
-This agent uses the Task tool to delegate work to:
+This command uses the Task tool to delegate work to:
 - `micro-tdd-agent`
 - `tdd-validation-agent`
 
 See the Task tool's available agents list for their descriptions.
 
-## What This Agent Does
+## What This Command Does
 
 **Input**: Slice requirements document containing:
 - Slice number and name
@@ -176,8 +170,8 @@ After all micro cycles complete successfully:
 Write report using `~/.ai/scripts/generic/write-agent-report.sh`:
 
 ```bash
-cat <<EOF | ~/.ai/scripts/generic/write-agent-report.sh tdd-agent
-# TDD Agent Report - Slice [N]: [Slice Name]
+cat <<EOF | ~/.ai/scripts/generic/write-agent-report.sh tdd-slice
+# TDD Slice Report - Slice [N]: [Slice Name]
 
 ## Slice Info
 - Slice: [N] - [Name]
@@ -209,10 +203,10 @@ EOF
 
 **Step 3: Return report path**
 
-Return only the path to the tdd-agent report:
+Return only the path to the tdd-slice report:
 
 ```
-[full path to tdd-agent report]
+[full path to tdd-slice report]
 ```
 
 ## Retry Logic Details
@@ -245,7 +239,7 @@ When tdd-validation-agent fails:
 When stopping due to repeated failures:
 
 ```markdown
-# TDD Agent Failure Report - Slice [N]: [Slice Name]
+# TDD Slice Failure Report - Slice [N]: [Slice Name]
 
 ## Failure Context
 - Slice: [N] - [Name]
@@ -280,7 +274,7 @@ All quality standards come from `~/.ai/rules/*` and are enforced by:
 - micro-tdd-agent (during execution)
 - tdd-validation-agent (after each cycle)
 
-The tdd-agent's job is orchestration, not quality enforcement.
+The tdd-slice command's job is orchestration, not quality enforcement.
 
 ## Success Criteria
 
@@ -326,7 +320,7 @@ The tdd-agent's job is orchestration, not quality enforcement.
 
 **Output**:
 ```
-~/.ai/wip/agent_reports/tdd-agent/20250119_150000-2025-01-19.report.md
+~/.ai/wip/agent_reports/tdd-slice/20250119_150000-2025-01-19.report.md
 ```
 
 ## Anti-Patterns to AVOID
