@@ -121,9 +121,9 @@ Post "✅ All tests still passing after cleanup"
 
 ### Step 8: Create Commit
 
-Create a commit for the changes using the `/commit` command:
+Create a commit for the changes using the `/generic:commit` command:
 
-Use SlashCommand tool to invoke `/commit` which will:
+Use SlashCommand tool to invoke `/generic:commit` which will:
 - Examine the changes (new test + implementation)
 - Draft a concise commit message following rules
 - Create the commit automatically
@@ -228,7 +228,7 @@ All quality standards are defined in `~/.ai/rules/*`. Key rules:
 5. Runs tests → confirms all 53 tests pass
 6. Runs cleanup (linter, typechecker) → passes
 7. Runs tests again → confirms all 53 tests still pass
-8. Uses SlashCommand tool to invoke `/commit` → abc123de
+8. Uses SlashCommand tool to invoke `/generic:commit` → abc123de
 9. Writes report including commit info
 10. Returns report path
 
