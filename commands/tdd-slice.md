@@ -1,3 +1,7 @@
+---
+description: Implement a complete TDD slice with multiple micro-tdd cycles and validation
+---
+
 Implement a complete slice by orchestrating multiple micro-tdd-agent cycles, validating each cycle, and aggregating results.
 
 ## Subagents Used

@@ -1,3 +1,7 @@
+---
+description: Create a commit following message rules and writing style guidelines
+---
+
 Read current changes and create a proper commit following commit message rules and writing style guidelines.
 
 ## What This Command Does

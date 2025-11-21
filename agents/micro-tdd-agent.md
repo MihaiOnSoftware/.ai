@@ -132,33 +132,16 @@ Post "✅ Commit created: [commit hash] [first line of message]"
 
 ### Step 9: Write Report
 
-Write a report using `~/.ai/scripts/generic/write-agent-report.sh`, including commit information:
+Write a report using the `/generic:write-agent-report` command:
 
-```bash
-cat <<EOF | ~/.ai/scripts/generic/write-agent-report.sh micro-tdd-agent
-# Micro TDD Report - [Test Name]
-
-## Test Written
-- Test name: [name of test]
-- Test file: [path to test file]
-
-## Implementation
-- Files modified: [list of files]
-- Test count: [N before] → [N+1 after]
-
-## Verification
-- ✅ Test failed initially (red)
-- ✅ Test passes after implementation (green)
-- ✅ All tests pass after cleanup (blue)
-
-## Commit
-- Hash: [commit hash]
-- Message: [first line of commit message]
-
-## Status
-✅ Success
-EOF
-```
+Use SlashCommand tool to invoke `/generic:write-agent-report` with:
+- agent_name: "micro-tdd-agent"
+- report_content: Markdown report including:
+  - Test name and file
+  - Implementation details (files modified, test count)
+  - Verification (red → green → blue)
+  - Commit hash and message
+  - Status (✅ Success)
 
 Post "✅ Report written: [report path]"
 

@@ -196,24 +196,14 @@ Verify implementation matches slice requirements from plan:
 
 ### Step 8: Write Validation Report
 
-Write validation report using the `~/.ai/scripts/generic/write-validation-report.sh` helper script:
+Write validation report using the `/generic:write-validation-report` command:
 
-```bash
-cat <<EOF | ~/.ai/scripts/generic/write-validation-report.sh <report_being_validated> <pass|fail> [date]
-# Validation report content here
-EOF
-```
+Use SlashCommand tool to invoke `/generic:write-validation-report` with:
+- report_being_validated: Path or filename from Step 1 (e.g., "20250129_143022-2025-01-29.report.md")
+- pass_or_fail: "pass" or "fail" based on validation verdict
+- report_content: Markdown validation report
 
-The script creates reports in: `~/.ai/wip/agent_reports/tdd-validation-agent/<report_base_name>-<date>.<pass|fail>.md`
-
-Arguments:
-- `<report_being_validated>`: Path or filename of the TDD report being validated (e.g., `20250129_143022-2025-01-29.report.md`)
-- `<pass|fail>`: Either `pass` or `fail` based on validation verdict
-- `[date]`: Optional ISO date (YYYY-MM-DD), auto-generated if omitted
-
-Example: If validating `20250129_143022-2025-01-29.report.md`, report would be:
-- `~/.ai/wip/agent_reports/tdd-validation-agent/20250129_143022-2025-01-29-2025-01-29.pass.md` (if passed)
-- `~/.ai/wip/agent_reports/tdd-validation-agent/20250129_143022-2025-01-29-2025-01-29.fail.md` (if failed)
+The command creates reports in: `~/.ai/wip/agent_reports/tdd-validation-agent/<report_base_name>-<date>.<pass|fail>.md`
 
 **Report must include:**
 
@@ -268,9 +258,9 @@ Example: If validating `20250129_143022-2025-01-29.report.md`, report would be:
 
 ### Step 9: Return Filepath
 
-**Return**: Only the filepath to your report (printed by the script)
+**Return**: Only the filepath to your report (printed by the command)
 
-The `write-validation-report.sh` script automatically prints the full path to the created file.
+The `/generic:write-validation-report` command automatically prints the full path to the created file.
 
 Example: `~/.ai/wip/agent_reports/tdd-validation-agent/20250129_143022-2025-01-29-2025-01-29.pass.md`
 
