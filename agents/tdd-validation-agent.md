@@ -144,6 +144,12 @@ Examine implementation using `git show [commit]`:
    - ❌ FAIL if significantly deviates from patterns
    - ✅ PASS if follows established conventions
 
+6. **Refactoring Scope**:
+   - Modified a line → refactor/cleanup only the method
+   - Modified multiple methods → refactor/cleanup only the class
+   - Modified multiple clustered classes → refactor/cleanup only that architecture cluster
+   - ❌ FAIL if refactoring goes beyond the scope of changes made
+
 ### Step 5: Cleanup Verification
 
 **Verify ALL cleanup steps from `5_cleanup.md` were completed**
