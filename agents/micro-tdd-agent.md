@@ -36,17 +36,7 @@ This is true TDD discipline with cleanup after each cycle:
 
 ### Step 1: Read Quality Rules
 
-Read ALL files in `~/.ai/rules/*` in order:
-1. `1_running_into_problems.md`
-2. `2_approaching_work.md`
-3. `3_quality.md`
-4. `4_testing.md`
-5. `5_cleanup.md`
-6. `6_commit.md`
-7. `7_writing_style.md`
-8. `8_let_me_just.md`
-
-Post "✅ Rules loaded"
+Use SlashCommand tool to invoke `/generic:load-rules`
 
 ### Step 2: Write ONE Test
 
@@ -58,15 +48,11 @@ Given the behavior description, write ONE test following rules from `4_testing.m
 
 **Critical**: Write ONLY ONE test. Do not write multiple tests.
 
-Post "✅ Test written: [test name]"
-
 ### Step 3: Verify Test Fails
 
 Run the test file to confirm:
 - The new test FAILS (red)
 - Failure is for the RIGHT reason (feature not implemented, not syntax error)
-
-Post "✅ Test fails correctly: [failure message]"
 
 ### Step 4: Implement Minimal Code
 
@@ -76,8 +62,6 @@ Write the MINIMAL code to make the test pass, following rules from `3_quality.md
 - Practice evolutionary design (Rule 3)
 - Follow existing patterns
 
-Post "✅ Code implemented"
-
 ### Step 5: Verify Test Passes
 
 Run ALL tests in the test file to confirm:
@@ -86,11 +70,8 @@ Run ALL tests in the test file to confirm:
 - No failures, no errors
 
 **If ANY test fails**:
-- Post "❌ Test failures detected"
 - Investigate and fix
 - Do NOT proceed until all tests pass
-
-Post "✅ All tests pass ([N] tests total)"
 
 ### Step 6: Review & Cleanup
 
@@ -107,8 +88,6 @@ Post "✅ All tests pass ([N] tests total)"
 
 **Principle**: Being in the code gives you context to see related improvements.
 
-Post "✅ Cleanup complete"
-
 ### Step 7: Verify Tests Still Pass
 
 Run ALL tests in the test file again to confirm cleanup didn't break anything:
@@ -116,8 +95,6 @@ Run ALL tests in the test file again to confirm cleanup didn't break anything:
 - No failures, no errors
 
 **If ANY tests fail**: STOP and report. Cleanup broke something.
-
-Post "✅ All tests still passing after cleanup"
 
 ### Step 8: Create Commit
 
@@ -127,8 +104,6 @@ Use SlashCommand tool to invoke `/generic:commit` which will:
 - Examine the changes (new test + implementation)
 - Draft a concise commit message following rules
 - Create the commit automatically
-
-Post "✅ Commit created: [commit hash] [first line of message]"
 
 ### Step 9: Write Report
 
@@ -142,8 +117,6 @@ Use SlashCommand tool to invoke `/generic:write-agent-report` with:
   - Verification (red → green → blue)
   - Commit hash and message
   - Status (✅ Success)
-
-Post "✅ Report written: [report path]"
 
 ### Step 10: Return
 

@@ -24,8 +24,6 @@ Read the following rules files in order:
 1. `~/.ai/rules/6_commit.md` - Commit message rules
 2. `~/.ai/rules/7_writing_style.md` - Writing style guidelines
 
-Post "✅ Rules loaded"
-
 ### Step 2: Examine Changes
 
 Run these git commands to understand what's being committed:
@@ -42,17 +40,13 @@ Run these git commands to understand what's being committed:
    - Understand commit message style in this repo
    - See what's been done recently for context
 
-Post "✅ Changes examined"
-
 ### Step 3: Determine What to Stage
 
 **If files are already staged**:
 - Use staged files as-is
-- Post "✅ Using staged files"
 
 **If no files are staged**:
 - Stage all modified/new files: `git add -A`
-- Post "✅ All changes staged"
 
 ### Step 4: Draft Commit Message
 
@@ -92,8 +86,6 @@ git commit -m "$(cat <<'EOF'
 EOF
 )"
 ```
-
-Post "✅ Commit created: [short hash] [first line of message]"
 
 ## Quality Standards
 
