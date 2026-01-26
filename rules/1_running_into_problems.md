@@ -54,6 +54,18 @@ Problem Encountered
 - **Before making significant changes** to unfamiliar systems
 - **When explicit user instructions fail**, like using MCPs
 
+## Cost of Compromises vs. Asking
+
+**Compromising when stuck costs MORE**:
+- User must review, reject, and wait for you to redo it correctly
+- The work gets done twice (yours wrong, then right after asking)
+
+**Asking when stuck costs LESS**:
+- User provides guidance once, work done right the first time
+- No wasted review-reject-redo cycle
+
+The work needs to be correct regardless. Compromising just adds a wasteful cycle before eventually asking anyway.
+
 ## Success Patterns
 
 ### Effective Investigation
