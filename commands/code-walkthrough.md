@@ -1,9 +1,9 @@
 ---
-description: Walk through code changes bite by bite with context
+description: Walk through code changes chunk by chunk with context
 argument-hint: [branch-name | uncommitted]
 ---
 
-Present code changes in digestible conceptual "bites" one by one, allowing review, questions, and approval.
+Present code changes in digestible conceptual "chunks" one by one, allowing review, questions, and approval.
 
 ## What This Command Does
 
@@ -14,8 +14,8 @@ Present code changes in digestible conceptual "bites" one by one, allowing revie
 **Presents**:
 - Actual code changes (not paraphrased)
 - Relevant agent reports for context
-- Changes grouped into conceptual bites
-- One bite at a time, waiting for feedback
+- Changes grouped into conceptual chunks (MAX 50 lines each)
+- One chunk at a time, waiting for feedback
 
 ## Workflow
 
@@ -69,9 +69,9 @@ find ~/.ai/wip/agent_reports/ -name "*.report.md" -type f -exec ls -lt {} + | he
 - What patterns were followed
 - What context is relevant to changes
 
-Keep this context in mind when presenting bites - reference specific reports when they explain why changes were made.
+Keep this context in mind when presenting chunks - reference specific reports when they explain why changes were made.
 
-### Step 4: Group Changes into Conceptual Bites
+### Step 4: Group Changes into Conceptual Chunks
 
 Analyze changes and group into logical units:
 
@@ -81,28 +81,30 @@ Analyze changes and group into logical units:
 3. **By dependency**: Changes that depend on each other
 4. **By scope**: Small focused changes vs larger refactors
 
-**Each bite should**:
+**Each chunk should**:
 - Be independently understandable
 - Have clear purpose
-- Fit on screen (aim for 30-40 lines per bite)
+- Fit on screen (30-40 lines ideal, MAX 50 lines)
 - Include related changes together
 
-**IMPORTANT**: The total number of bites is NOT fixed. If you're presenting a bite and realize it's too long (>40 lines), you MUST break it into smaller bites and adjust the total count. Never paraphrase or compress changes to fit a predetermined bite count.
+**CRITICAL RULE**: Chunks MUST NOT exceed 50 lines. If a chunk exceeds 50 lines, you MUST break it into multiple smaller chunks. Never paraphrase or compress changes to fit into fewer chunks.
 
-### Step 5: Present First Bite
+### Step 5: Present First Chunk
 
-For each bite, present:
+**Important**: Number chunks sequentially (1, 2, 3...) as you present them. Do NOT pre-calculate or display the total number of chunks upfront.
+
+For each chunk, present:
 
 **1. Context Header**:
 ```
-## Bite 1/N: [Conceptual Description]
+## Chunk 1: [Conceptual Description]
 
 **Purpose**: [Why this change exists]
 **Files affected**: [List of files]
 **Related agent reports**: [Links to relevant reports if any]
 ```
 
-**Note**: N (total bite count) can change as you present. If a bite is too long, break it up and adjust N.
+**Note**: Just number chunks sequentially (1, 2, 3...). Don't predict or display the total - you'll report the final count in the summary.
 
 **2. The Actual Changes**:
 Show the actual diff output, preserving:
@@ -133,23 +135,23 @@ diff --git a/path/to/file.rb b/path/to/file.rb
 
 **4. Wait for Feedback**:
 ```
-Ready for your feedback on this bite:
+Ready for your feedback on this chunk:
 - Type "approve" or "next" to continue
 - Ask questions about the changes
 - Request modifications
-- Type "skip" to move to next bite without approval
+- Type "skip" to move to next chunk without approval
 ```
 
 ### Step 6: Handle User Feedback
 
 **If user approves/says next**:
-- Move to next bite
-- Repeat Step 5 with next bite
+- Move to next chunk
+- Repeat Step 5 with next chunk
 
 **If user asks questions**:
 - Answer based on code and context
 - Show additional code if helpful
-- Stay on current bite until approved
+- Stay on current chunk until approved
 
 **If user requests changes**:
 - Make the requested changes
@@ -157,18 +159,18 @@ Ready for your feedback on this bite:
 - Wait for approval
 
 **If user says skip**:
-- Move to next bite without marking as approved
-- Note which bites were skipped
+- Move to next chunk without marking as approved
+- Note which chunks were skipped
 
 ### Step 7: Complete Walkthrough
 
-After all bites reviewed, present summary:
+After all chunks reviewed, present summary:
 
 ```
 ## Walkthrough Complete
 
 **Summary**:
-- Total bites: N
+- Total chunks: N
 - Approved: X
 - Skipped: Y
 - Modified: Z
@@ -183,10 +185,10 @@ Use `/generic:write-agent-report` to document the walkthrough:
 
 **Report should include**:
 - What changes were reviewed (branch or uncommitted)
-- Summary of each bite that was presented
+- Summary of each chunk that was presented
 - Questions asked and answers provided
 - Modifications requested and made
-- Final status (approved/skipped) for each bite
+- Final status (approved/skipped) for each chunk
 - Any important context or decisions discussed
 
 This creates a record of the code review session for future reference.
@@ -205,24 +207,24 @@ This creates a record of the code review session for future reference.
 - Point out patterns or conventions followed
 - Highlight important details
 
-### Keep Bites Digestible
-- 30-40 lines per bite to fit on screen
+### Keep Chunks Digestible
+- 30-40 lines ideal, MAX 50 lines per chunk to fit on screen
 - Group related changes together
 - Break up large changes into logical sections
-- Don't split atomic changes across bites
+- Don't split atomic changes across chunks
 
 ### Interactive Approach
-- **Wait for feedback** after each bite
-- Don't rush through all bites at once
+- **Wait for feedback** after each chunk
+- Don't rush through all chunks at once
 - Allow time for questions and discussion
 - Make requested changes before moving on
 
 ## Examples
 
-### Example Bite Presentation
+### Example Chunk Presentation
 
 ```
-## Bite 1/3: Add validation for user input
+## Chunk 1: Add validation for user input
 
 **Purpose**: Ensure user input is sanitized before processing
 **Files affected**:
@@ -271,20 +273,20 @@ This follows the validation pattern used throughout the codebase - sanitize at t
 
 The HTML bracket removal prevents basic XSS while still allowing the content through (the actual HTML removal happens in a later processing stage).
 
-Ready for your feedback on this bite:
+Ready for your feedback on this chunk:
 - Type "approve" or "next" to continue
 - Ask questions about the changes
 - Request modifications
-- Type "skip" to move to next bite without approval
+- Type "skip" to move to next chunk without approval
 ```
 
 ## Success Criteria
 
-- ✅ Changes grouped into logical, digestible bites
+- ✅ Changes grouped into logical, digestible chunks
 - ✅ Actual diff output shown (not paraphrased)
 - ✅ Relevant agent reports loaded and referenced
 - ✅ Extra context provided where helpful
-- ✅ Interactive: waits for feedback after each bite
+- ✅ Interactive: waits for feedback after each chunk
 - ✅ Allows questions, modifications, and approval
 - ✅ Completes with summary of what was reviewed
 
@@ -292,17 +294,17 @@ Ready for your feedback on this bite:
 
 **DO NOT**:
 - Paraphrase code changes - show actual diffs
-- Rush through all bites without waiting for feedback
+- Rush through all chunks without waiting for feedback
 - Show changes without context
-- Make bites too large (>40 lines unless atomic change requires it)
-- Treat the total bite count as fixed - adjust it if needed
+- Make chunks larger than 50 lines (break them up even if atomic)
+- Pre-determine how many chunks you'll need (let content decide)
 - Skip loading agent reports
 - Present all changes at once
 
 **DO**:
 - Show actual diff output with proper formatting
-- Wait for user feedback after each bite
+- Wait for user feedback after each chunk
 - Provide context from agent reports
-- Keep bites digestible and focused
+- Keep chunks digestible and focused
 - Group related changes together
 - Allow interactive discussion
