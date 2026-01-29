@@ -8,6 +8,7 @@ Implement a complete slice by orchestrating multiple micro-tdd-agent cycles, val
 
 This command uses the Task tool to delegate work to:
 - `micro-tdd-agent`
+- `commit-agent`
 - `tdd-validation-agent`
 
 See the Task tool's available agents list for their descriptions.
@@ -26,6 +27,7 @@ See the Task tool's available agents list for their descriptions.
 **Does**:
 - Analyze requirements and create execution plan
 - Call micro-tdd-agent for each test behavior
+- Call commit-agent to create commits for each cycle
 - Validate each micro commit with tdd-validation-agent
 - Retry failed steps with context
 - Analyze and report on repeated failures
@@ -127,11 +129,22 @@ Track:
 
 **If micro-tdd-agent succeeds:**
 
-Post "✅ Micro cycle [N/Total] complete: [commit hash] [test name]"
+Post "✅ Micro cycle [N/Total] complete: [test name]"
 
-**Step 2: Validate the micro commit**
+**Step 2: Create commit**
 
-Use Task tool (subagent_type='tdd-validation-agent') with the micro report path.
+Use Task tool (subagent_type='commit-agent') to create a commit for the changes.
+
+Track:
+- Commit hash created
+
+Post "✅ Commit created: [commit hash]"
+
+**Step 3: Validate the micro commit**
+
+Use Task tool (subagent_type='tdd-validation-agent') with: `<micro-report-path> <commit-hash>`
+
+Format the prompt as: "[micro report path] [commit hash]"
 
 Track:
 - Validation attempt number (1 or 2)
@@ -145,7 +158,8 @@ Track:
    - Provide context: "Previous attempt didn't meet quality standards: [issues from validation report]"
    - Revert the micro commit: `git reset --hard HEAD~1`
    - Use Task tool (subagent_type='micro-tdd-agent') again with validation feedback
-   - If succeeds, validate again
+   - If succeeds, call commit-agent again to create new commit
+   - Validate again with new commit hash
 
 2. **Second validation failure**: Stop and report
    - Analyze validation failures (both attempts)
@@ -157,9 +171,9 @@ Track:
 
 Post "✅ Validation [N/Total] passed: [test name]"
 
-**Step 3: Continue to next test behavior**
+**Step 4: Continue to next test behavior**
 
-Repeat Steps 1-2 for each test behavior in the execution plan.
+Repeat Steps 1-3 for each test behavior in the execution plan.
 
 ### Phase 4: Final Report
 
@@ -301,21 +315,25 @@ The tdd-slice command's job is orchestration, not quality enforcement.
 4. Creates execution plan
 
 **Cycle 1**: "Test loads config when it exists"
-- Uses Task tool (micro-tdd-agent) → Success, commit abc123
-- Uses Task tool (validation-agent) → Pass
+- Uses Task tool (micro-tdd-agent) → Success (report at path/to/report1.md)
+- Uses Task tool (commit-agent) → commit abc123
+- Uses Task tool (validation-agent) with "path/to/report1.md abc123" → Pass
 - Posts: ✅ Cycle 1/3 complete
 
 **Cycle 2**: "Test saves config after run"
 - Uses Task tool (micro-tdd-agent) → Fails (test has branching)
-- Retries with context → Success, commit def456
-- Uses Task tool (validation-agent) → Fails (test still has issue)
-- Reverts commit, retries with validation feedback → Success, commit ghi789
-- Uses Task tool (validation-agent) → Pass
+- Retries with context → Success (report at path/to/report2.md)
+- Uses Task tool (commit-agent) → commit def456
+- Uses Task tool (validation-agent) with "path/to/report2.md def456" → Fails (test still has issue)
+- Reverts commit, retries with validation feedback → Success (report at path/to/report2b.md)
+- Uses Task tool (commit-agent) → commit ghi789
+- Uses Task tool (validation-agent) with "path/to/report2b.md ghi789" → Pass
 - Posts: ✅ Cycle 2/3 complete (1 retry)
 
 **Cycle 3**: "Test creates config dir if missing"
-- Uses Task tool (micro-tdd-agent) → Success, commit jkl012
-- Uses Task tool (validation-agent) → Pass
+- Uses Task tool (micro-tdd-agent) → Success (report at path/to/report3.md)
+- Uses Task tool (commit-agent) → commit jkl012
+- Uses Task tool (validation-agent) with "path/to/report3.md jkl012" → Pass
 - Posts: ✅ Cycle 3/3 complete
 
 **Final**:

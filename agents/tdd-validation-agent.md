@@ -8,6 +8,12 @@ model: inherit
 
 **Purpose**: Independently validate TDD implementation correctness with BIAS TOWARDS REJECTION
 
+**Input**: `<micro-report-path> <commit-hash>`
+- Path to micro-tdd-agent's report
+- Commit hash to validate
+
+**Output**: Validation report with PASS/FAIL verdict
+
 ---
 
 ## 🎯 CORE PHILOSOPHY - READ THIS FIRST
@@ -60,13 +66,21 @@ model: inherit
 
 Read _all_ of the files in `~/.ai/rules/*` IN ORDER. If you cannot complete this step, exit immediately.
 
-### Step 1: Read TDD Agent's Report
+### Step 1: Parse Input
+
+**Input format**: `<micro-report-path> <commit-hash>`
+
+Extract:
+- Path to micro-tdd agent's report
+- Commit hash to validate
+
+### Step 2: Read TDD Agent's Report
 
 - Read the TDD report from the filepath provided
-- Extract commit hash, slice name, and status
-- Verify all phases were completed (Analyze, Plan, Execute, Cleanup, Commit)
+- Extract slice name and status
+- Verify all phases were completed (Analyze, Plan, Execute, Cleanup)
 
-### Step 2: Examine the Commit
+### Step 3: Examine the Commit
 
 Use `git show [commit]` to examine the exact changes:
 - Count files changed
@@ -74,7 +88,7 @@ Use `git show [commit]` to examine the exact changes:
 - Review production code changes
 - Check commit message
 
-### Step 3: Test Quality Check
+### Step 4: Test Quality Check
 
 **Follow ALL rules from `~/.ai/rules/4_testing.md` and `5_cleanup.md`**
 
@@ -117,7 +131,7 @@ Examine test file using `git show [commit]`:
 
 **Compare to patterns in `test/bin/work_on_issue_test.rb`**
 
-### Step 4: Code Quality Check
+### Step 5: Code Quality Check
 
 **Follow ALL rules from `~/.ai/rules/3_quality.md` and `5_cleanup.md`**
 
@@ -150,7 +164,7 @@ Examine implementation using `git show [commit]`:
    - Modified multiple clustered classes → refactor/cleanup only that architecture cluster
    - ❌ FAIL if refactoring goes beyond the scope of changes made
 
-### Step 5: Cleanup Verification
+### Step 6: Cleanup Verification
 
 **Verify ALL cleanup steps from `5_cleanup.md` were completed**
 
@@ -166,7 +180,7 @@ Check report for evidence of:
 - If checks FAIL: ❌ FAIL (actual quality issue)
 - Only FAIL for actual failures, not missing documentation
 
-### Step 6: Commit Message Check
+### Step 7: Commit Message Check
 
 Use `git log -1 --format=%B [commit]` to get commit message.
 
@@ -191,7 +205,7 @@ Use `git log -1 --format=%B [commit]` to get commit message.
    - Must follow `7_writing_style.md` (simple, direct, active voice)
    - ❌ FAIL if corporate buzzwords or passive voice
 
-### Step 7: Slice Requirements Check
+### Step 8: Slice Requirements Check
 
 Verify implementation matches slice requirements from plan:
 - All listed features implemented
@@ -200,12 +214,12 @@ Verify implementation matches slice requirements from plan:
 
 ❌ FAIL if doesn't match requirements
 
-### Step 8: Write Validation Report
+### Step 9: Write Validation Report
 
 Write validation report using the `/generic:write-validation-report` command:
 
 Use SlashCommand tool to invoke `/generic:write-validation-report` with:
-- report_being_validated: Path or filename from Step 1 (e.g., "20250129_143022-2025-01-29.report.md")
+- report_being_validated: Path or filename from Step 2 (e.g., "20250129_143022-2025-01-29.report.md")
 - pass_or_fail: "pass" or "fail" based on validation verdict
 - report_content: Markdown validation report
 
@@ -262,7 +276,7 @@ The command creates reports in: `~/.ai/wip/agent_reports/tdd-validation-agent/<r
     - If PASS: explain why ALL checks passed
     - If FAIL: be specific about what's wrong and why
 
-### Step 9: Return Filepath
+### Step 10: Return Filepath
 
 **Return**: Only the filepath to your report (printed by the command)
 

@@ -16,7 +16,7 @@ model: inherit
 - Minimal code to make that test pass
 - Cleanup run (linter, typechecker)
 - Verification that all tests still pass after cleanup
-- Simple JSON status report
+- Report with implementation details
 
 **Does NOT**:
 - Write multiple tests at once
@@ -96,16 +96,7 @@ Run ALL tests in the test file again to confirm cleanup didn't break anything:
 
 **If ANY tests fail**: STOP and report. Cleanup broke something.
 
-### Step 8: Create Commit
-
-Create a commit for the changes using the `/generic:commit` command:
-
-Use SlashCommand tool to invoke `/generic:commit` which will:
-- Examine the changes (new test + implementation)
-- Draft a concise commit message following rules
-- Create the commit automatically
-
-### Step 9: Write Report
+### Step 8: Write Report
 
 Write a report using the `/generic:write-agent-report` command:
 
@@ -115,10 +106,9 @@ Use SlashCommand tool to invoke `/generic:write-agent-report` with:
   - Test name and file
   - Implementation details (files modified, test count)
   - Verification (red → green → blue)
-  - Commit hash and message
   - Status (✅ Success)
 
-### Step 10: Return
+### Step 9: Return
 
 Return only the report path:
 
@@ -161,8 +151,7 @@ All quality standards are defined in `~/.ai/rules/*`. Key rules:
 - ✅ All tests still pass after cleanup
 - ✅ No branching in test
 - ✅ Test is specific to one behavior
-- ✅ Commit created with proper message
-- ✅ Report written with commit info
+- ✅ Report written
 
 ## Failure Cases
 
@@ -184,9 +173,8 @@ All quality standards are defined in `~/.ai/rules/*`. Key rules:
 5. Runs tests → confirms all 53 tests pass
 6. Runs cleanup (linter, typechecker) → passes
 7. Runs tests again → confirms all 53 tests still pass
-8. Uses SlashCommand tool to invoke `/generic:commit` → abc123de
-9. Writes report including commit info
-10. Returns report path
+8. Writes report
+9. Returns report path
 
 **Output**:
 ```
@@ -198,12 +186,12 @@ All quality standards are defined in `~/.ai/rules/*`. Key rules:
 This agent is called MULTIPLE TIMES to implement a feature incrementally:
 
 ```
-Call 1: "Test loads config when it exists" → test passes, cleanup runs, commit created, report written
-Call 2: "Test saves config after run" → test passes, cleanup runs, commit created, report written
-Call 3: "Test creates config dir if missing" → test passes, cleanup runs, commit created, report written
+Call 1: "Test loads config when it exists" → test passes, cleanup runs, report written
+Call 2: "Test saves config after run" → test passes, cleanup runs, report written
+Call 3: "Test creates config dir if missing" → test passes, cleanup runs, report written
 ```
 
-Each call is one complete red-green-blue cycle with commit and report.
+Each call is one complete red-green-blue cycle with report. The calling context (e.g., tdd-slice command) is responsible for creating commits.
 
 ## Why This Approach
 
