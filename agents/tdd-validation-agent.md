@@ -92,9 +92,12 @@ Use `git show [commit]` to examine the exact changes:
 
 **Follow ALL rules from `~/.ai/rules/4_testing.md` and `5_cleanup.md`**
 
+**Note**: Refactorings (from micro-refactor-agent) may have no new tests or only test updates for renamed/moved code. That's expected - refactoring preserves behavior.
+
 Examine test file using `git show [commit]`:
 
-1. **Specific Behavior Tests** (REQUIRED):
+1. **Specific Behavior Tests** (REQUIRED - skip if no test changes):
+   - If no tests added/modified (refactoring), skip this check → ✅ PASS
    - Each test must test ONE specific behavior
    - Tests with no assertions (just stubs, no expects) → ❌ FAIL
    - Tests checking unrelated concerns together → ❌ FAIL
