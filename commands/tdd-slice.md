@@ -12,6 +12,7 @@ This command uses the Task tool to delegate work to:
 - `commit-agent`
 - `tdd-validation-agent`
 - `micro-fix-agent` - for fixing trivial validation issues
+- `investigator-agent` - for analyzing repeated validation failures
 
 See the Task tool's available agents list for their descriptions.
 
@@ -34,7 +35,8 @@ See the Task tool's available agents list for their descriptions.
 - Validate each commit with tdd-validation-agent
 - Attempt to fix trivial validation issues (commit message, comments, one-liners) with micro-fix-agent
 - Retry failed steps with context (full reset if fixes fail or issues are substantial)
-- Analyze and report on repeated failures
+- Call investigator-agent after second validation failure to determine root cause
+- Analyze and report on repeated failures with investigation findings
 - Create summary report with references to child reports
 
 **Does NOT**:
@@ -214,10 +216,27 @@ Track:
    - If succeeds, call commit-agent again to create new commit
    - Validate again with new commit hash
 
-2. **Second validation failure**: Stop and report
-   - Analyze validation failures (both attempts)
-   - Write failure analysis report using write-agent-report.sh
+2. **Second validation failure**: Investigate and stop
+
+   **Step A: Call investigator-agent**
+
+   Use Task tool (subagent_type='investigator-agent') with:
+   - Validation report path (from second failure)
+   - Micro agent report path
+   - Commit hash
+
+   The investigator will:
+   - Apply problem-solving discipline
+   - Determine root cause
+   - Analyze what went wrong in both attempts
+   - Provide recommendations for what should have been done
+
+   **Step B: Write failure analysis report**
+
    - Include: slice info, item description, both validation reports, quality issues, fix attempts
+   - Include: investigator report path and key findings
+   - Include: investigator's root cause analysis and recommendations
+   - Write failure analysis report using write-agent-report.sh
    - Return the failure report path and STOP
 
 **If validation passes:**
