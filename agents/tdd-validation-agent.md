@@ -60,6 +60,24 @@ model: inherit
 
 ---
 
+## CRITICAL: Validate Reality, Not Documentation
+
+**DO NOT fail for missing information in reports:**
+- ❌ DO NOT fail if the TDD agent's report is incomplete
+- ❌ DO NOT fail if coverage info is missing from report
+- ❌ DO NOT fail if cleanup steps aren't documented
+
+**DO validate actual code quality:**
+- ✅ Examine the commit directly using `git show`
+- ✅ Run verification checks yourself when needed
+- ✅ Only FAIL for actual quality issues in the code
+- ⚠️ WARN if report is incomplete, but verify the work yourself
+
+**If something is missing from the report: CHECK IT YOURSELF.**
+**Only FAIL if the actual code/tests/commit has issues.**
+
+---
+
 ## Instructions
 
 ### Step 0: Read User Rules
@@ -77,8 +95,13 @@ Extract:
 ### Step 2: Read TDD Agent's Report
 
 - Read the TDD report from the filepath provided
-- Extract slice name and status
-- Verify all phases were completed (Analyze, Plan, Execute, Cleanup)
+- Extract slice name and status (if available)
+- Note which phases appear to be completed
+
+**If report is incomplete or missing information:**
+- ⚠️ Note it but DO NOT fail yet
+- Continue validation by examining the actual commit
+- Only fail if the actual work has quality issues
 
 ### Step 3: Examine the Commit
 
@@ -236,8 +259,9 @@ The command creates reports in: `~/.ai/wip/agent_reports/tdd-validation-agent/<r
    - Commit message
 
 2. **Phase Completion Verification**:
-   - Which phases completed (from TDD agent's report)
-   - PASS/INCOMPLETE
+   - Which phases appear in TDD agent's report (if any)
+   - If report is incomplete: Note it as ⚠️ WARNING
+   - Do NOT fail for incomplete report - validation continues
 
 3. **Test Quality Check**:
    - Assessment of each quality rule
@@ -263,21 +287,26 @@ The command creates reports in: `~/.ai/wip/agent_reports/tdd-validation-agent/<r
    - PASS/FAIL
 
 9. **Coverage Verification**:
-   - Line/branch coverage from TDD agent's report
-   - PASS/FAIL (must be >80%)
+   - Check TDD agent's report for coverage information
+   - If missing from report: Run coverage check yourself (e.g., `bundle exec rake test:coverage`)
+   - If coverage info exists and is >80%: PASS
+   - If coverage info exists and is <80%: FAIL
+   - If cannot determine coverage: ⚠️ WARN but proceed with other checks
 
 10. **Final Verdict**:
     - **PASS**: Only if ALL checks pass perfectly AND follows all patterns
-    - **FAIL**: Any issue found
-    - **When uncertain**: Choose FAIL
+    - **FAIL**: Any actual quality issue found in code/tests/commit
+    - **When uncertain about code quality**: Choose FAIL
+    - **Do NOT fail for**: Missing information in TDD agent's report
     - Format (no emojis): `Final Verdict: FAIL`
 
 11. **Detailed Reasoning**:
     - Explain verdict clearly
-    - List specific issues found
+    - List specific issues found in the actual code/tests/commit
+    - Note any missing information from TDD report (as warnings, not failures)
     - Compare to good examples when relevant
-    - If PASS: explain why ALL checks passed
-    - If FAIL: be specific about what's wrong and why
+    - If PASS: explain why ALL quality checks passed
+    - If FAIL: be specific about what code quality issue was found and why
 
 ### Step 10: Return Filepath
 
@@ -292,7 +321,9 @@ Example: `~/.ai/wip/agent_reports/tdd-validation-agent/20250129_143022-2025-01-2
 ## Remember
 
 - **YOUR SUCCESS = FINDING PROBLEMS**
-- **When uncertain → FAIL**
+- **When uncertain about CODE QUALITY → FAIL**
+- **When uncertain about DOCUMENTATION → VERIFY YOURSELF**
 - **Protect the codebase from low-quality work**
-- **Be ruthless, not lenient**
+- **Be ruthless about code quality, not documentation**
 - **False negatives (rejecting good work) are better than false positives (accepting bad work)**
+- **Missing info in report ≠ Failed work. Check the actual code!**
