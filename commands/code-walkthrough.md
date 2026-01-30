@@ -13,7 +13,7 @@ Present code changes in digestible conceptual "chunks" one by one, allowing revi
 
 **Presents**:
 - Actual code changes (not paraphrased)
-- Relevant agent reports for context
+- Additional context provided by the user
 - Changes grouped into conceptual chunks (MAX 50 lines each)
 - One chunk at a time, waiting for feedback
 
@@ -48,28 +48,23 @@ git diff ${parent_branch}...<branch-name>
 git log ${parent_branch}...<branch-name> --oneline
 ```
 
-### Step 3: Load Agent Reports
+### Step 3: Gather Additional Context
 
-**ALWAYS** load agent reports from `~/.ai/wip/agent_reports/`:
+**Ask the user** if there's any additional context to consider:
 
-```bash
-# List all agent reports sorted by date (most recent first)
-find ~/.ai/wip/agent_reports/ -name "*.report.md" -type f -exec ls -lt {} + | head -20
-```
+"Before I walk through the changes, is there any additional context I should take into account? For example:
+- Background on what work was done
+- Specific decisions or constraints
+- Patterns or conventions to highlight
+- Any particular areas of focus"
 
-**Read recent reports** to gather context:
-- TDD agent reports for test implementations
-- Task extraction reports for structural changes
-- Validation reports for quality checks
-- Any other agent reports that might be relevant
+**If the user provides context**:
+- Keep it in mind when presenting chunks
+- Reference it when explaining why changes were made
+- Use it to provide better explanations
 
-**Parse reports** to understand:
-- What work was done
-- What decisions were made
-- What patterns were followed
-- What context is relevant to changes
-
-Keep this context in mind when presenting chunks - reference specific reports when they explain why changes were made.
+**If the user says no or to proceed**:
+- Continue with the walkthrough using just the code changes
 
 ### Step 4: Group Changes into Conceptual Chunks
 
@@ -101,7 +96,6 @@ For each chunk, present:
 
 **Purpose**: [Why this change exists]
 **Files affected**: [List of files]
-**Related agent reports**: [Links to relevant reports if any]
 ```
 
 **Note**: Just number chunks sequentially (1, 2, 3...). Don't predict or display the total - you'll report the final count in the summary.
@@ -179,19 +173,6 @@ After all chunks reviewed, present summary:
 **Total changes**: +X -Y lines
 ```
 
-### Step 8: Write Agent Report
-
-Use `/generic:write-agent-report` to document the walkthrough:
-
-**Report should include**:
-- What changes were reviewed (branch or uncommitted)
-- Summary of each chunk that was presented
-- Questions asked and answers provided
-- Modifications requested and made
-- Final status (approved/skipped) for each chunk
-- Any important context or decisions discussed
-
-This creates a record of the code review session for future reference.
 
 ## Presentation Guidelines
 
@@ -203,7 +184,7 @@ This creates a record of the code review session for future reference.
 
 ### Extra Context is Good
 - Explain **why** changes were made
-- Reference agent reports when relevant
+- Reference user-provided context when relevant
 - Point out patterns or conventions followed
 - Highlight important details
 
@@ -230,7 +211,6 @@ This creates a record of the code review session for future reference.
 **Files affected**:
 - lib/user_input.rb
 - test/user_input_test.rb
-**Related agent reports**: micro-tdd-agent/20250126_143022-2025-01-26.report.md
 
 ### Changes:
 
@@ -269,7 +249,7 @@ diff --git a/test/user_input_test.rb b/test/user_input_test.rb
 
 ### Context:
 
-This follows the validation pattern used throughout the codebase - sanitize at the boundary before processing. The micro-tdd-agent report shows this was developed test-first, with each test driving the implementation.
+This follows the validation pattern used throughout the codebase - sanitize at the boundary before processing. The changes were developed test-first, with each test driving the implementation.
 
 The HTML bracket removal prevents basic XSS while still allowing the content through (the actual HTML removal happens in a later processing stage).
 
@@ -284,7 +264,7 @@ Ready for your feedback on this chunk:
 
 - ✅ Changes grouped into logical, digestible chunks
 - ✅ Actual diff output shown (not paraphrased)
-- ✅ Relevant agent reports loaded and referenced
+- ✅ User asked about additional context to consider
 - ✅ Extra context provided where helpful
 - ✅ Interactive: waits for feedback after each chunk
 - ✅ Allows questions, modifications, and approval
@@ -298,13 +278,13 @@ Ready for your feedback on this chunk:
 - Show changes without context
 - Make chunks larger than 50 lines (break them up even if atomic)
 - Pre-determine how many chunks you'll need (let content decide)
-- Skip loading agent reports
+- Skip asking about additional context
 - Present all changes at once
 
 **DO**:
 - Show actual diff output with proper formatting
 - Wait for user feedback after each chunk
-- Provide context from agent reports
+- Ask about and incorporate any additional context provided
 - Keep chunks digestible and focused
 - Group related changes together
 - Allow interactive discussion
