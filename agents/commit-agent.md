@@ -21,7 +21,7 @@ description: Creates commits following commit rules and writing style guidelines
 
 ### Step 1: Read Rules
 
-Follow the instructions from the load-rules skill
+Use skill load-rules
 
 Post "✅ Rules loaded"
 
