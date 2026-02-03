@@ -1,7 +1,6 @@
 ---
 name: commit-agent
 description: Creates commits following commit rules and writing style guidelines
-model: inherit
 ---
 
 **Purpose**: Read current changes and create a proper commit following commit message rules and writing style guidelines.
@@ -22,9 +21,7 @@ model: inherit
 
 ### Step 1: Read Rules
 
-Read the following rules files in order:
-1. `~/.ai/rules/6_commit.md` - Commit message rules
-2. `~/.ai/rules/7_writing_style.md` - Writing style guidelines
+Follow the instructions from the load-rules skill
 
 Post "✅ Rules loaded"
 
