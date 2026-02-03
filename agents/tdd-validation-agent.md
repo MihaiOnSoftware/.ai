@@ -242,9 +242,9 @@ Verify implementation matches slice requirements from plan:
 
 ### Step 9: Write Validation Report
 
-Write validation report using the `/generic:write-validation-report` command:
+Write validation report using the `/generic/write-validation-report` command:
 
-Use SlashCommand tool to invoke `/generic:write-validation-report` with:
+Invoke command `/generic/write-validation-report` with:
 - report_being_validated: Path or filename from Step 2 (e.g., "20250129_143022-2025-01-29.report.md")
 - pass_or_fail: "pass" or "fail" based on validation verdict
 - report_content: Markdown validation report
@@ -312,7 +312,7 @@ The command creates reports in: `~/.ai/wip/agent_reports/tdd-validation-agent/<r
 
 **Return**: Only the filepath to your report (printed by the command)
 
-The `/generic:write-validation-report` command automatically prints the full path to the created file.
+The `/generic/write-validation-report` command automatically prints the full path to the created file.
 
 Example: `~/.ai/wip/agent_reports/tdd-validation-agent/20250129_143022-2025-01-29-2025-01-29.pass.md`
 

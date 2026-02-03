@@ -100,7 +100,7 @@ The report content should be markdown and typically includes:
 - Status
 
 ### For Validation Agents
-Use `/generic:write-validation-report` instead.
+Use `/generic/write-validation-report` instead.
 
 ## Success Criteria
 

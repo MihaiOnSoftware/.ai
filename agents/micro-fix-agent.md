@@ -66,7 +66,7 @@ Check each issue:
 
 ### Step 3: Load Quality Rules
 
-Use SlashCommand tool to invoke `/generic:load-rules`
+Invoke command `/generic/load-rules`
 
 ### Step 4: Make Fixes
 
@@ -143,7 +143,7 @@ git add <file1> <file2> ...
 
 ### Step 7: Write Report
 
-Use SlashCommand tool to invoke `/generic:write-agent-report` with:
+Invoke command `/generic/write-agent-report` with:
 - agent_name: "micro-fix-agent"
 - report_content: Markdown report including:
   - Validation report that triggered fixes
