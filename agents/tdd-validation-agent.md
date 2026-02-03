@@ -241,9 +241,9 @@ Verify implementation matches slice requirements from plan:
 
 ### Step 9: Write Validation Report
 
-Write validation report using the `/generic/write-validation-report` command:
+Write validation report using the write-validation-report skill:
 
-Invoke command `/generic/write-validation-report` with:
+Use skill write-validation-report with:
 - report_being_validated: Path or filename from Step 2 (e.g., "20250129_143022-2025-01-29.report.md")
 - pass_or_fail: "pass" or "fail" based on validation verdict
 - report_content: Markdown validation report
@@ -309,9 +309,9 @@ The command creates reports in: `~/.ai/wip/agent_reports/tdd-validation-agent/<r
 
 ### Step 10: Return Filepath
 
-**Return**: Only the filepath to your report (printed by the command)
+**Return**: Only the filepath to your report (printed by the skill)
 
-The `/generic/write-validation-report` command automatically prints the full path to the created file.
+The write-validation-report skill automatically prints the full path to the created file.
 
 Example: `~/.ai/wip/agent_reports/tdd-validation-agent/20250129_143022-2025-01-29-2025-01-29.pass.md`
 

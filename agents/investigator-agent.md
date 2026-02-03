@@ -38,13 +38,13 @@ description: Investigates validation failures to determine root cause and recomm
 
 **STOP → THINK → INVESTIGATE → UNDERSTAND → RECOMMEND**
 
-Apply the problem-solving discipline from `/generic/when-stuck`.
+Apply the problem-solving discipline from when-stuck skill.
 
 ## Workflow
 
 ### Step 1: Load Problem-Solving Discipline
 
-Invoke command `/generic/when-stuck`
+Use skill when-stuck
 
 This loads the investigation framework and discipline.
 
@@ -208,7 +208,7 @@ When calling [micro-tdd-agent or micro-refactor-agent] again:
 
 ### Step 8: Write Investigation Report
 
-Invoke command `/generic/write-agent-report` with:
+Use skill write-agent-report with:
 - agent_name: "investigator-agent"
 - report_content: Markdown report including:
   - Validation report analyzed
@@ -230,7 +230,7 @@ Return only the report path:
 
 ## Quality Standards
 
-- Follow problem-solving discipline from `/generic/when-stuck`
+- Follow problem-solving discipline from when-stuck skill
 - Don't make assumptions - investigate thoroughly
 - Trace through code to understand root cause
 - Provide specific, actionable recommendations

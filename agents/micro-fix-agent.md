@@ -65,7 +65,7 @@ Check each issue:
 
 ### Step 3: Load Quality Rules
 
-Invoke command `/generic/load-rules`
+Use skill load-rules
 
 ### Step 4: Make Fixes
 
@@ -142,7 +142,7 @@ git add <file1> <file2> ...
 
 ### Step 7: Write Report
 
-Invoke command `/generic/write-agent-report` with:
+Use skill write-agent-report with:
 - agent_name: "micro-fix-agent"
 - report_content: Markdown report including:
   - Validation report that triggered fixes

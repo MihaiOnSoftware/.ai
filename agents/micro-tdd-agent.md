@@ -35,7 +35,7 @@ This is true TDD discipline with cleanup after each cycle:
 
 ### Step 1: Read Quality Rules
 
-Invoke command `/generic/load-rules`
+Use skill load-rules
 
 ### Step 2: Write ONE Test
 
@@ -97,9 +97,9 @@ Run ALL tests in the test file again to confirm cleanup didn't break anything:
 
 ### Step 8: Write Report
 
-Write a report using the `/generic/write-agent-report` command:
+Write a report using the write-agent-report skill:
 
-Invoke command `/generic/write-agent-report` with:
+Use skill write-agent-report with:
 - agent_name: "micro-tdd-agent"
 - report_content: Markdown report including:
   - Test name and file
