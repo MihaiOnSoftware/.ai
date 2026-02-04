@@ -4,6 +4,29 @@ set -euo pipefail
 
 FORCE_MODE="false"
 
+# ANSI Color Codes
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+log_success() {
+    echo -e "${GREEN}$1${NC}"
+}
+
+log_warning() {
+    echo -e "${YELLOW}$1${NC}" >&2
+}
+
+log_error() {
+    echo -e "${RED}$1${NC}" >&2
+}
+
+log_info() {
+    echo -e "${BLUE}$1${NC}"
+}
+
 while getopts "f" opt; do
     case $opt in
         f) FORCE_MODE="true" ;;
@@ -31,7 +54,7 @@ validate_source_directories() {
     done
 
     if [ ${#missing_dirs[@]} -gt 0 ]; then
-        echo "Error: Missing required source directories:" >&2
+        log_error "Error: Missing required source directories:"
         printf '  - %s\n' "${missing_dirs[@]}" >&2
         exit 2
     fi
@@ -58,29 +81,29 @@ create_symlink() {
     mkdir -p "$(dirname "$target_path")"
 
     if is_correct_symlink "$target_path" "$source_dir"; then
-        echo "Symlink already exists: $target_path"
+        log_info "Symlink already exists: $target_path"
         return 0
     fi
 
     # Safety check: never overwrite regular files/directories
     if [ -e "$target_path" ] && [ ! -L "$target_path" ]; then
-        echo "Error: $target_path exists and is not a symlink" >&2
+        log_error "Error: $target_path exists and is not a symlink"
         exit 1
     fi
 
     if [ -L "$target_path" ]; then
         if [ "$force_mode" = "true" ]; then
-            echo "Fixing wrong symlink: $target_path"
+            log_info "Fixing wrong symlink: $target_path"
             rm "$target_path"
         else
-            echo "Warning: $target_path is a symlink to wrong location" >&2
-            echo "Use -f flag to fix wrong symlinks" >&2
+            log_warning "Warning: $target_path is a symlink to wrong location"
+            log_warning "Use -f flag to fix wrong symlinks"
             exit 1
         fi
     fi
 
     ln -s "$source_dir" "$target_path"
-    echo "Created symlink: $target_path -> $source_dir"
+    log_success "Created symlink: $target_path -> $source_dir"
 }
 
 validate_source_directories
@@ -123,4 +146,4 @@ OPENCODE_AGENTS_PATH="${OPENCODE_AGENTS_PATH:-$HOME/.config/opencode/agents/gene
 create_symlink "$OPENCODE_AGENTS_PATH" "$AGENTS_DIR" "$FORCE_MODE"
 
 echo ""
-echo "✅ Configuration complete! Configured 8 symlinks for scripts, rules, commands, skills, and agents."
+log_success "✅ Configuration complete! Configured 8 symlinks for scripts, rules, commands, skills, and agents."
