@@ -4,6 +4,11 @@ set -euo pipefail
 
 FORCE_MODE="false"
 
+# Global Counters
+COUNT_CREATED=0
+COUNT_CORRECT=0
+COUNT_WARNING=0
+
 # ANSI Color Codes
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -26,6 +31,26 @@ log_error() {
 log_info() {
     echo -e "${BLUE}$1${NC}"
 }
+
+print_summary() {
+    # If script exited with error (non-zero), we might still want to show stats
+    local exit_code=$?
+    
+    echo ""
+    echo "=============================="
+    echo "      Execution Summary       "
+    echo "=============================="
+    echo "Created: $COUNT_CREATED"
+    echo "Correct: $COUNT_CORRECT"
+    echo "Warnings: $COUNT_WARNING"
+    echo "=============================="
+    
+    # Preserve exit code if it was non-zero
+    if [ $exit_code -ne 0 ]; then
+        exit $exit_code
+    fi
+}
+trap print_summary EXIT
 
 while getopts "f" opt; do
     case $opt in
@@ -82,6 +107,7 @@ create_symlink() {
 
     if is_correct_symlink "$target_path" "$source_dir"; then
         log_success "✓ Symlink already exists: $target_path"
+        COUNT_CORRECT=$((COUNT_CORRECT + 1))
         return 0
     fi
 
@@ -98,12 +124,14 @@ create_symlink() {
         else
             log_warning "⚠ Warning: $target_path is a symlink to wrong location"
             log_warning "  Use -f flag to fix wrong symlinks"
+            COUNT_WARNING=$((COUNT_WARNING + 1))
             exit 1
         fi
     fi
 
     ln -s "$source_dir" "$target_path"
     log_info "➕ Created symlink: $target_path -> $source_dir"
+    COUNT_CREATED=$((COUNT_CREATED + 1))
 }
 
 validate_source_directories
