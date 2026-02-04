@@ -4,6 +4,29 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+validate_source_directories() {
+    local missing_dirs=()
+    local required_dirs=(
+        "$REPO_ROOT/scripts"
+        "$REPO_ROOT/rules"
+        "$REPO_ROOT/commands"
+        "$REPO_ROOT/skills"
+        "$REPO_ROOT/agents"
+    )
+
+    for dir in "${required_dirs[@]}"; do
+        if [ ! -d "$dir" ]; then
+            missing_dirs+=("$dir")
+        fi
+    done
+
+    if [ ${#missing_dirs[@]} -gt 0 ]; then
+        echo "Error: Missing required source directories:" >&2
+        printf '  - %s\n' "${missing_dirs[@]}" >&2
+        exit 2
+    fi
+}
+
 create_symlink() {
     local target_path="$1"
     local source_dir="$2"
@@ -21,6 +44,8 @@ create_symlink() {
     ln -sf "$source_dir" "$target_path"
     echo "Created symlink: $target_path -> $source_dir"
 }
+
+validate_source_directories
 
 AI_SCRIPTS_PATH="${AI_SCRIPTS_PATH:-$HOME/.ai/scripts/generic}"
 SCRIPTS_DIR="$REPO_ROOT/scripts"
