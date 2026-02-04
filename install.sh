@@ -62,6 +62,7 @@ create_symlink() {
         return 0
     fi
 
+    # Safety check: never overwrite regular files/directories
     if [ -e "$target_path" ] && [ ! -L "$target_path" ]; then
         echo "Error: $target_path exists and is not a symlink" >&2
         exit 1
