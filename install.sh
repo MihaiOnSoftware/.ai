@@ -2,6 +2,16 @@
 
 set -euo pipefail
 
+FORCE_MODE="false"
+
+while getopts "f" opt; do
+    case $opt in
+        f) FORCE_MODE="true" ;;
+        *) echo "Usage: install.sh [-f]" >&2; exit 1 ;;
+    esac
+done
+
+
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 validate_source_directories() {
@@ -43,6 +53,7 @@ is_correct_symlink() {
 create_symlink() {
     local target_path="$1"
     local source_dir="$2"
+    local force_mode="$3"
 
     mkdir -p "$(dirname "$target_path")"
 
@@ -71,39 +82,39 @@ validate_source_directories
 AI_SCRIPTS_PATH="${AI_SCRIPTS_PATH:-$HOME/.ai/scripts/generic}"
 SCRIPTS_DIR="$REPO_ROOT/scripts"
 
-create_symlink "$AI_SCRIPTS_PATH" "$SCRIPTS_DIR"
+create_symlink "$AI_SCRIPTS_PATH" "$SCRIPTS_DIR" "$FORCE_MODE"
 
 AI_RULES_PATH="${AI_RULES_PATH:-$HOME/.ai/rules}"
 RULES_DIR="$REPO_ROOT/rules"
 
-create_symlink "$AI_RULES_PATH" "$RULES_DIR"
+create_symlink "$AI_RULES_PATH" "$RULES_DIR" "$FORCE_MODE"
 
 CLAUDE_COMMANDS_PATH="${CLAUDE_COMMANDS_PATH:-$HOME/.claude/commands/generic}"
 COMMANDS_DIR="$REPO_ROOT/commands"
 
-create_symlink "$CLAUDE_COMMANDS_PATH" "$COMMANDS_DIR"
+create_symlink "$CLAUDE_COMMANDS_PATH" "$COMMANDS_DIR" "$FORCE_MODE"
 
 CLAUDE_SKILLS_PATH="${CLAUDE_SKILLS_PATH:-$HOME/.claude/skills/generic}"
 SKILLS_DIR="$REPO_ROOT/skills"
 
-create_symlink "$CLAUDE_SKILLS_PATH" "$SKILLS_DIR"
+create_symlink "$CLAUDE_SKILLS_PATH" "$SKILLS_DIR" "$FORCE_MODE"
 
 CLAUDE_AGENTS_PATH="${CLAUDE_AGENTS_PATH:-$HOME/.claude/agents/generic}"
 AGENTS_DIR="$REPO_ROOT/agents"
 
-create_symlink "$CLAUDE_AGENTS_PATH" "$AGENTS_DIR"
+create_symlink "$CLAUDE_AGENTS_PATH" "$AGENTS_DIR" "$FORCE_MODE"
 
 OPENCODE_COMMANDS_PATH="${OPENCODE_COMMANDS_PATH:-$HOME/.config/opencode/commands/generic}"
 
-create_symlink "$OPENCODE_COMMANDS_PATH" "$COMMANDS_DIR"
+create_symlink "$OPENCODE_COMMANDS_PATH" "$COMMANDS_DIR" "$FORCE_MODE"
 
 OPENCODE_SKILLS_PATH="${OPENCODE_SKILLS_PATH:-$HOME/.config/opencode/skills/generic}"
 
-create_symlink "$OPENCODE_SKILLS_PATH" "$SKILLS_DIR"
+create_symlink "$OPENCODE_SKILLS_PATH" "$SKILLS_DIR" "$FORCE_MODE"
 
 OPENCODE_AGENTS_PATH="${OPENCODE_AGENTS_PATH:-$HOME/.config/opencode/agents/generic}"
 
-create_symlink "$OPENCODE_AGENTS_PATH" "$AGENTS_DIR"
+create_symlink "$OPENCODE_AGENTS_PATH" "$AGENTS_DIR" "$FORCE_MODE"
 
 echo ""
 echo "✅ Configuration complete! Configured 8 symlinks for scripts, rules, commands, skills, and agents."
