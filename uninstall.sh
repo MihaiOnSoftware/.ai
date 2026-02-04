@@ -11,6 +11,9 @@ NC='\033[0m' # No Color
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Source shared paths configuration
+source "$REPO_ROOT/lib/paths.sh"
+
 log_success() {
     echo -e "${GREEN}$1${NC}"
 }
@@ -55,40 +58,27 @@ echo "      Uninstalling...         "
 echo "=============================="
 
 # 1. AI Scripts
-AI_SCRIPTS_PATH="${AI_SCRIPTS_PATH:-$HOME/.ai/scripts/generic}"
-SCRIPTS_DIR="$REPO_ROOT/scripts"
 uninstall_symlink "$AI_SCRIPTS_PATH" "$SCRIPTS_DIR"
 
 # 2. AI Rules
-AI_RULES_PATH="${AI_RULES_PATH:-$HOME/.ai/rules}"
-RULES_DIR="$REPO_ROOT/rules"
 uninstall_symlink "$AI_RULES_PATH" "$RULES_DIR"
 
 # 3. Claude Commands
-CLAUDE_COMMANDS_PATH="${CLAUDE_COMMANDS_PATH:-$HOME/.claude/commands/generic}"
-COMMANDS_DIR="$REPO_ROOT/commands"
 uninstall_symlink "$CLAUDE_COMMANDS_PATH" "$COMMANDS_DIR"
 
 # 4. Claude Skills
-CLAUDE_SKILLS_PATH="${CLAUDE_SKILLS_PATH:-$HOME/.claude/skills/generic}"
-SKILLS_DIR="$REPO_ROOT/skills"
 uninstall_symlink "$CLAUDE_SKILLS_PATH" "$SKILLS_DIR"
 
 # 5. Claude Agents
-CLAUDE_AGENTS_PATH="${CLAUDE_AGENTS_PATH:-$HOME/.claude/agents/generic}"
-AGENTS_DIR="$REPO_ROOT/agents"
 uninstall_symlink "$CLAUDE_AGENTS_PATH" "$AGENTS_DIR"
 
 # 6. Opencode Commands
-OPENCODE_COMMANDS_PATH="${OPENCODE_COMMANDS_PATH:-$HOME/.config/opencode/commands/generic}"
 uninstall_symlink "$OPENCODE_COMMANDS_PATH" "$COMMANDS_DIR"
 
 # 7. Opencode Skills
-OPENCODE_SKILLS_PATH="${OPENCODE_SKILLS_PATH:-$HOME/.config/opencode/skills/generic}"
 uninstall_symlink "$OPENCODE_SKILLS_PATH" "$SKILLS_DIR"
 
 # 8. Opencode Agents
-OPENCODE_AGENTS_PATH="${OPENCODE_AGENTS_PATH:-$HOME/.config/opencode/agents/generic}"
 uninstall_symlink "$OPENCODE_AGENTS_PATH" "$AGENTS_DIR"
 
 echo ""
