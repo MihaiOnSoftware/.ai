@@ -60,7 +60,8 @@ while getopts "f" opt; do
 done
 
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Load path configuration
+source "$(dirname "${BASH_SOURCE[0]}")/lib/paths.sh"
 
 validate_source_directories() {
     local missing_dirs=()
@@ -136,40 +137,19 @@ create_symlink() {
 
 validate_source_directories
 
-AI_SCRIPTS_PATH="${AI_SCRIPTS_PATH:-$HOME/.ai/scripts/generic}"
-SCRIPTS_DIR="$REPO_ROOT/scripts"
-
 create_symlink "$AI_SCRIPTS_PATH" "$SCRIPTS_DIR" "$FORCE_MODE"
-
-AI_RULES_PATH="${AI_RULES_PATH:-$HOME/.ai/rules}"
-RULES_DIR="$REPO_ROOT/rules"
 
 create_symlink "$AI_RULES_PATH" "$RULES_DIR" "$FORCE_MODE"
 
-CLAUDE_COMMANDS_PATH="${CLAUDE_COMMANDS_PATH:-$HOME/.claude/commands/generic}"
-COMMANDS_DIR="$REPO_ROOT/commands"
-
 create_symlink "$CLAUDE_COMMANDS_PATH" "$COMMANDS_DIR" "$FORCE_MODE"
-
-CLAUDE_SKILLS_PATH="${CLAUDE_SKILLS_PATH:-$HOME/.claude/skills/generic}"
-SKILLS_DIR="$REPO_ROOT/skills"
 
 create_symlink "$CLAUDE_SKILLS_PATH" "$SKILLS_DIR" "$FORCE_MODE"
 
-CLAUDE_AGENTS_PATH="${CLAUDE_AGENTS_PATH:-$HOME/.claude/agents/generic}"
-AGENTS_DIR="$REPO_ROOT/agents"
-
 create_symlink "$CLAUDE_AGENTS_PATH" "$AGENTS_DIR" "$FORCE_MODE"
-
-OPENCODE_COMMANDS_PATH="${OPENCODE_COMMANDS_PATH:-$HOME/.config/opencode/commands/generic}"
 
 create_symlink "$OPENCODE_COMMANDS_PATH" "$COMMANDS_DIR" "$FORCE_MODE"
 
-OPENCODE_SKILLS_PATH="${OPENCODE_SKILLS_PATH:-$HOME/.config/opencode/skills/generic}"
-
 create_symlink "$OPENCODE_SKILLS_PATH" "$SKILLS_DIR" "$FORCE_MODE"
-
-OPENCODE_AGENTS_PATH="${OPENCODE_AGENTS_PATH:-$HOME/.config/opencode/agents/generic}"
 
 create_symlink "$OPENCODE_AGENTS_PATH" "$AGENTS_DIR" "$FORCE_MODE"
 
