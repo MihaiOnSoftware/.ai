@@ -138,7 +138,7 @@ Track:
 
 2. **Second failure**: Stop and report
    - Analyze what went wrong (examine errors, code state, test output)
-   - Write failure analysis report using write-agent-report.sh
+   - Write failure analysis report using write-agent-report skill
    - Include: slice info, failed item, both attempts, error details, possible causes
    - Return the failure report path and STOP
 
@@ -236,7 +236,7 @@ Track:
    - Include: slice info, item description, both validation reports, quality issues, fix attempts
    - Include: investigator report path and key findings
    - Include: investigator's root cause analysis and recommendations
-   - Write failure analysis report using write-agent-report.sh
+   - Write failure analysis report using write-agent-report skill
    - Return the failure report path and STOP
 
 **If validation passes:**
@@ -257,7 +257,7 @@ After all micro cycles complete successfully:
 
 **Step 2: Create summary report**
 
-Write report using `~/.ai/scripts/generic/write-agent-report.sh`:
+Use the write-agent-report skill to create the summary report:
 
 ```bash
 cat <<EOF | ~/.ai/scripts/generic/write-agent-report.sh tdd-slice
