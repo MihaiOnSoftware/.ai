@@ -27,18 +27,28 @@ validate_source_directories() {
     fi
 }
 
+is_correct_symlink() {
+    local target_path="$1"
+    local source_dir="$2"
+
+    if [ -L "$target_path" ]; then
+        existing_target="$(readlink "$target_path")"
+        if [ "$existing_target" = "$source_dir" ]; then
+            return 0
+        fi
+    fi
+    return 1
+}
+
 create_symlink() {
     local target_path="$1"
     local source_dir="$2"
 
     mkdir -p "$(dirname "$target_path")"
 
-    if [ -L "$target_path" ]; then
-        existing_target="$(readlink "$target_path")"
-        if [ "$existing_target" = "$source_dir" ]; then
-            echo "Symlink already exists: $target_path"
-            return 0
-        fi
+    if is_correct_symlink "$target_path" "$source_dir"; then
+        echo "Symlink already exists: $target_path"
+        return 0
     fi
 
     ln -sf "$source_dir" "$target_path"
