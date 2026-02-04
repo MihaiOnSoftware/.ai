@@ -51,6 +51,11 @@ create_symlink() {
         return 0
     fi
 
+    if [ -e "$target_path" ] && [ ! -L "$target_path" ]; then
+        echo "Error: $target_path exists and is not a symlink" >&2
+        exit 1
+    fi
+
     ln -sf "$source_dir" "$target_path"
     echo "Created symlink: $target_path -> $source_dir"
 }
