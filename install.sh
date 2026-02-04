@@ -29,12 +29,9 @@ create_symlink() {
 }
 
 AI_SCRIPTS_PATH="${AI_SCRIPTS_PATH:-$HOME/.ai/scripts/generic}"
-GENERIC_SCRIPTS_DIR="$REPO_ROOT/scripts/generic"
+SCRIPTS_DIR="$REPO_ROOT/scripts"
 
-mkdir -p "$GENERIC_SCRIPTS_DIR"
-touch "$GENERIC_SCRIPTS_DIR/.keep"
-
-create_symlink "$AI_SCRIPTS_PATH" "$GENERIC_SCRIPTS_DIR"
+create_symlink "$AI_SCRIPTS_PATH" "$SCRIPTS_DIR"
 
 AI_RULES_PATH="${AI_RULES_PATH:-$HOME/.ai/rules}"
 RULES_DIR="$REPO_ROOT/rules"
@@ -42,26 +39,17 @@ RULES_DIR="$REPO_ROOT/rules"
 create_symlink "$AI_RULES_PATH" "$RULES_DIR"
 
 CLAUDE_COMMANDS_PATH="${CLAUDE_COMMANDS_PATH:-$HOME/.claude/commands/generic}"
-COMMANDS_DIR="$REPO_ROOT/commands/generic"
-
-mkdir -p "$COMMANDS_DIR"
-touch "$COMMANDS_DIR/.keep"
+COMMANDS_DIR="$REPO_ROOT/commands"
 
 create_symlink "$CLAUDE_COMMANDS_PATH" "$COMMANDS_DIR"
 
 CLAUDE_SKILLS_PATH="${CLAUDE_SKILLS_PATH:-$HOME/.claude/skills/generic}"
-SKILLS_DIR="$REPO_ROOT/skills/generic"
-
-mkdir -p "$SKILLS_DIR"
-touch "$SKILLS_DIR/.keep"
+SKILLS_DIR="$REPO_ROOT/skills"
 
 create_symlink "$CLAUDE_SKILLS_PATH" "$SKILLS_DIR"
 
 CLAUDE_AGENTS_PATH="${CLAUDE_AGENTS_PATH:-$HOME/.claude/agents/generic}"
-AGENTS_DIR="$REPO_ROOT/agents/generic"
-
-mkdir -p "$AGENTS_DIR"
-touch "$AGENTS_DIR/.keep"
+AGENTS_DIR="$REPO_ROOT/agents"
 
 create_symlink "$CLAUDE_AGENTS_PATH" "$AGENTS_DIR"
 
