@@ -62,7 +62,7 @@ create_symlink() {
         exit 1
     fi
 
-    ln -sf "$source_dir" "$target_path"
+    ln -s "$source_dir" "$target_path"
     echo "Created symlink: $target_path -> $source_dir"
 }
 
