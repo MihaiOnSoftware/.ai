@@ -61,3 +61,13 @@ The installer:
 - ✅ Validates source directories exist before installing
 - ⚠️ Warns on wrong symlinks (suggests `-f`)
 - ❌ Errors on regular files/directories (never overwrites)
+
+## Uninstallation
+
+To remove the symlinks created by the installation script, use the `uninstall.sh` script:
+
+```bash
+./uninstall.sh
+```
+
+This script safely removes only the symlinks pointing to this repository. It uses the same environment variables as the installation script to locate the symlinks.
