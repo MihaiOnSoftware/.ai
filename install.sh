@@ -54,7 +54,7 @@ validate_source_directories() {
     done
 
     if [ ${#missing_dirs[@]} -gt 0 ]; then
-        log_error "Error: Missing required source directories:"
+        log_error "✗ Error: Missing required source directories:"
         printf '  - %s\n' "${missing_dirs[@]}" >&2
         exit 2
     fi
@@ -81,29 +81,29 @@ create_symlink() {
     mkdir -p "$(dirname "$target_path")"
 
     if is_correct_symlink "$target_path" "$source_dir"; then
-        log_info "Symlink already exists: $target_path"
+        log_success "✓ Symlink already exists: $target_path"
         return 0
     fi
 
     # Safety check: never overwrite regular files/directories
     if [ -e "$target_path" ] && [ ! -L "$target_path" ]; then
-        log_error "Error: $target_path exists and is not a symlink"
+        log_error "✗ Error: $target_path exists and is not a symlink"
         exit 1
     fi
 
     if [ -L "$target_path" ]; then
         if [ "$force_mode" = "true" ]; then
-            log_info "Fixing wrong symlink: $target_path"
+            log_info "⚠ Fixing wrong symlink: $target_path"
             rm "$target_path"
         else
-            log_warning "Warning: $target_path is a symlink to wrong location"
-            log_warning "Use -f flag to fix wrong symlinks"
+            log_warning "⚠ Warning: $target_path is a symlink to wrong location"
+            log_warning "  Use -f flag to fix wrong symlinks"
             exit 1
         fi
     fi
 
     ln -s "$source_dir" "$target_path"
-    log_success "Created symlink: $target_path -> $source_dir"
+    log_info "➕ Created symlink: $target_path -> $source_dir"
 }
 
 validate_source_directories
