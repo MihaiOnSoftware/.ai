@@ -76,3 +76,6 @@ create_symlink "$OPENCODE_SKILLS_PATH" "$SKILLS_DIR"
 OPENCODE_AGENTS_PATH="${OPENCODE_AGENTS_PATH:-$HOME/.config/opencode/agents/generic}"
 
 create_symlink "$OPENCODE_AGENTS_PATH" "$AGENTS_DIR"
+
+echo ""
+echo "✅ Configuration complete! Configured 8 symlinks for scripts, rules, commands, skills, and agents."
