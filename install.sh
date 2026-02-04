@@ -56,6 +56,12 @@ create_symlink() {
         exit 1
     fi
 
+    if [ -L "$target_path" ]; then
+        echo "Warning: $target_path is a symlink to wrong location" >&2
+        echo "Use -f flag to fix wrong symlinks" >&2
+        exit 1
+    fi
+
     ln -sf "$source_dir" "$target_path"
     echo "Created symlink: $target_path -> $source_dir"
 }
