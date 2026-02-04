@@ -10,21 +10,15 @@ create_symlink() {
 
     mkdir -p "$(dirname "$target_path")"
 
-    if [ -e "$target_path" ] && [ ! -L "$target_path" ]; then
-        echo "Error: $target_path exists but is not a symlink" >&2
-        exit 1
-    fi
-
     if [ -L "$target_path" ]; then
         existing_target="$(readlink "$target_path")"
         if [ "$existing_target" = "$source_dir" ]; then
-            echo "Symlink already exists and points to correct location: $target_path"
+            echo "Symlink already exists: $target_path"
             return 0
         fi
-        rm "$target_path"
     fi
 
-    ln -s "$source_dir" "$target_path"
+    ln -sf "$source_dir" "$target_path"
     echo "Created symlink: $target_path -> $source_dir"
 }
 
