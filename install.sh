@@ -22,17 +22,12 @@ echo ""
 
 # Run modular install scripts
 "$SCRIPT_DIR/lib/install_scripts.sh" $FORCE_FLAG
-echo ""
-
 "$SCRIPT_DIR/lib/install_rules.sh" $FORCE_FLAG
-echo ""
 
-"$SCRIPT_DIR/lib/install_commands.sh" $FORCE_FLAG
-echo ""
+# Replaced in favour of skills
+# "$SCRIPT_DIR/lib/install_commands.sh" $FORCE_FLAG
 
 "$SCRIPT_DIR/lib/install_skills.sh" $FORCE_FLAG
-echo ""
-
 "$SCRIPT_DIR/lib/install_agents.sh" $FORCE_FLAG
 
 echo ""
