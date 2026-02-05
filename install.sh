@@ -2,35 +2,15 @@
 
 set -euo pipefail
 
+# Load logging functions
+source "$(dirname "${BASH_SOURCE[0]}")/lib/logging.sh"
+
 FORCE_MODE="false"
 
 # Global Counters
 COUNT_CREATED=0
 COUNT_CORRECT=0
 COUNT_WARNING=0
-
-# ANSI Color Codes
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
-
-log_success() {
-    echo -e "${GREEN}$1${NC}"
-}
-
-log_warning() {
-    echo -e "${YELLOW}$1${NC}" >&2
-}
-
-log_error() {
-    echo -e "${RED}$1${NC}" >&2
-}
-
-log_info() {
-    echo -e "${BLUE}$1${NC}"
-}
 
 print_summary() {
     # If script exited with error (non-zero), we might still want to show stats
