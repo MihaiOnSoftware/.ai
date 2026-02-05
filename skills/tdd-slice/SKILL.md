@@ -72,7 +72,7 @@ Slice requirements should be provided as:
 [Reference message - not used, micro commits kept]
 ```
 
-**Note**: Items prefixed with "Refactor:" will use micro-refactor-agent instead of micro-tdd-agent.
+**Note**: Items may be prefixed with "Refactor:" to explicitly indicate refactorings, but the agent will analyze each item to determine if it's a behavioral change (test) or structural change (refactor).
 
 ## Workflow
 
@@ -108,7 +108,10 @@ Post "✅ Codebase analyzed"
 
 **Step 3: Create execution plan**
 - Review items from "Tests to Write" section
-- Identify which are test behaviors vs refactorings (prefix "Refactor:")
+- For each item, analyze whether it's a behavioral change or structural change:
+  - **Test behavior** (use micro-tdd-agent): Adds new functionality, changes behavior, adds assertions about system behavior
+  - **Refactoring** (use micro-refactor-agent): Improves code structure without changing behavior (extract method, rename, reorganize)
+  - Items explicitly prefixed with "Refactor:" are refactorings, but also identify refactorings without the prefix
 - Ensure test behaviors are specific and atomic (one behavior per test)
 - Ensure refactorings are specific and atomic (one structural change)
 - If items are too broad, break them down further
@@ -122,11 +125,13 @@ For each item in the execution plan:
 
 **Step 1: Call appropriate agent**
 
+Based on the execution plan's type annotation for this item:
+
 **If item is a test behavior:**
 Use Task tool (subagent_type='micro-tdd-agent') with the test behavior description.
 
-**If item is a refactoring (prefix "Refactor:"):**
-Use Task tool (subagent_type='micro-refactor-agent') with the refactoring description (without prefix).
+**If item is a refactoring:**
+Use Task tool (subagent_type='micro-refactor-agent') with the refactoring description (remove "Refactor:" prefix if present).
 
 Track:
 - Attempt number (1 or 2)
@@ -162,9 +167,19 @@ Post "✅ Commit created: [commit hash]"
 
 **Step 3: Validate the micro commit**
 
-Use Task tool (subagent_type='tdd-validation-agent') with: `<micro-report-path> <commit-hash>`
+Use Task tool (subagent_type='tdd-validation-agent') with context about the slice and current item.
 
-Format the prompt as: "[micro report path] [commit hash]"
+Format the prompt as:
+```
+Validate this commit for slice [N]: [Slice Name]
+
+Slice goal: [Goal from requirements]
+Current item: [Item description from execution plan]
+Item type: [test/refactor]
+
+Micro report: [micro report path]
+Commit: [commit hash]
+```
 
 Track:
 - Validation attempt number (1 or 2)
@@ -198,7 +213,7 @@ Track:
    - Soft reset: `git reset --soft HEAD~1`
    - Use Task tool (subagent_type='commit-agent') to create new commit
    - Track new commit hash
-   - Validate again with new commit hash
+   - Validate again with new commit hash (include same slice context)
    - If validation passes → continue
    - If validation fails → proceed to Step C (reset path)
 
@@ -207,7 +222,7 @@ Track:
    - If micro-fix-agent succeeds:
      - Amend commit: `git commit --amend --no-edit`
      - Track commit hash (stays same after amend)
-     - Validate again with same commit hash
+     - Validate again with same commit hash (include same slice context)
      - If validation passes → continue
      - If validation fails → proceed to Step C (reset path)
    - If micro-fix-agent fails → proceed to Step C (reset path)
@@ -219,7 +234,7 @@ Track:
    - Revert the commit: `git reset --hard HEAD~1`
    - Use Task tool with same agent type (micro-tdd or micro-refactor) again with validation feedback
    - If succeeds, call commit-agent again to create new commit
-   - Validate again with new commit hash
+   - Validate again with new commit hash (include same slice context)
 
 2. **Second validation failure**: Investigate and stop
 
@@ -421,27 +436,27 @@ The tdd-slice command's job is orchestration, not quality enforcement.
 **Cycle 1**: "Test loads config when it exists"
 - Uses Task tool (micro-tdd-agent) → Success (report at path/to/report1.md)
 - Uses Task tool (commit-agent) → commit abc123
-- Uses Task tool (validation-agent) with "path/to/report1.md abc123" → Pass
+- Uses Task tool (validation-agent) with slice context and "path/to/report1.md abc123" → Pass
 - Posts: ✅ Cycle 1/3 complete
 
-**Cycle 2**: "Refactor: Extract duplicate file validation"
+**Cycle 2**: "Extract duplicate file validation" (identified as refactoring)
 - Uses Task tool (micro-refactor-agent) → Success (report at path/to/report2.md)
 - Uses Task tool (commit-agent) → commit def456
-- Uses Task tool (validation-agent) with "path/to/report2.md def456" → Fails (comment should be method)
+- Uses Task tool (validation-agent) with slice context and "path/to/report2.md def456" → Fails (comment should be method)
 - Categorizes as trivial issue
 - Uses Task tool (micro-fix-agent) with validation report → Success (extracted method)
 - Amends commit def456
-- Re-validates with "path/to/report2.md def456" → Pass
+- Re-validates with slice context and "path/to/report2.md def456" → Pass
 - Posts: ✅ Cycle 2/3 complete (1 fix)
 
 **Cycle 3**: "Test saves config after run"
 - Uses Task tool (micro-tdd-agent) → Fails (test has branching)
 - Retries with context → Success (report at path/to/report3.md)
 - Uses Task tool (commit-agent) → commit ghi789
-- Uses Task tool (validation-agent) with "path/to/report3.md ghi789" → Fails (test still has issue)
+- Uses Task tool (validation-agent) with slice context and "path/to/report3.md ghi789" → Fails (test still has issue)
 - Reverts commit, retries with validation feedback → Success (report at path/to/report3b.md)
 - Uses Task tool (commit-agent) → commit jkl012
-- Uses Task tool (validation-agent) with "path/to/report3b.md jkl012" → Pass
+- Uses Task tool (validation-agent) with slice context and "path/to/report3b.md jkl012" → Pass
 - Posts: ✅ Cycle 3/3 complete (1 retry)
 
 **Final**:

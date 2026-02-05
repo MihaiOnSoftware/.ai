@@ -70,11 +70,16 @@ Implement the refactoring following rules from `3_quality.md`:
 - Simplify complex logic
 - Improve structure
 
-**Never**:
-- Change behavior or functionality
-- Add new features
-- Remove functionality
-- Skip test verification
+**CRITICAL BOUNDARIES**:
+- Perform the requested refactoring
+- Additional refactorings are ALLOWED if they improve code organization
+- Do NOT change behavior or functionality
+- Do NOT add new features
+- Do NOT remove functionality
+- Do NOT fix bugs (that's a behavior change)
+- Do NOT skip test verification
+
+**The key rule**: All changes must be purely structural. If tests pass before, they must pass after with no modifications to test expectations.
 
 ### Step 5: Verify Tests Still Pass
 
@@ -99,7 +104,20 @@ Scope cleanup to match your change:
 
 **Apply all cleanup rules from `5_cleanup.md`**
 
-**Principle**: Being in the code gives you context to see related improvements.
+**You may**:
+- Perform additional refactorings you notice
+- Improve structure of related code
+- Extract more methods, rename variables, reduce duplication
+- Apply any structural improvements
+
+**You must NOT**:
+- Change behavior or functionality
+- Fix bugs (that's a behavior change, not refactoring)
+- Add features
+- Remove functionality
+- Change what the code does (only change how it's organized)
+
+**Principle**: Being in the code gives you context to see related improvements. Make those improvements as long as they're purely structural and don't change behavior.
 
 ### Step 7: Verify Tests Still Pass
 
@@ -141,29 +159,36 @@ All quality standards are defined in `~/.ai/rules/*`. Key rules:
 ## Anti-Patterns to AVOID
 
 **DO NOT**:
-- Refactor multiple things in one session
 - Change behavior or add features during refactoring
+- Fix bugs (that's a behavior change, not a refactoring)
+- Add new functionality
+- Remove existing functionality
+- Modify what the code does
 - Skip test verification steps
 - Refactor when tests are failing
 - Claim success without running tests
 
 **DO**:
-- Focus on exactly ONE structural improvement
+- Start with the requested refactoring
+- Perform additional structural improvements you notice
+- Extract methods, rename variables, reduce duplication freely
+- Improve code organization and structure
 - Verify tests pass before starting
-- Verify tests pass after each change
-- Keep behavior identical
-- Stop at green - don't add features
+- Verify tests pass after all changes
+- Keep behavior strictly identical
+- Make as many structural improvements as you see fit
 
 ## Success Criteria
 
-- ✅ ONE refactoring performed
+- ✅ Requested refactoring performed
 - ✅ All tests passed before refactoring (baseline)
-- ✅ Refactoring implemented with minimal changes
+- ✅ Additional structural improvements made where beneficial
 - ✅ All tests still pass after refactoring
 - ✅ Cleanup commands pass (linter, typechecker)
 - ✅ All tests still pass after cleanup
-- ✅ No behavior changes
+- ✅ No behavior changes whatsoever
 - ✅ No new features added
+- ✅ No bugs fixed (behavior must be identical)
 - ✅ Report written
 
 ## Failure Cases
