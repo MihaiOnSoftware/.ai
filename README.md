@@ -71,3 +71,39 @@ To remove the symlinks created by the installation script, use the `uninstall.sh
 ```
 
 This script safely removes only the symlinks pointing to this repository. It uses the same environment variables as the installation script to locate the symlinks.
+
+## Testing
+
+You can safely test the installation scripts without affecting your actual configuration by overriding all path variables to point to a test directory:
+
+```bash
+# Create test directory structure
+mkdir -p /tmp/ai-test/{ai/{scripts,rules},claude/{commands,skills,agents},opencode/{commands,skills,agents}}
+
+# Test install with custom paths
+AI_SCRIPTS_PATH=/tmp/ai-test/ai/scripts/generic \
+AI_RULES_PATH=/tmp/ai-test/ai/rules \
+CLAUDE_COMMANDS_PATH=/tmp/ai-test/claude/commands/generic \
+CLAUDE_SKILLS_PATH=/tmp/ai-test/claude/skills/generic \
+CLAUDE_AGENTS_PATH=/tmp/ai-test/claude/agents/generic \
+OPENCODE_COMMANDS_PATH=/tmp/ai-test/opencode/commands/generic \
+OPENCODE_SKILLS_PATH=/tmp/ai-test/opencode/skills/generic \
+OPENCODE_AGENTS_PATH=/tmp/ai-test/opencode/agents/generic \
+./install.sh
+
+# Test uninstall
+AI_SCRIPTS_PATH=/tmp/ai-test/ai/scripts/generic \
+AI_RULES_PATH=/tmp/ai-test/ai/rules \
+CLAUDE_COMMANDS_PATH=/tmp/ai-test/claude/commands/generic \
+CLAUDE_SKILLS_PATH=/tmp/ai-test/claude/skills/generic \
+CLAUDE_AGENTS_PATH=/tmp/ai-test/claude/agents/generic \
+OPENCODE_COMMANDS_PATH=/tmp/ai-test/opencode/commands/generic \
+OPENCODE_SKILLS_PATH=/tmp/ai-test/opencode/skills/generic \
+OPENCODE_AGENTS_PATH=/tmp/ai-test/opencode/agents/generic \
+./uninstall.sh
+
+# Clean up
+rm -rf /tmp/ai-test
+```
+
+This allows you to verify the scripts work correctly before running them on your actual configuration.
