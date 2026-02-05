@@ -2,66 +2,30 @@
 
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Source shared configuration
-source "$REPO_ROOT/lib/logging.sh"
-source "$REPO_ROOT/lib/paths.sh"
-
-uninstall_symlink() {
-    local target_path="$1"
-    local source_dir="$2"
-
-    if [ -e "$target_path" ] || [ -L "$target_path" ]; then
-        if [ -L "$target_path" ]; then
-            local existing_target
-            existing_target="$(readlink "$target_path")"
-            if [ "$existing_target" = "$source_dir" ]; then
-                rm "$target_path"
-                log_success "Removed symlink: $target_path"
-            else
-                log_warning "Skipping path: Not a symlink to this repo"
-                echo "  Path:   $target_path"
-                echo "  Points: $existing_target"
-                echo "  Expect: $source_dir"
-            fi
-        else
-            log_warning "Skipping path: Not a symlink"
-            echo "  Path: $target_path"
-        fi
-    else
-        log_info "Skipping path: Does not exist"
-        echo "  Path: $target_path"
-    fi
-}
+# Load logging functions
+source "$SCRIPT_DIR/lib/logging.sh"
 
 echo "=============================="
 echo "      Uninstalling...         "
 echo "=============================="
+echo ""
 
-# 1. AI Scripts
-uninstall_symlink "$AI_SCRIPTS_PATH" "$SCRIPTS_DIR"
+# Run modular uninstall scripts
+"$SCRIPT_DIR/lib/uninstall_scripts.sh"
+echo ""
 
-# 2. AI Rules
-uninstall_symlink "$AI_RULES_PATH" "$RULES_DIR"
+"$SCRIPT_DIR/lib/uninstall_rules.sh"
+echo ""
 
-# 3. Claude Commands
-uninstall_symlink "$CLAUDE_COMMANDS_PATH" "$COMMANDS_DIR"
+"$SCRIPT_DIR/lib/uninstall_commands.sh"
+echo ""
 
-# 4. Claude Skills
-uninstall_symlink "$CLAUDE_SKILLS_PATH" "$SKILLS_DIR"
+"$SCRIPT_DIR/lib/uninstall_skills.sh"
+echo ""
 
-# 5. Claude Agents
-uninstall_symlink "$CLAUDE_AGENTS_PATH" "$AGENTS_DIR"
-
-# 6. Opencode Commands
-uninstall_symlink "$OPENCODE_COMMANDS_PATH" "$COMMANDS_DIR"
-
-# 7. Opencode Skills
-uninstall_symlink "$OPENCODE_SKILLS_PATH" "$SKILLS_DIR"
-
-# 8. Opencode Agents
-uninstall_symlink "$OPENCODE_AGENTS_PATH" "$AGENTS_DIR"
+"$SCRIPT_DIR/lib/uninstall_agents.sh"
 
 echo ""
 log_success "✅ Uninstall complete!"
