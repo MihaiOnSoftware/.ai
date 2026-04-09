@@ -2,7 +2,6 @@
 name: load-rules
 description: Load all user rules from ~/.ai/rules/ directory
 license: MIT
-compatibility: opencode
 metadata:
   category: setup
   workflow: initialization

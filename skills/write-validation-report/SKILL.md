@@ -2,7 +2,6 @@
 name: write-validation-report
 description: Write a validation report with pass/fail verdict
 license: MIT
-compatibility: opencode
 metadata:
   category: reporting
 ---

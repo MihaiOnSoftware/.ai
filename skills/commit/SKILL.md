@@ -2,7 +2,6 @@
 name: commit
 description: Create a commit following message rules and writing style guidelines
 license: MIT
-compatibility: opencode
 metadata:
   category: git
 ---

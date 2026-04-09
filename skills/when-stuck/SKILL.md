@@ -2,7 +2,6 @@
 name: when-stuck
 description: Reload problem-solving discipline when stuck during work
 license: MIT
-compatibility: opencode
 metadata:
   category: guidance
 ---

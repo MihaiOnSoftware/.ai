@@ -2,7 +2,6 @@
 name: create-implementation-plan
 description: Create an implementation plan with incremental slices using story splitting patterns
 license: MIT
-compatibility: opencode
 metadata:
   category: planning
 ---

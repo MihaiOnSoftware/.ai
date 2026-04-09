@@ -2,7 +2,6 @@
 name: tdd-slice
 description: Implement a complete TDD slice with multiple micro-tdd cycles and validation
 license: MIT
-compatibility: opencode
 metadata:
   category: tdd
 ---
