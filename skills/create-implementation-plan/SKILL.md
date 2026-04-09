@@ -56,79 +56,8 @@ Before creating a plan, you need:
 
 **Note**: These examples show complete plans for reference and learning. When creating your plan, present slices one at a time to the user, not all at once.
 
-### Example 1: iTerm Profile Generation
-
-Excellent plan structure for dynamic iTerm profile generation:
-
-```
-1. Create a new profile that's a copy of the current default (no colour changes, no auto switch, overrides existing generated profiles)
-2. Allow the user to pass a colour preset name and use it when creating the profile
-3. Add shell integration to automatically switch to the profile based on a path that's passed in
-4. Include worktree name in profile name and badge text
-5. Find the current worktree if no path is passed in and use that
-6. Allow for multiple generated profiles (don't override, add to existing)
-7. Persist which preset was assigned to which worktree (so re-running doesn't change it)
-8. Pick a random colour preset from a list if none is passed in
-9. Check other profiles when deciding colour preset so there aren't clashes (don't reuse until we've used all available)
-10. List/view command to see generated profiles (optional - we'll see if iTerm's UI is sufficient)
-11. Remove/cleanup command (optional - we'll see if needed)
-```
-
-**What makes this excellent**:
-- Slice 1 proves the core mechanism (profile creation) works
-- Each slice adds one new capability
-- Early slices deliver value even if later slices are skipped
-- Optional features clearly marked (slices 10-11)
-- Each slice is testable and demoable
-- Natural progression from simple to complex
-
-**Pattern analysis**:
-- **SIMPLE/COMPLEX**: Slice 1 is bare-bones profile creation. Slices 2-9 add sophistication.
-- **OPERATIONS**: Slices 1-9 are "create/configure", slice 10 is "read/list", slice 11 is "delete".
-- **BUSINESS RULES**: Slice 2 (manual color) → slice 8 (random color) → slice 9 (avoid clashes) adds progressively smarter behavior.
-- **VARIATIONS IN DATA**: Slice 3 (path-based switching) → slice 5 (auto-detect worktree) handles different input types.
-
-Notice how multiple patterns can apply simultaneously. Good plans often combine patterns.
-
-### Example 2: Automatic Schema Hash for Cache Keys
-
-Simplified plan for adding automatic schema hash to Rails cache keys (this project):
-
-**Context**: Rails cache doesn't invalidate when Ruby class schemas change (new fields added). Need automatic detection.
-
-```
-Slice 1: Basic schema hash for Task only
-Goal: Prove Sorbet introspection works, validate cache invalidation mechanism
-Tests: Hash is deterministic, cache key includes hash, HACK workaround removed
-
-Slice 2: Hot reload support
-Goal: Make dev-friendly by supporting code reloading
-Tests: Hash accessible via Rails.config, calculated during initialization
-Note: Limited automated testing - requires manual verification
-
-Slice 3: Discover direct child types
-Goal: Catch changes to Task's immediate dependencies
-Tests: Hash includes ConfigField/Port/ReturnField, hash changes when child field changes
-
-Slice 4: Handle Array and Union types
-Goal: Correctly extract types from complex type declarations
-Tests: Extracts element type from T::Array[X], handles T.nilable(X)
-
-Slice 5: Recursive type discovery
-Goal: Complete the solution by discovering deeply nested types
-Tests: Hash includes SelectConfigFieldOption (the original bug!), prevents infinite loops
-
-Slice 6: Sealed subclass discovery
-Goal: Zero maintenance when new ConfigField types added
-Tests: Hash includes all ~20+ ConfigField subclasses, count matches expected
-```
-
-**What makes this excellent**:
-- Slice 1 validates entire approach (biggest risk: does introspection work?)
-- Each slice adds exactly one new concept (children, arrays, recursion, sealed classes)
-- Each slice has concrete, testable success criteria
-- Can stop after any slice and still have value
-- Pattern: **SIMPLE/COMPLEX** - start with bare-bones (hash one class), layer on complexity
+- For an example of a multi-slice plan with pattern analysis, see [examples/iterm-profile-generation.md](examples/iterm-profile-generation.md)
+- For an example using the SIMPLE/COMPLEX pattern, see [examples/schema-hash-cache-keys.md](examples/schema-hash-cache-keys.md)
 
 ## Key Principles
 
@@ -136,58 +65,7 @@ Tests: Hash includes all ~20+ ConfigField subclasses, count matches expected
 
 Multiple patterns exist for breaking down large stories. Choose the one that best fits your situation:
 
-#### WORKFLOW STEPS Pattern
-Split by the natural flow of work - do beginning and end first, then enhance with middle steps.
-
-**Example**: For a checkout flow, slice 1 might be "add to cart and pay" (skipping address validation, shipping options, discounts). Later slices add those middle steps.
-
-**When to use**: When there's a clear sequence of steps and you can take a thin slice through the entire flow.
-
-#### OPERATIONS Pattern
-Split by distinct operations, especially CRUD operations or different actions on the same entity.
-
-**Example iTerm plan**: Slices 1-9 are "create/configure profiles", slice 10 is "list profiles", slice 11 is "delete profiles". Create comes first because it proves the core value.
-
-**When to use**: Story involves "managing" something (create, read, update, delete).
-
-#### BUSINESS RULES / VARIATIONS Pattern
-Start with simplest rule or most common variation, add complexity later.
-
-**Example**: Payment processing - slice 1 handles credit cards only, slice 2 adds PayPal, slice 3 adds crypto. Or validation rules - slice 1 has basic required field checks, slice 2 adds format validation, slice 3 adds cross-field validation.
-
-**Example iTerm plan**: Slice 2 is "user specifies color", slice 8 is "pick random color", slice 9 is "avoid color clashes". Each adds business rule sophistication.
-
-**When to use**: Story has multiple variations or rules that build on each other.
-
-#### VARIATIONS IN DATA Pattern
-Handle one kind of data first, add other data types later.
-
-**Example**: Import feature - slice 1 handles CSV, slice 2 adds JSON, slice 3 adds XML. Each data format is independent.
-
-**When to use**: Same operation applies to different data types or sources.
-
-#### SIMPLE/COMPLEX Pattern
-Build simple core that provides most value/learning, then enhance with complexity.
-
-**Example (this project)**: Slice 1 hashes one class with no recursion. This proves Sorbet introspection works. Slices 3-6 progressively add complexity (children, arrays, recursion, sealed classes).
-
-**Example iTerm plan**: Slice 1 is "create basic profile" (no colors, no auto-switch). This proves profile creation works. Slices 2-9 layer on sophistication.
-
-**When to use**: When validating an approach is the biggest risk, or when core functionality can work without all the bells and whistles.
-
-#### DEFER PERFORMANCE Pattern
-Make it work first with acceptable performance, then optimize for non-functional requirements.
-
-**Example**: Search feature - slice 1 does simple string matching, slice 2 adds indexes for performance, slice 3 adds caching.
-
-**When to use**: Performance/scalability adds significant complexity but basic functionality is valuable.
-
-#### MAJOR EFFORT Pattern
-When an obvious split leaves one slice much harder than others, group the later slices and defer the decision about which to do first.
-
-**Example**: If slices 2-5 are all complex, group them as "enhancements" and decide priority after slice 1 proves the concept.
-
-**When to use**: Can't predict which enhancement will be most valuable until you've built the foundation.
+For the full list of patterns (WORKFLOW STEPS, OPERATIONS, BUSINESS RULES, VARIATIONS IN DATA, SIMPLE/COMPLEX, DEFER PERFORMANCE, MAJOR EFFORT), see [references/story-splitting-patterns.md](references/story-splitting-patterns.md).
 
 ### Choosing the Right Pattern
 
@@ -322,63 +200,13 @@ For each concept, write specific test requirements:
 
 ### Step 5: Verify Each Slice with INVEST Criteria
 
-Each slice should satisfy INVEST (from the story splitting framework):
+Each slice should satisfy INVEST (Independent, Negotiable, Valuable, Estimable, Small, Testable). If a slice violates INVEST, split it further or reorder.
 
-**I - Independent**: Can be implemented without being blocked by other slices. Some dependencies are unavoidable (slice 5 needs slice 1), but minimize coupling.
+For the full breakdown and an applied example, see [references/invest-criteria.md](references/invest-criteria.md).
 
-**N - Negotiable**: Could discuss different approaches to achieve the slice's goal. Not so detailed that implementation is prescribed.
+For common red flags in plans (too large, not testable, unordered dependencies, etc.), see [references/red-flags.md](references/red-flags.md).
 
-**V - Valuable**: Delivers learning, risk mitigation, or actual functionality. Ask "what do we gain from completing this slice?"
-
-**E - Estimable**: Can understand and assess the scope and complexity. If you can't gauge the complexity or understand what's involved, the slice is too vague or depends on unknown complexity.
-
-**S - Small**: Roughly 1/8 to 1/4 of your velocity. Each slice should take hours, not days.
-
-**T - Testable**: Has concrete success criteria. Not "works well" but "hash is deterministic", "cache key includes hash", etc.
-
-**Applying INVEST to this project's Slice 1**:
-- ✅ Independent: Can be done first, no dependencies
-- ✅ Negotiable: Could use different hashing algorithms, different cache key formats
-- ✅ Valuable: Proves Sorbet introspection works (biggest risk)
-- ✅ Estimable: Clear scope - single file creation, one method, basic tests - complexity is well understood
-- ✅ Small: Single file creation, one method, basic tests
-- ✅ Testable: "Hash is deterministic", "cache key includes hash"
-
-If a slice violates INVEST, split it further or reorder.
-
-## Red Flags in Plans
-
-### Too Large
-"Implement complete schema hash calculation" - This is the whole project, not a slice.
-
-### Not Testable
-"Add infrastructure" - How do you know it works? What specific tests?
-
-### Unordered Dependencies
-Slice 3: "Add recursion"
-Slice 4: "Handle direct children"
-
-Wrong order - can't recurse before handling direct children.
-
-### Vague Requirements
-"Make it work in development" - What does "work" mean? Be specific: "Hash recalculates on code reload"
-
-### Multiple Concepts
-"Add recursion and handle sealed subclasses" - Split into two slices.
-
-## Example Thought Process (This Project)
-
-**Question**: How do I split automatic schema hash implementation?
-
-**Answer**:
-1. What's the simplest proof? → Hash Task only, no children
-2. What infrastructure do we need? → Rails config, initializer for hot reload
-3. What's the next increment? → Add direct children (Port, ConfigField)
-4. What complexity comes next? → Arrays and Unions (T::Array[ConfigField])
-5. What completes the solution? → Recursion (find SelectConfigFieldOption)
-6. What makes it maintainable? → Sealed subclass auto-discovery
-
-**Result**: 6 slices, each building on the previous, each testable, each delivering value.
+For a worked example of the thought process when splitting a task, see [examples/thought-process.md](examples/thought-process.md).
 
 ## Using This Process
 
@@ -417,46 +245,6 @@ When creating a new plan:
 
 **The goal**: Someone else should be able to implement slice 1 without reading slice 2. Each slice should feel like a complete mini-project that delivers value. Each slice description should be clear enough to implement without including actual code.
 
-### Example of Presenting a Single Slice
+For an example of how to present a single slice, see [examples/presenting-a-slice.md](examples/presenting-a-slice.md).
 
-Here's what presenting a single slice should look like:
-
----
-
-**Slice 1: Basic schema hash for Task only**
-
-**Goal**: Prove Sorbet introspection works and validate the cache invalidation mechanism. This is the critical risk - if we can't introspect class schemas, the entire approach fails.
-
-**Approach**:
-- Create a SchemaHasher class that uses Sorbet's decorator introspection to access the props defined on a class
-- Extract field names and their type signatures from the Task class
-- Sort these signatures alphabetically to ensure deterministic ordering
-- Generate a SHA-256 hash from the concatenated signatures
-- Modify the Task cache key generation to include this schema hash
-- Remove the existing HACK workaround that manually increments version numbers
-
-**Tests**:
-- Hash is deterministic: calling hash_schema twice on the same class returns the same hash
-- Cache key includes the schema hash in the expected format
-- Adding a new field to Task changes the hash value
-- Removing the HACK workaround doesn't break existing functionality
-
----
-
-*[Wait for user approval before presenting Slice 2]*
-
-## Quick Reference: From Flowchart to Plan
-
-The story splitting flowchart asks these questions in order:
-
-1. **Does the story satisfy INVEST?** (If yes, no splitting needed)
-2. **Does it describe a workflow?** → WORKFLOW STEPS pattern
-3. **Can you take a thin slice and enhance later?** → SIMPLE/COMPLEX pattern
-4. **Multiple operations?** → OPERATIONS pattern
-5. **Variety of business rules?** → BUSINESS RULES pattern
-6. **Same thing to different data?** → VARIATIONS IN DATA pattern
-7. **Complex interface?** → Start with simple version
-8. **Satisfying non-functional requirements?** → DEFER PERFORMANCE pattern
-9. **Obvious split leaves one slice much harder?** → MAJOR EFFORT pattern
-
-Work through these questions with your story to identify the right pattern, then apply the planning process above.
+For a quick-reference flowchart to choose the right splitting pattern, see [references/flowchart.md](references/flowchart.md).

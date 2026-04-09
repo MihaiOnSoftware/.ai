@@ -321,88 +321,9 @@ Return only the path to the tdd-slice report:
 [full path to tdd-slice report]
 ```
 
-## Retry Logic Details
+For detailed retry logic for micro agents and validation, see [references/retry-logic.md](references/retry-logic.md).
 
-### Micro Agent Retry
-
-When micro-tdd-agent fails:
-1. Analyze failure mode (test didn't fail right, tests not passing, stuck)
-2. Extract key information (error messages, test output)
-3. Formulate helpful context:
-   - "Previous test failed to compile: [error]. Check syntax."
-   - "Previous test passed when it should fail. Test may need assertion."
-   - "Previous implementation broke existing tests: [failures]. Consider [approach]."
-4. Use Task tool (subagent_type='micro-tdd-agent') with: original behavior + failure context
-
-When micro-refactor-agent fails:
-1. Analyze failure mode (tests broken, refactoring incomplete, stuck)
-2. Extract key information (error messages, test failures)
-3. Formulate helpful context:
-   - "Previous refactoring broke tests: [failures]. Consider smaller change."
-   - "Previous attempt changed behavior. Refactoring must preserve behavior."
-   - "Previous refactoring incomplete. Consider [approach]."
-4. Use Task tool (subagent_type='micro-refactor-agent') with: original description + failure context
-
-### Validation Retry
-
-When tdd-validation-agent fails:
-
-**Step 1: Categorize issues**
-- Read validation report thoroughly
-- Determine if issues are trivial (commit message, comments, one-liners) or substantial (test quality, logic)
-
-**Step 2: Try fix approach (if trivial)**
-- For commit message only: soft reset + commit-agent
-- For code issues: micro-fix-agent + amend commit
-- Re-validate
-- If passes: continue
-- If fails: proceed to Step 3
-
-**Step 3: Use reset approach (if substantial or fix failed)**
-1. Extract specific quality issues:
-   - Test quality problems (branching, multiple behaviors, weak assertions)
-   - Code quality problems (duplication, comments, dead code)
-   - Commit message problems (process description, passive voice)
-2. Revert the commit: `git reset --hard HEAD~1`
-3. Formulate helpful context with specific fixes needed
-4. Use Task tool with same agent type (micro-tdd or micro-refactor) with: original description + validation feedback
-5. Create new commit with commit-agent
-6. Re-validate
-
-## Failure Analysis Report Format
-
-When stopping due to repeated failures:
-
-```markdown
-# TDD Slice Failure Report - Slice [N]: [Slice Name]
-
-## Failure Context
-- Slice: [N] - [Name]
-- Failed item: [Test/Refactor] [Description]
-- Agent used: [micro-tdd-agent or micro-refactor-agent]
-- Failure type: [Micro execution / Validation]
-- Attempt count: 2
-
-## Attempt 1
-[What happened, errors, output]
-
-## Attempt 2
-[What happened, errors, output, context provided]
-
-## Analysis
-[Why it failed, possible causes, what was tried]
-
-## Recommendations
-[What should be done to fix this]
-
-## Partial Progress
-[List any micro cycles that completed successfully before failure]
-- Cycle 1: [test] - ✅ Complete (reports: [paths])
-- Cycle 2: [test] - ✅ Complete (reports: [paths])
-
-## Status
-❌ Stopped after repeated failures
-```
+For the failure analysis report format, see [references/failure-report-format.md](references/failure-report-format.md).
 
 ## Quality Standards
 
@@ -422,50 +343,7 @@ The tdd-slice command's job is orchestration, not quality enforcement.
 - ✅ Retries attempted when appropriate
 - ✅ Clear failure analysis if stopped early
 
-## Example Session
-
-**Input**: Slice 1 with 2 test behaviors and 1 refactoring
-
-**Execution**:
-1. Reads rules
-2. Parses requirements: Slice 1, 3 items
-3. Analyzes codebase
-4. Creates execution plan: 2 tests, 1 refactor
-
-**Cycle 1**: "Test loads config when it exists"
-- Uses Task tool (micro-tdd-agent) → Success (report at path/to/report1.md)
-- Uses Task tool (commit-agent) → commit abc123
-- Uses Task tool (validation-agent) with slice context and "path/to/report1.md abc123" → Pass
-- Posts: ✅ Cycle 1/3 complete
-
-**Cycle 2**: "Extract duplicate file validation" (identified as refactoring)
-- Uses Task tool (micro-refactor-agent) → Success (report at path/to/report2.md)
-- Uses Task tool (commit-agent) → commit def456
-- Uses Task tool (validation-agent) with slice context and "path/to/report2.md def456" → Fails (comment should be method)
-- Categorizes as trivial issue
-- Uses Task tool (micro-fix-agent) with validation report → Success (extracted method)
-- Amends commit def456
-- Re-validates with slice context and "path/to/report2.md def456" → Pass
-- Posts: ✅ Cycle 2/3 complete (1 fix)
-
-**Cycle 3**: "Test saves config after run"
-- Uses Task tool (micro-tdd-agent) → Fails (test has branching)
-- Retries with context → Success (report at path/to/report3.md)
-- Uses Task tool (commit-agent) → commit ghi789
-- Uses Task tool (validation-agent) with slice context and "path/to/report3.md ghi789" → Fails (test still has issue)
-- Reverts commit, retries with validation feedback → Success (report at path/to/report3b.md)
-- Uses Task tool (commit-agent) → commit jkl012
-- Uses Task tool (validation-agent) with slice context and "path/to/report3b.md jkl012" → Pass
-- Posts: ✅ Cycle 3/3 complete (1 retry)
-
-**Final**:
-- Creates summary report with references to all micro reports (tdd + refactor) and validation reports
-- Returns report path
-
-**Output**:
-```
-~/.ai/wip/agent_reports/tdd-slice/20250119_150000-2025-01-19.report.md
-```
+For a worked example session showing cycles with retries and fixes, see [examples/session.md](examples/session.md).
 
 ## Anti-Patterns to AVOID
 
