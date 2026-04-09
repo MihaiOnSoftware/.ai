@@ -1,8 +1,7 @@
 ---
-name: code-walkthrough
+name: branch-walkthrough
 description: Walk through code changes chunk by chunk with context
 license: MIT
-compatibility: opencode
 metadata:
   category: analysis
 ---
@@ -42,8 +41,8 @@ git diff HEAD
 
 **For branch changes**:
 ```bash
-# Use helper script to get parent branch (handles Graphite stacks)
-parent_branch=$(~/.ai/scripts/generic/get-parent-branch.sh <branch-name>)
+# Use bundled helper script to get parent branch (handles Graphite stacks)
+parent_branch=$(${CLAUDE_SKILL_DIR}/scripts/get-parent-branch.sh)
 
 # Get branch diff compared to parent
 git diff ${parent_branch}...<branch-name>
