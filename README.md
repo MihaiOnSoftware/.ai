@@ -12,15 +12,17 @@ The `install.sh` script creates symlinks from your home directory to this reposi
 ./install.sh
 ```
 
-This creates 8 symlinks:
+This creates symlinks:
 - `~/.ai/scripts/generic` → `scripts/`
 - `~/.ai/rules` → `rules/`
 - `~/.claude/commands/generic` → `commands/`
-- `~/.claude/skills/generic` → `skills/`
+- `~/.claude/skills/<skill-name>` → `skills/<skill-name>/` (one per skill)
 - `~/.claude/agents/generic` → `agents/`
 - `~/.config/opencode/commands/generic` → `commands/`
 - `~/.config/opencode/skills/generic` → `skills/`
 - `~/.config/opencode/agents/generic` → `agents/`
+
+Note: Claude Code skills are symlinked individually because Claude only discovers skills one level deep.
 
 ### Force Mode
 
@@ -40,7 +42,7 @@ Override default locations using environment variables:
 AI_SCRIPTS_PATH=~/custom/.ai/scripts/generic \
 AI_RULES_PATH=~/custom/.ai/rules \
 CLAUDE_COMMANDS_PATH=~/custom/.claude/commands/generic \
-CLAUDE_SKILLS_PATH=~/custom/.claude/skills/generic \
+CLAUDE_SKILLS_DIR=~/custom/.claude/skills \
 CLAUDE_AGENTS_PATH=~/custom/.claude/agents/generic \
 OPENCODE_COMMANDS_PATH=~/custom/.config/opencode/commands/generic \
 OPENCODE_SKILLS_PATH=~/custom/.config/opencode/skills/generic \
@@ -84,7 +86,7 @@ mkdir -p /tmp/ai-test/{ai/{scripts,rules},claude/{commands,skills,agents},openco
 AI_SCRIPTS_PATH=/tmp/ai-test/ai/scripts/generic \
 AI_RULES_PATH=/tmp/ai-test/ai/rules \
 CLAUDE_COMMANDS_PATH=/tmp/ai-test/claude/commands/generic \
-CLAUDE_SKILLS_PATH=/tmp/ai-test/claude/skills/generic \
+CLAUDE_SKILLS_DIR=/tmp/ai-test/claude/skills \
 CLAUDE_AGENTS_PATH=/tmp/ai-test/claude/agents/generic \
 OPENCODE_COMMANDS_PATH=/tmp/ai-test/opencode/commands/generic \
 OPENCODE_SKILLS_PATH=/tmp/ai-test/opencode/skills/generic \
@@ -95,7 +97,7 @@ OPENCODE_AGENTS_PATH=/tmp/ai-test/opencode/agents/generic \
 AI_SCRIPTS_PATH=/tmp/ai-test/ai/scripts/generic \
 AI_RULES_PATH=/tmp/ai-test/ai/rules \
 CLAUDE_COMMANDS_PATH=/tmp/ai-test/claude/commands/generic \
-CLAUDE_SKILLS_PATH=/tmp/ai-test/claude/skills/generic \
+CLAUDE_SKILLS_DIR=/tmp/ai-test/claude/skills \
 CLAUDE_AGENTS_PATH=/tmp/ai-test/claude/agents/generic \
 OPENCODE_COMMANDS_PATH=/tmp/ai-test/opencode/commands/generic \
 OPENCODE_SKILLS_PATH=/tmp/ai-test/opencode/skills/generic \

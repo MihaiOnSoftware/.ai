@@ -16,7 +16,9 @@ AI_RULES_PATH="${AI_RULES_PATH:-$HOME/.ai/rules}"
 
 # Claude Paths
 CLAUDE_COMMANDS_PATH="${CLAUDE_COMMANDS_PATH:-$HOME/.claude/commands/generic}"
-CLAUDE_SKILLS_PATH="${CLAUDE_SKILLS_PATH:-$HOME/.claude/skills/generic}"
+# Claude skills are symlinked per-skill into this directory (not as a subdirectory)
+# because Claude Code only discovers skills one level deep: <skills-dir>/<skill-name>/SKILL.md
+CLAUDE_SKILLS_DIR="${CLAUDE_SKILLS_DIR:-$HOME/.claude/skills}"
 CLAUDE_AGENTS_PATH="${CLAUDE_AGENTS_PATH:-$HOME/.claude/agents/generic}"
 
 # OpenCode Paths

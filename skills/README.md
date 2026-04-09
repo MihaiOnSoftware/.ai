@@ -16,10 +16,10 @@ skills/
 
 This directory is symlinked to both OpenCode and Claude Code configs:
 
-- `~/.config/opencode/skills/generic` → this directory
-- `~/.claude/skills/generic` → this directory
+- `~/.config/opencode/skills/generic` → this directory (single symlink)
+- `~/.claude/skills/<skill-name>` → each skill directory individually
 
-**Note**: Unlike commands, skills do NOT use the namespace prefix in their names. Skills are referenced by their base name (e.g., `load-rules`) regardless of where they're symlinked. The `generic` directory is just for organization/discovery.
+**Note**: Claude Code only discovers skills one level deep (`<skills-dir>/<skill-name>/SKILL.md`), so each skill is symlinked individually. OpenCode supports nested namespaces, so it gets a single directory symlink.
 
 ## Skills vs Commands
 

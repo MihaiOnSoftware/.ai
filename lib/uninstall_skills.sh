@@ -7,36 +7,21 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/logging.sh"
 source "$SCRIPT_DIR/paths.sh"
 
-uninstall_symlink() {
-    local target_path="$1"
-    local source_dir="$2"
-
-    if [ -e "$target_path" ] || [ -L "$target_path" ]; then
-        if [ -L "$target_path" ]; then
-            local existing_target
-            existing_target="$(readlink "$target_path")"
-            if [ "$existing_target" = "$source_dir" ]; then
-                rm "$target_path"
-                log_success "Removed symlink: $target_path"
-            else
-                log_warning "Skipping path: Not a symlink to this repo"
-                echo "  Path:   $target_path"
-                echo "  Points: $existing_target"
-                echo "  Expect: $source_dir"
-            fi
-        else
-            log_warning "Skipping path: Not a symlink"
-            echo "  Path: $target_path"
-        fi
-    else
-        log_info "Skipping path: Does not exist"
-        echo "  Path: $target_path"
-    fi
-}
-
 log_info "Uninstalling skills..."
 
-uninstall_symlink "$CLAUDE_SKILLS_PATH" "$SKILLS_DIR"
-uninstall_symlink "$OPENCODE_SKILLS_PATH" "$SKILLS_DIR"
+# Remove any symlinks pointing into SKILLS_DIR from both Claude and OpenCode locations
+for dir in "$CLAUDE_SKILLS_DIR" "$(dirname "$OPENCODE_SKILLS_PATH")"; do
+    [ -d "$dir" ] || continue
+    for entry in "$dir"/*; do
+        [ -L "$entry" ] || continue
+        link_target="$(readlink "$entry")"
+        case "$link_target" in
+            "$SKILLS_DIR"|"$SKILLS_DIR"/*)
+                rm "$entry"
+                log_success "  Removed symlink: $entry"
+                ;;
+        esac
+    done
+done
 
-log_success "✅ Skills uninstallation complete!"
+log_success "Skills uninstallation complete!"
