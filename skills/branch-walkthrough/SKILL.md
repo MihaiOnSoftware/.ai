@@ -40,14 +40,13 @@ git diff HEAD
 ```
 
 **For branch changes**:
+
+**CRITICAL: Do NOT assume `main` is the parent branch.** Use the bundled `scripts/get-parent-branch.sh` script to find the correct parent. This script handles Graphite stacks where the parent is another feature branch, not main. Guessing the parent will produce wrong diffs in stacked branches.
+
 ```bash
-# Use bundled helper script to get parent branch (handles Graphite stacks)
-parent_branch=$(${CLAUDE_SKILL_DIR}/scripts/get-parent-branch.sh)
+parent_branch=$(scripts/get-parent-branch.sh)
 
-# Get branch diff compared to parent
 git diff ${parent_branch}...<branch-name>
-
-# Get commit log for context
 git log ${parent_branch}...<branch-name> --oneline
 ```
 
@@ -205,7 +204,21 @@ After all chunks reviewed, present summary:
 
 ## Examples
 
-### Example Chunk Presentation
+### Example: Gathering Changes for a Branch
+
+```bash
+# First, use the bundled script to find the parent branch
+parent_branch=$(scripts/get-parent-branch.sh)
+# Output: main
+
+# Get the diff against parent
+git diff main...feature/add-validation
+
+# Get commit log for context
+git log main...feature/add-validation --oneline
+```
+
+### Example: Presenting a Chunk
 
 ```
 ## Chunk 1: Add validation for user input
@@ -252,9 +265,8 @@ diff --git a/test/user_input_test.rb b/test/user_input_test.rb
 
 ### Context:
 
-This follows the validation pattern used throughout the codebase - sanitize at the boundary before processing. The changes were developed test-first, with each test driving the implementation.
-
-The HTML bracket removal prevents basic XSS while still allowing the content through (the actual HTML removal happens in a later processing stage).
+This follows the validation pattern used throughout the codebase - sanitize
+at the boundary before processing.
 
 Ready for your feedback on this chunk:
 - Type "approve" or "next" to continue
@@ -276,6 +288,7 @@ Ready for your feedback on this chunk:
 ## Anti-Patterns to AVOID
 
 **DO NOT**:
+- Assume `main` is the parent branch - always use `scripts/get-parent-branch.sh`
 - Paraphrase code changes - show actual diffs
 - Rush through all chunks without waiting for feedback
 - Show changes without context
