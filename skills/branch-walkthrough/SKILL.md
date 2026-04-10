@@ -154,7 +154,7 @@ Ready for your feedback on this chunk:
 - Stay on current chunk until approved
 
 **If user asks to dig into a potential problem** (e.g. "is this a bug?", "could this cause issues?", "this looks wrong"):
-- Use the Task tool to delegate the review question. Pass the current chunk's diff and the user's question as the prompt. The spawned agent will discover and load any available code review skills on its own.
+- Use the Task tool to delegate the review question. The prompt should include: the current chunk's diff, the user's question, and an instruction to search available skills for a relevant code review skill and use its criteria for the analysis.
 - Present the task tool's findings to the user
 - Be direct and specific — don't hedge
 - Stay on current chunk until approved
