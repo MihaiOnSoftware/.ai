@@ -26,6 +26,9 @@ echo ""
 echo ""
 
 "$SCRIPT_DIR/lib/uninstall_agents.sh"
+echo ""
+
+"$SCRIPT_DIR/lib/uninstall_pi.sh"
 
 echo ""
 log_success "✅ Uninstall complete!"

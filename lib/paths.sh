@@ -25,3 +25,11 @@ CLAUDE_AGENTS_PATH="${CLAUDE_AGENTS_PATH:-$HOME/.claude/agents/generic}"
 OPENCODE_COMMANDS_PATH="${OPENCODE_COMMANDS_PATH:-$HOME/.config/opencode/commands/generic}"
 OPENCODE_SKILLS_PATH="${OPENCODE_SKILLS_PATH:-$HOME/.config/opencode/skills/generic}"
 OPENCODE_AGENTS_PATH="${OPENCODE_AGENTS_PATH:-$HOME/.config/opencode/agents/generic}"
+
+# Pi Paths
+PI_DIR="${PI_DIR:-$HOME/.pi/agent}"
+PI_SKILLS_PATH="${PI_SKILLS_PATH:-$PI_DIR/skills/generic}"
+PI_AGENTS_PROMPTS_PATH="${PI_AGENTS_PROMPTS_PATH:-$PI_DIR/prompts/agents/generic}"
+PI_EXTENSION_SOURCE="$REPO_ROOT/pi/extensions/task-tool"
+PI_EXTENSION_PATH="${PI_EXTENSION_PATH:-$PI_DIR/extensions/task-tool}"
+PI_SETTINGS_PATH="${PI_SETTINGS_PATH:-$PI_DIR/settings.json}"

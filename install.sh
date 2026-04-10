@@ -29,6 +29,7 @@ echo ""
 
 "$SCRIPT_DIR/lib/install_skills.sh" $FORCE_FLAG
 "$SCRIPT_DIR/lib/install_agents.sh" $FORCE_FLAG
+"$SCRIPT_DIR/lib/install_pi.sh" $FORCE_FLAG
 
 echo ""
-log_success "✅ Configuration complete! Configured 8 symlinks for scripts, rules, commands, skills, and agents."
+log_success "✅ Configuration complete! Configured symlinks for scripts, rules, commands, skills, agents, and pi."
