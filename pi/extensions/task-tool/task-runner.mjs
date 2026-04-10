@@ -3,9 +3,11 @@
  */
 
 import { spawn } from "node:child_process";
+import path from "node:path";
 
-export function buildPiArgs(agentName, task) {
-  return ["-p", "--no-session", `/${agentName} ${task}`];
+export function buildPiArgs(agentName, task, agentsDir) {
+  const agentPath = path.join(agentsDir, `${agentName}.md`);
+  return ["-p", "--no-session", "--append-system-prompt", agentPath, task];
 }
 
 export function runSubagent(command, args, cwd, signal) {

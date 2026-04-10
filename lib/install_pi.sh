@@ -90,14 +90,10 @@ log_info "Installing pi integration..."
 # Symlink skills
 create_symlink "$PI_SKILLS_PATH" "$SKILLS_DIR" "$FORCE_MODE"
 
-# Symlink agents as prompt templates
-create_symlink "$PI_AGENTS_PROMPTS_PATH" "$AGENTS_DIR" "$FORCE_MODE"
+# Symlink agents
+create_symlink "$PI_AGENTS_PATH" "$AGENTS_DIR" "$FORCE_MODE"
 
 # Symlink task-tool extension
 create_symlink "$PI_EXTENSION_PATH" "$PI_EXTENSION_SOURCE" "$FORCE_MODE"
-
-# Update settings.json
-log_info "Updating pi settings..."
-node "$SCRIPT_DIR/pi_settings.js" install
 
 log_success "✅ Pi installation complete! (Created: $COUNT_CREATED, Correct: $COUNT_CORRECT, Warnings: $COUNT_WARNING)"

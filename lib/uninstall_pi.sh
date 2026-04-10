@@ -37,11 +37,7 @@ uninstall_symlink() {
 log_info "Uninstalling pi integration..."
 
 uninstall_symlink "$PI_SKILLS_PATH" "$SKILLS_DIR"
-uninstall_symlink "$PI_AGENTS_PROMPTS_PATH" "$AGENTS_DIR"
+uninstall_symlink "$PI_AGENTS_PATH" "$AGENTS_DIR"
 uninstall_symlink "$PI_EXTENSION_PATH" "$PI_EXTENSION_SOURCE"
-
-# Update settings.json
-log_info "Updating pi settings..."
-node "$SCRIPT_DIR/pi_settings.js" uninstall
 
 log_success "✅ Pi uninstallation complete!"

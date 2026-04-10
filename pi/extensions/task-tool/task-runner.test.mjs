@@ -3,13 +3,19 @@ import assert from "node:assert/strict";
 import { buildPiArgs, runSubagent } from "./task-runner.mjs";
 
 describe("buildPiArgs", () => {
-  it("returns pi print mode args with prompt template invocation", () => {
-    const args = buildPiArgs("micro-tdd-agent", "implement test for config loading");
+  it("builds args with agent file as system prompt and task as message", () => {
+    const args = buildPiArgs(
+      "micro-tdd-agent",
+      "implement test for config loading",
+      "/home/user/.pi/agent/agents/generic",
+    );
 
     assert.deepStrictEqual(args, [
       "-p",
       "--no-session",
-      "/micro-tdd-agent implement test for config loading",
+      "--append-system-prompt",
+      "/home/user/.pi/agent/agents/generic/micro-tdd-agent.md",
+      "implement test for config loading",
     ]);
   });
 });
