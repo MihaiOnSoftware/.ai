@@ -7,14 +7,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/logging.sh"
 source "$SCRIPT_DIR/paths.sh"
 
-FORCE_FLAG=""
-while getopts "f" opt; do
-    case $opt in
-        f) FORCE_FLAG="-f" ;;
-        *) echo "Usage: install_skills.sh [-f]" >&2; exit 1 ;;
-    esac
-done
-
 # Validate source directory
 if [ ! -d "$SKILLS_DIR" ]; then
     log_error "Error: Skills directory not found: $SKILLS_DIR"
