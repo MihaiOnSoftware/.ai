@@ -148,13 +148,8 @@ Ready for your feedback on this chunk:
 - Move to next chunk
 - Repeat Step 5 with next chunk
 
-**If user asks questions**:
-- Answer based on code and context
-- Show additional code if helpful
-- Stay on current chunk until approved
-
-**If user asks a question about the code** (e.g. "is this a bug?", "could this cause issues?", "this looks wrong"):
-- Use the Task tool to delegate the review question. The prompt should include: the current chunk's diff, the user's question, and an instruction to search available skills for a relevant code review skill and use its criteria for the analysis.
+**If user asks a question about the code**:
+- Use the Task tool to delegate the question. The prompt should include: the current chunk's diff, the user's question, and an instruction to search available skills for a relevant code review skill and use its criteria for the analysis.
 - Present the task tool's findings to the user
 - Be direct and specific — don't hedge
 - Stay on current chunk until approved
