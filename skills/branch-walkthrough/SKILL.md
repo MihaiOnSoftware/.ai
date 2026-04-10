@@ -1,6 +1,6 @@
 ---
 name: branch-walkthrough
-description: Walk through code changes chunk by chunk with context
+description: Walk through code changes chunk by chunk for code review. Pairs with code review skills for deeper analysis.
 license: MIT
 metadata:
   category: analysis
@@ -19,6 +19,10 @@ Present code changes in digestible conceptual "chunks" one by one, allowing revi
 - Additional context provided by the user
 - Changes grouped into conceptual chunks (MAX 50 lines each)
 - One chunk at a time, waiting for feedback
+
+## Nota Bene
+
+This skill walks through code changes but is **not a code review skill itself**. The user will use it during code reviews and will ask you to dig into potential problems. When they do, you **must** search your available skills for any related to code review, load them, and apply their review criteria before answering. Do not skip this step — those skills contain specific review guidelines and known problem patterns that you don't have.
 
 ## Workflow
 
@@ -148,6 +152,13 @@ Ready for your feedback on this chunk:
 - Answer based on code and context
 - Show additional code if helpful
 - Stay on current chunk until approved
+
+**If user asks to dig into a potential problem** (e.g. "is this a bug?", "could this cause issues?", "this looks wrong"):
+- **STOP. Do NOT answer from your own knowledge alone.** Code review skills contain specific review criteria and known problem patterns that you don't have in context. You must load them first.
+- Search your available skills for any related to code review and load them
+- Apply the loaded skill's review criteria and guidelines to analyze the current chunk
+- Be direct and specific about what you find — don't hedge
+- Only if no code review skills are available, fall back to your own analysis
 
 **If user requests changes**:
 - Make the requested changes
