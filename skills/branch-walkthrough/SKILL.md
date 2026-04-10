@@ -154,11 +154,10 @@ Ready for your feedback on this chunk:
 - Stay on current chunk until approved
 
 **If user asks to dig into a potential problem** (e.g. "is this a bug?", "could this cause issues?", "this looks wrong"):
-- **STOP. Do NOT answer from your own knowledge alone.** Code review skills contain specific review criteria and known problem patterns that you don't have in context. You must load them first.
-- Search your available skills for any related to code review and load them
-- Apply the loaded skill's review criteria and guidelines to analyze the current chunk
-- Be direct and specific about what you find — don't hedge
-- Only if no code review skills are available, fall back to your own analysis
+- Delegate the review question to a subagent via the task tool. Pass the current chunk's diff and the user's question as the prompt. The spawned agent will discover and load any available code review skills on its own.
+- Present the task tool's findings to the user
+- Be direct and specific — don't hedge
+- Stay on current chunk until approved
 
 **If user requests changes**:
 - Make the requested changes
