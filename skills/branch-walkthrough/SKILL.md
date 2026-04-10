@@ -149,7 +149,9 @@ Ready for your feedback on this chunk:
 - Repeat Step 5 with next chunk
 
 **If user asks a question about the code**:
-- Use the Task tool to delegate the question. The prompt should include: the current chunk's diff, the user's question, and an instruction to search available skills for a relevant code review skill and use its criteria for the analysis.
+- Use the Task tool to delegate the question. The prompt must start with the following line, verbatim:
+  `Before answering, search your available skills for a code review skill and load it.`
+  Then include the current chunk's diff and the user's question.
 - Present the task tool's findings to the user
 - Be direct and specific — don't hedge
 - Stay on current chunk until approved
