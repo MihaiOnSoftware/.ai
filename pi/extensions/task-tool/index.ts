@@ -29,9 +29,9 @@ export default function (pi: ExtensionAPI) {
     name: "task",
     label: "Task",
     description:
-      "Delegate work to a specialized agent. Spawns an isolated pi process. " +
+      "Delegate work to a subagent. Spawns an isolated pi process. " +
       "Can be used with a named agent (subagent_type) for a specific workflow, " +
-      "or with just a prompt to spawn a generic agent that will discover and use " +
+      "or with just a prompt to spawn a generic subagent that will discover and use " +
       "available skills on its own.",
     parameters: Type.Object({
       subagent_type: Type.Optional(Type.String({

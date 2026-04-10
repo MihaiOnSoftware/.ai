@@ -149,10 +149,11 @@ Ready for your feedback on this chunk:
 - Repeat Step 5 with next chunk
 
 **If user asks a question about the code**:
-- Use the Task tool to delegate the question. The prompt must start with the following line, verbatim:
+- You MUST delegate this to a subagent — do NOT investigate directly in the main conversation. This protects the user's context window from being flooded with search results.
+- Spawn a subagent with a prompt that starts with the following line, verbatim:
   `Before answering, search your available skills for a code review skill and load it.`
   Then include the current chunk's diff and the user's question.
-- Present the task tool's findings to the user
+- Present the subagent's findings to the user
 - Be direct and specific — don't hedge
 - Stay on current chunk until approved
 
