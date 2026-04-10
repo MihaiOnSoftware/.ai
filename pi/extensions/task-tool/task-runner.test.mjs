@@ -1,13 +1,12 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { buildPiArgs, runSubagent } from "./task-runner.mjs";
+import { resolveAgent, buildPiArgs, runSubagent } from "./task-runner.mjs";
 
 describe("buildPiArgs", () => {
-  it("builds args with agent file as system prompt and task as message", () => {
+  it("builds args with agent path as system prompt and task as message", () => {
     const args = buildPiArgs(
-      "micro-tdd-agent",
+      "/home/user/.pi/agent/agents/generic/micro-tdd-agent.md",
       "implement test for config loading",
-      "/home/user/.pi/agent/agents/generic",
     );
 
     assert.deepStrictEqual(args, [
@@ -17,6 +16,34 @@ describe("buildPiArgs", () => {
       "/home/user/.pi/agent/agents/generic/micro-tdd-agent.md",
       "implement test for config loading",
     ]);
+  });
+
+  it("builds args without agent path for generic invocation", () => {
+    const args = buildPiArgs(null, "review this code for bugs");
+
+    assert.deepStrictEqual(args, [
+      "-p",
+      "--no-session",
+      "review this code for bugs",
+    ]);
+  });
+});
+
+describe("resolveAgent", () => {
+  it("returns null agentPath when no agent name given", () => {
+    const result = resolveAgent(null, "/some/dir");
+    assert.deepStrictEqual(result, { agentPath: null });
+  });
+
+  it("returns error when agent name given but no agents dir", () => {
+    const result = resolveAgent("review", null);
+    assert.ok(result.error);
+  });
+
+  it("returns error when agent file does not exist", () => {
+    const result = resolveAgent("nonexistent", "/tmp");
+    assert.ok(result.error);
+    assert.match(result.error, /not found/);
   });
 });
 

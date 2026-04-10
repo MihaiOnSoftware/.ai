@@ -3,11 +3,32 @@
  */
 
 import { spawn } from "node:child_process";
+import fs from "node:fs";
 import path from "node:path";
 
-export function buildPiArgs(agentName, task, agentsDir) {
+export function resolveAgent(agentName, agentsDir) {
+  if (!agentName) return { agentPath: null };
+  if (!agentsDir) return { error: "No agents directory found." };
+
   const agentPath = path.join(agentsDir, `${agentName}.md`);
-  return ["-p", "--no-session", "--append-system-prompt", agentPath, task];
+  try {
+    fs.accessSync(agentPath);
+    return { agentPath };
+  } catch {
+    const available = fs.readdirSync(agentsDir)
+      .filter((f) => f.endsWith(".md"))
+      .map((f) => f.replace(/\.md$/, ""));
+    return { error: `Agent "${agentName}" not found. Available: ${available.join(", ") || "none"}` };
+  }
+}
+
+export function buildPiArgs(agentPath, task) {
+  const args = ["-p", "--no-session"];
+  if (agentPath) {
+    args.push("--append-system-prompt", agentPath);
+  }
+  args.push(task);
+  return args;
 }
 
 export function runSubagent(command, args, cwd, signal) {
