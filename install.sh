@@ -21,6 +21,7 @@ log_info "Starting installation..."
 echo ""
 
 # Run modular install scripts
+"$SCRIPT_DIR/lib/install_lib.sh"
 "$SCRIPT_DIR/lib/install_scripts.sh"
 "$SCRIPT_DIR/lib/install_rules.sh"
 

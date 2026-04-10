@@ -29,6 +29,9 @@ echo ""
 echo ""
 
 "$SCRIPT_DIR/lib/uninstall_pi.sh"
+echo ""
+
+"$SCRIPT_DIR/lib/uninstall_lib.sh"
 
 echo ""
 log_success "✅ Uninstall complete!"

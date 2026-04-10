@@ -4,6 +4,7 @@
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 # Source Directories
+LIB_DIR="$REPO_ROOT/lib"
 SCRIPTS_DIR="$REPO_ROOT/scripts"
 RULES_DIR="$REPO_ROOT/rules"
 COMMANDS_DIR="$REPO_ROOT/commands"
@@ -11,6 +12,7 @@ SKILLS_DIR="$REPO_ROOT/skills"
 AGENTS_DIR="$REPO_ROOT/agents"
 
 # AI Paths
+AI_LIB_PATH="${AI_LIB_PATH:-$HOME/.ai/lib}"
 AI_SCRIPTS_PATH="${AI_SCRIPTS_PATH:-$HOME/.ai/scripts/generic}"
 AI_RULES_PATH="${AI_RULES_PATH:-$HOME/.ai/rules}"
 
