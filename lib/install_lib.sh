@@ -23,5 +23,8 @@ create_symlink "$AI_LIB_PATH/paths.sh" "$LIB_DIR/paths.sh"
 create_symlink "$AI_LIB_PATH/agent_helpers.sh" "$LIB_DIR/agent_helpers.sh"
 create_symlink "$AI_LIB_PATH/install_agents.sh" "$LIB_DIR/install_agents.sh"
 create_symlink "$AI_LIB_PATH/uninstall_agents.sh" "$LIB_DIR/uninstall_agents.sh"
+create_symlink "$AI_LIB_PATH/skill_helpers.sh" "$LIB_DIR/skill_helpers.sh"
+create_symlink "$AI_LIB_PATH/install_skills.sh" "$LIB_DIR/install_skills.sh"
+create_symlink "$AI_LIB_PATH/uninstall_skills.sh" "$LIB_DIR/uninstall_skills.sh"
 
 log_success "✅ Lib installation complete! (Created: $COUNT_CREATED, Correct: $COUNT_CORRECT, Warnings: $COUNT_WARNING)"
