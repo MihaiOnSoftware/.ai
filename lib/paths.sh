@@ -9,7 +9,6 @@ SCRIPTS_DIR="$REPO_ROOT/scripts"
 RULES_DIR="$REPO_ROOT/rules"
 COMMANDS_DIR="$REPO_ROOT/commands"
 SKILLS_DIR="$REPO_ROOT/skills"
-AGENTS_DIR="$REPO_ROOT/agents"
 
 # AI Paths
 AI_LIB_PATH="${AI_LIB_PATH:-$HOME/.ai/lib}"

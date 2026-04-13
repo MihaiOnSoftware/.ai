@@ -29,7 +29,7 @@ echo ""
 # "$SCRIPT_DIR/lib/install_commands.sh"
 
 "$SCRIPT_DIR/lib/install_skills.sh"
-"$SCRIPT_DIR/lib/install_agents.sh"
+"$SCRIPT_DIR/lib/install_agents.sh" "$SCRIPT_DIR/agents"
 "$SCRIPT_DIR/lib/install_pi.sh"
 
 echo ""
