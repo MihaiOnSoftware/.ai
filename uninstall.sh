@@ -22,13 +22,10 @@ echo ""
 "$SCRIPT_DIR/lib/uninstall_commands.sh"
 echo ""
 
-"$SCRIPT_DIR/lib/uninstall_skills.sh"
+"$SCRIPT_DIR/lib/uninstall_skills.sh" generic "$SCRIPT_DIR/skills"
 echo ""
 
 "$SCRIPT_DIR/lib/uninstall_agents.sh" "$SCRIPT_DIR/agents"
-echo ""
-
-"$SCRIPT_DIR/lib/uninstall_pi.sh"
 echo ""
 
 "$SCRIPT_DIR/lib/uninstall_lib.sh"

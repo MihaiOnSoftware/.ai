@@ -2,26 +2,17 @@
 
 set -euo pipefail
 
-# Load required libraries
+if [ $# -lt 2 ]; then
+    echo "Usage: uninstall_skills.sh <namespace> <source_dir>" >&2
+    exit 1
+fi
+
+NAMESPACE="$1"
+SOURCE_DIR="$2"
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/logging.sh"
-source "$SCRIPT_DIR/paths.sh"
+source "$SCRIPT_DIR/skill_helpers.sh"
 
 log_info "Uninstalling skills..."
-
-# Remove any symlinks pointing into SKILLS_DIR from both Claude and OpenCode locations
-for dir in "$CLAUDE_SKILLS_DIR" "$(dirname "$OPENCODE_SKILLS_PATH")"; do
-    [ -d "$dir" ] || continue
-    for entry in "$dir"/*; do
-        [ -L "$entry" ] || continue
-        link_target="$(readlink "$entry")"
-        case "$link_target" in
-            "$SKILLS_DIR"|"$SKILLS_DIR"/*)
-                rm "$entry"
-                log_success "  Removed symlink: $entry"
-                ;;
-        esac
-    done
-done
-
-log_success "Skills uninstallation complete!"
+uninstall_skills "$NAMESPACE" "$SOURCE_DIR"
+log_success "✅ Skills uninstallation complete!"

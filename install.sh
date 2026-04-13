@@ -28,9 +28,8 @@ echo ""
 # Replaced in favour of skills
 # "$SCRIPT_DIR/lib/install_commands.sh"
 
-"$SCRIPT_DIR/lib/install_skills.sh"
+"$SCRIPT_DIR/lib/install_skills.sh" generic "$SCRIPT_DIR/skills"
 "$SCRIPT_DIR/lib/install_agents.sh" "$SCRIPT_DIR/agents"
-"$SCRIPT_DIR/lib/install_pi.sh"
 
 echo ""
 log_success "✅ Configuration complete! Configured symlinks for scripts, rules, commands, skills, agents, and pi."
