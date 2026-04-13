@@ -17,16 +17,18 @@ AI_SCRIPTS_PATH="${AI_SCRIPTS_PATH:-$HOME/.ai/scripts/generic}"
 AI_RULES_PATH="${AI_RULES_PATH:-$HOME/.ai/rules}"
 
 # Claude Paths
-CLAUDE_COMMANDS_PATH="${CLAUDE_COMMANDS_PATH:-$HOME/.claude/commands/generic}"
+CLAUDE_DIR="${CLAUDE_DIR:-$HOME/.claude}"
+CLAUDE_COMMANDS_PATH="${CLAUDE_COMMANDS_PATH:-$CLAUDE_DIR/commands/generic}"
 # Claude skills are symlinked per-skill into this directory (not as a subdirectory)
 # because Claude Code only discovers skills one level deep: <skills-dir>/<skill-name>/SKILL.md
-CLAUDE_SKILLS_DIR="${CLAUDE_SKILLS_DIR:-$HOME/.claude/skills}"
-CLAUDE_AGENTS_PATH="${CLAUDE_AGENTS_PATH:-$HOME/.claude/agents/generic}"
+CLAUDE_SKILLS_DIR="${CLAUDE_SKILLS_DIR:-$CLAUDE_DIR/skills}"
+CLAUDE_AGENTS_PATH="${CLAUDE_AGENTS_PATH:-$CLAUDE_DIR/agents/generic}"
 
 # OpenCode Paths
-OPENCODE_COMMANDS_PATH="${OPENCODE_COMMANDS_PATH:-$HOME/.config/opencode/commands/generic}"
-OPENCODE_SKILLS_PATH="${OPENCODE_SKILLS_PATH:-$HOME/.config/opencode/skills/generic}"
-OPENCODE_AGENTS_PATH="${OPENCODE_AGENTS_PATH:-$HOME/.config/opencode/agents/generic}"
+OPENCODE_DIR="${OPENCODE_DIR:-$HOME/.config/opencode}"
+OPENCODE_COMMANDS_PATH="${OPENCODE_COMMANDS_PATH:-$OPENCODE_DIR/commands/generic}"
+OPENCODE_SKILLS_PATH="${OPENCODE_SKILLS_PATH:-$OPENCODE_DIR/skills/generic}"
+OPENCODE_AGENTS_PATH="${OPENCODE_AGENTS_PATH:-$OPENCODE_DIR/agents/generic}"
 
 # Pi Paths
 PI_DIR="${PI_DIR:-$HOME/.pi/agent}"
