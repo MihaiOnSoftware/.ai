@@ -9,7 +9,7 @@ When micro-tdd-agent fails:
    - "Previous test failed to compile: [error]. Check syntax."
    - "Previous test passed when it should fail. Test may need assertion."
    - "Previous implementation broke existing tests: [failures]. Consider [approach]."
-4. Use Task tool (subagent_type='micro-tdd-agent') with: original behavior + failure context
+4. Delegate to `micro-tdd-agent` with: original behavior + failure context
 
 When micro-refactor-agent fails:
 1. Analyze failure mode (tests broken, refactoring incomplete, stuck)
@@ -18,7 +18,7 @@ When micro-refactor-agent fails:
    - "Previous refactoring broke tests: [failures]. Consider smaller change."
    - "Previous attempt changed behavior. Refactoring must preserve behavior."
    - "Previous refactoring incomplete. Consider [approach]."
-4. Use Task tool (subagent_type='micro-refactor-agent') with: original description + failure context
+4. Delegate to `micro-refactor-agent` with: original description + failure context
 
 ## Validation Retry
 
@@ -42,6 +42,6 @@ When tdd-validation-agent fails:
    - Commit message problems (process description, passive voice)
 2. Revert the commit: `git reset --hard HEAD~1`
 3. Formulate helpful context with specific fixes needed
-4. Use Task tool with same agent type (micro-tdd or micro-refactor) with: original description + validation feedback
+4. Delegate to the same agent type (micro-tdd or micro-refactor) with: original description + validation feedback
 5. Create new commit with commit-agent
 6. Re-validate

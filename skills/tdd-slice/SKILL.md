@@ -10,15 +10,13 @@ Implement a complete slice by orchestrating multiple micro-tdd-agent cycles, val
 
 ## Subagents Used
 
-This command uses the Task tool to delegate work to:
+This command delegates work to subagents:
 - `micro-tdd-agent` - for test behaviors
 - `micro-refactor-agent` - for refactorings
 - `commit-agent`
 - `tdd-validation-agent`
 - `micro-fix-agent` - for fixing trivial validation issues
 - `investigator-agent` - for analyzing repeated validation failures
-
-See the Task tool's available agents list for their descriptions.
 
 ## What This Command Does
 
@@ -127,10 +125,10 @@ For each item in the execution plan:
 Based on the execution plan's type annotation for this item:
 
 **If item is a test behavior:**
-Use Task tool (subagent_type='micro-tdd-agent') with the test behavior description.
+Delegate to `micro-tdd-agent` with the test behavior description.
 
 **If item is a refactoring:**
-Use Task tool (subagent_type='micro-refactor-agent') with the refactoring description (remove "Refactor:" prefix if present).
+Delegate to `micro-refactor-agent` with the refactoring description (remove "Refactor:" prefix if present).
 
 Track:
 - Attempt number (1 or 2)
@@ -143,7 +141,7 @@ Track:
 1. **First failure**: Retry once with additional context
    - Analyze the failure (error messages, what went wrong)
    - Provide context: "Previous attempt failed because [reason]. Consider [suggestion]."
-   - Use Task tool with same agent type again with enhanced prompt
+   - Delegate to the same agent type again with enhanced prompt
 
 2. **Second failure**: Stop and report
    - Analyze what went wrong (examine errors, code state, test output)
@@ -157,7 +155,7 @@ Post "✅ Micro cycle [N/Total] complete: [item description]"
 
 **Step 2: Create commit**
 
-Use Task tool (subagent_type='commit-agent') to create a commit for the changes.
+Delegate to `commit-agent` to create a commit for the changes.
 
 Track:
 - Commit hash created
@@ -166,7 +164,7 @@ Post "✅ Commit created: [commit hash]"
 
 **Step 3: Validate the micro commit**
 
-Use Task tool (subagent_type='tdd-validation-agent') with context about the slice and current item.
+Delegate to `tdd-validation-agent` with context about the slice and current item.
 
 Format the prompt as:
 ```
@@ -210,14 +208,14 @@ Track:
 
    **For commit message issues only:**
    - Soft reset: `git reset --soft HEAD~1`
-   - Use Task tool (subagent_type='commit-agent') to create new commit
+   - Delegate to `commit-agent` to create new commit
    - Track new commit hash
    - Validate again with new commit hash (include same slice context)
    - If validation passes → continue
    - If validation fails → proceed to Step C (reset path)
 
    **For code issues (with or without commit message issues):**
-   - Use Task tool (subagent_type='micro-fix-agent') with validation report path
+   - Delegate to `micro-fix-agent` with validation report path
    - If micro-fix-agent succeeds:
      - Amend commit: `git commit --amend --no-edit`
      - Track commit hash (stays same after amend)
@@ -231,7 +229,7 @@ Track:
    - Read validation report to understand issues
    - Provide context: "Previous attempt didn't meet quality standards: [issues from validation report]"
    - Revert the commit: `git reset --hard HEAD~1`
-   - Use Task tool with same agent type (micro-tdd or micro-refactor) again with validation feedback
+   - Delegate to the same agent type (micro-tdd or micro-refactor) again with validation feedback
    - If succeeds, call commit-agent again to create new commit
    - Validate again with new commit hash (include same slice context)
 
@@ -239,7 +237,7 @@ Track:
 
    **Step A: Call investigator-agent**
 
-   Use Task tool (subagent_type='investigator-agent') with:
+   Delegate to `investigator-agent` with:
    - Validation report path (from second failure)
    - Micro agent report path
    - Commit hash
@@ -358,7 +356,7 @@ For a worked example session showing cycles with retries and fixes, see [example
 - Use micro-tdd-agent for refactorings (use micro-refactor-agent)
 
 **DO**:
-- Use Task tool systematically to orchestrate micro agents
+- Delegate to micro agents systematically to orchestrate them
 - Choose correct agent type (tdd vs refactor)
 - Validate every commit
 - Provide helpful context on retries

@@ -9,17 +9,19 @@ source "$SCRIPT_DIR/paths.sh"
 
 validate_source_dir "$SKILLS_DIR" "Skills directory"
 validate_source_dir "$AGENTS_DIR" "Agents directory"
-validate_source_dir "$PI_EXTENSION_SOURCE" "Task tool extension directory"
 
 log_info "Installing pi integration..."
 
 # Symlink skills
 create_symlink "$PI_SKILLS_PATH" "$SKILLS_DIR"
 
-# Symlink agents
-create_symlink "$PI_AGENTS_PATH" "$AGENTS_DIR"
+# Symlink agents individually (subagent extension only looks one level deep)
+mkdir -p "$PI_AGENTS_DIR"
+for agent_file in "$AGENTS_DIR"/*.md; do
+    [ -f "$agent_file" ] || continue
+    agent_name="$(basename "$agent_file")"
+    create_symlink "$PI_AGENTS_DIR/$agent_name" "$agent_file"
+done
 
-# Symlink task-tool extension
-create_symlink "$PI_EXTENSION_PATH" "$PI_EXTENSION_SOURCE"
 
 log_success "✅ Pi installation complete! (Created: $COUNT_CREATED, Correct: $COUNT_CORRECT, Warnings: $COUNT_WARNING)"

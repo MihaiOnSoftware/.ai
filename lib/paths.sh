@@ -33,6 +33,5 @@ OPENCODE_AGENTS_PATH="${OPENCODE_AGENTS_PATH:-$OPENCODE_DIR/agents/generic}"
 # Pi Paths
 PI_DIR="${PI_DIR:-$HOME/.pi/agent}"
 PI_SKILLS_PATH="${PI_SKILLS_PATH:-$PI_DIR/skills/generic}"
-PI_AGENTS_PATH="${PI_AGENTS_PATH:-$PI_DIR/agents/generic}"
-PI_EXTENSION_SOURCE="$REPO_ROOT/pi/extensions/task-tool"
-PI_EXTENSION_PATH="${PI_EXTENSION_PATH:-$PI_DIR/extensions/task-tool}"
+PI_AGENTS_DIR="${PI_AGENTS_DIR:-$PI_DIR/agents}"
+
