@@ -63,6 +63,17 @@ describe("runSubagent", () => {
     assert.equal(result.error.trim(), "oops");
   });
 
+  it("resolves when child exits even if grandchild holds the pipe open", async () => {
+    // Spawns a background process that outlives the shell. With 'close' event
+    // this would hang because the grandchild inherits the pipe fd.
+    const result = await runSubagent(
+      "sh", ["-c", "echo done; sleep 30 &"], process.cwd(),
+    );
+
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.output.trim(), "done");
+  });
+
   it("can be aborted via signal", async () => {
     const controller = new AbortController();
     const promise = runSubagent("sleep", ["10"], process.cwd(), controller.signal);

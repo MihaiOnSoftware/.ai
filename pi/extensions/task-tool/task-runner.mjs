@@ -51,7 +51,12 @@ export function runSubagent(command, args, cwd, signal) {
       stderr += data.toString();
     });
 
-    proc.on("close", (code) => {
+    // 'exit' not 'close' — 'close' waits for all stdio streams to end,
+    // which hangs if a grandchild process inherits the pipe file descriptors.
+    proc.on("exit", (code) => {
+      proc.stdout.destroy();
+      proc.stderr.destroy();
+      if (cleanupSignal) cleanupSignal();
       resolve({
         exitCode: code ?? 1,
         output: stdout,
@@ -61,6 +66,7 @@ export function runSubagent(command, args, cwd, signal) {
     });
 
     proc.on("error", (err) => {
+      if (cleanupSignal) cleanupSignal();
       resolve({
         exitCode: 1,
         output: stdout,
@@ -69,6 +75,7 @@ export function runSubagent(command, args, cwd, signal) {
       });
     });
 
+    let cleanupSignal = null;
     if (signal) {
       const kill = () => {
         aborted = true;
@@ -78,6 +85,7 @@ export function runSubagent(command, args, cwd, signal) {
         kill();
       } else {
         signal.addEventListener("abort", kill, { once: true });
+        cleanupSignal = () => signal.removeEventListener("abort", kill);
       }
     }
   });
