@@ -9,12 +9,18 @@ source "$SCRIPT_DIR/paths.sh"
 
 log_info "Uninstalling agents..."
 
-uninstall_symlink "$CLAUDE_AGENTS_PATH" "$AGENTS_DIR"
-uninstall_symlink "$OPENCODE_AGENTS_PATH" "$AGENTS_DIR"
+# Clean up old-style directory symlinks at agents/generic (from before per-file migration)
+for old_dir_symlink in "$CLAUDE_AGENTS_DIR/generic" "$OPENCODE_AGENTS_DIR/generic"; do
+    if [ -L "$old_dir_symlink" ]; then
+        rm "$old_dir_symlink"
+        log_info "  Removed old directory symlink: $old_dir_symlink"
+    fi
+done
 
-# Pi: remove individual agent symlinks pointing into AGENTS_DIR
-if [ -d "$PI_AGENTS_DIR" ]; then
-    for entry in "$PI_AGENTS_DIR"/*; do
+# Remove individual agent symlinks pointing into AGENTS_DIR
+for target_dir in "$CLAUDE_AGENTS_DIR" "$OPENCODE_AGENTS_DIR" "$PI_AGENTS_DIR"; do
+    [ -d "$target_dir" ] || continue
+    for entry in "$target_dir"/*; do
         [ -L "$entry" ] || continue
         link_target="$(readlink "$entry")"
         case "$link_target" in
@@ -24,6 +30,6 @@ if [ -d "$PI_AGENTS_DIR" ]; then
                 ;;
         esac
     done
-fi
+done
 
 log_success "✅ Agents uninstallation complete!"

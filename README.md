@@ -17,10 +17,10 @@ This creates symlinks:
 - `~/.ai/rules` → `rules/`
 - `~/.claude/commands/generic` → `commands/`
 - `~/.claude/skills/<skill-name>` → `skills/<skill-name>/` (one per skill)
-- `~/.claude/agents/generic` → `agents/`
+- `~/.claude/agents/<agent>.md` → `agents/<agent>.md` (one per agent)
 - `~/.config/opencode/commands/generic` → `commands/`
 - `~/.config/opencode/skills/generic` → `skills/`
-- `~/.config/opencode/agents/generic` → `agents/`
+- `~/.config/opencode/agents/<agent>.md` → `agents/<agent>.md` (one per agent)
 
 Note: Claude Code skills are symlinked individually because Claude only discovers skills one level deep.
 
@@ -43,10 +43,10 @@ AI_SCRIPTS_PATH=~/custom/.ai/scripts/generic \
 AI_RULES_PATH=~/custom/.ai/rules \
 CLAUDE_COMMANDS_PATH=~/custom/.claude/commands/generic \
 CLAUDE_SKILLS_DIR=~/custom/.claude/skills \
-CLAUDE_AGENTS_PATH=~/custom/.claude/agents/generic \
+CLAUDE_AGENTS_DIR=~/custom/.claude/agents \
 OPENCODE_COMMANDS_PATH=~/custom/.config/opencode/commands/generic \
 OPENCODE_SKILLS_PATH=~/custom/.config/opencode/skills/generic \
-OPENCODE_AGENTS_PATH=~/custom/.config/opencode/agents/generic \
+OPENCODE_AGENTS_DIR=~/custom/.config/opencode/agents \
 ./install.sh
 ```
 
@@ -87,10 +87,10 @@ AI_SCRIPTS_PATH=/tmp/ai-test/ai/scripts/generic \
 AI_RULES_PATH=/tmp/ai-test/ai/rules \
 CLAUDE_COMMANDS_PATH=/tmp/ai-test/claude/commands/generic \
 CLAUDE_SKILLS_DIR=/tmp/ai-test/claude/skills \
-CLAUDE_AGENTS_PATH=/tmp/ai-test/claude/agents/generic \
+CLAUDE_AGENTS_DIR=/tmp/ai-test/claude/agents \
 OPENCODE_COMMANDS_PATH=/tmp/ai-test/opencode/commands/generic \
 OPENCODE_SKILLS_PATH=/tmp/ai-test/opencode/skills/generic \
-OPENCODE_AGENTS_PATH=/tmp/ai-test/opencode/agents/generic \
+OPENCODE_AGENTS_DIR=/tmp/ai-test/opencode/agents \
 ./install.sh
 
 # Test uninstall
@@ -98,10 +98,10 @@ AI_SCRIPTS_PATH=/tmp/ai-test/ai/scripts/generic \
 AI_RULES_PATH=/tmp/ai-test/ai/rules \
 CLAUDE_COMMANDS_PATH=/tmp/ai-test/claude/commands/generic \
 CLAUDE_SKILLS_DIR=/tmp/ai-test/claude/skills \
-CLAUDE_AGENTS_PATH=/tmp/ai-test/claude/agents/generic \
+CLAUDE_AGENTS_DIR=/tmp/ai-test/claude/agents \
 OPENCODE_COMMANDS_PATH=/tmp/ai-test/opencode/commands/generic \
 OPENCODE_SKILLS_PATH=/tmp/ai-test/opencode/skills/generic \
-OPENCODE_AGENTS_PATH=/tmp/ai-test/opencode/agents/generic \
+OPENCODE_AGENTS_DIR=/tmp/ai-test/opencode/agents \
 ./uninstall.sh
 
 # Clean up
