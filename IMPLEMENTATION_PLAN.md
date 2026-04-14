@@ -59,90 +59,47 @@ Most of `.shopify-ai/lib/` gets deleted. The Claude skill discovery bug gets fix
 
 ### ~~Slice 4: Centralize force mode~~ (done in Slice 1)
 
-### Slice 3: Create `agent_helpers.sh` with `install_agents`/`uninstall_agents` functions
+### ✅ Slice 3: Create `agent_helpers.sh` with `install_agents`/`uninstall_agents` functions
 
-**Goal**: Extract agent install/uninstall logic into reusable functions that downstream repos can call.
+**Status**: Complete (commits b0712c5, b6886fe)
 
-**Approach**:
-- Create `lib/agent_helpers.sh` that sources `symlink_helpers.sh` and `paths.sh`
-- Define `install_agents <source_dir>`: validates source dir, iterates `*.md` files, creates individual symlinks in `CLAUDE_AGENTS_DIR`, `OPENCODE_AGENTS_DIR`, and `PI_AGENTS_DIR`
-- Define `uninstall_agents <source_dir>`: iterates entries in each target dir, removes symlinks pointing into `<source_dir>`
-- No namespace parameter — agent names are assumed unique across repos
+**What was done**:
+- Created `lib/agent_helpers.sh` with `install_agents <source_dir>` and `uninstall_agents <source_dir>`
+- Per-file iteration, no namespace parameter
+- Refactored `install_agents.sh` and `uninstall_agents.sh` to use the functions
 
-**Tests**:
-- Source `agent_helpers.sh` and call `install_agents "$AGENTS_DIR"`: correct per-file symlinks created in all three targets
-- `uninstall_agents` removes only symlinks pointing into the given source dir
+### ✅ Slice 5: Reusable `install_agents.sh` / `uninstall_agents.sh` wrapper scripts
 
-### Slice 5: Reusable `install_agents.sh` / `uninstall_agents.sh` wrapper scripts
+**Status**: Complete (commits be6143f, 03a7e25)
 
-**Goal**: Thin script wrappers that any repo can call with a source directory.
+**What was done**:
+- Made scripts accept `<source_dir>` as positional argument
+- Removed `AGENTS_DIR` from `paths.sh`
+- Exposed `paths.sh`, `agent_helpers.sh`, `install_agents.sh`, `uninstall_agents.sh` at `~/.ai/lib/`
 
-**Approach**:
-- Refactor `lib/install_agents.sh` to accept `<source_dir>` as a positional argument, source `agent_helpers.sh`, call `install_agents`
-- Refactor `lib/uninstall_agents.sh` similarly
-- Update `.ai`'s top-level `install.sh` to call `lib/install_agents.sh "$AGENTS_DIR"`
-- Remove agent target dir variables from `paths.sh` — that knowledge now lives in `agent_helpers.sh`
-- Expose at `~/.ai/lib/`
+### ✅ Slice 6: `skill_helpers.sh` + `install_skills.sh` / `uninstall_skills.sh` with Claude per-skill handling
 
-**Tests**:
-- `./uninstall.sh && ./install.sh`: per-file agent symlinks in all three targets
-- `~/.ai/lib/install_agents.sh /tmp/test-agents`: creates per-file symlinks in all three targets
-- Missing arguments: prints usage and exits with error
+**Status**: Complete (commits 2372560, ed65a6b, 985e9a2)
 
-### Slice 6: `skill_helpers.sh` + `install_skills.sh` / `uninstall_skills.sh` with Claude per-skill handling
+**What was done**:
+- Created `lib/skill_helpers.sh` with `install_skills <namespace> <source_dir>` and `uninstall_skills <namespace> <source_dir>`
+- Claude: per-skill flat symlinks. OpenCode/Pi: namespace directory symlinks.
+- Refactored `install_skills.sh`/`uninstall_skills.sh` to use the functions with positional args
+- Removed `install_pi.sh`/`uninstall_pi.sh` (skills handled by skill_helpers)
+- Removed `SKILLS_DIR`, `OPENCODE_SKILLS_PATH`, `PI_SKILLS_PATH` from `paths.sh`
+- Exposed `skill_helpers.sh`, `install_skills.sh`, `uninstall_skills.sh` at `~/.ai/lib/`
 
-**Goal**: The complex case. Claude Code only discovers skills one level deep, so skills need individual symlinks into the flat `~/.claude/skills/` directory. OpenCode and Pi use directory symlinks with a namespace.
+### ~~Slice 7: Expand `~/.ai/lib/`~~ (absorbed into Slices 5 and 6)
 
-**Approach**:
-- Create `lib/skill_helpers.sh` that sources `symlink_helpers.sh` and `paths.sh`
-- `install_skills <namespace> <source_dir>`:
-  - For Claude: iterate each subdirectory containing a `SKILL.md`, create individual symlink at `$CLAUDE_SKILLS_DIR/<skill_name>` (flat, not namespaced)
-  - For OpenCode: single directory symlink at `$OPENCODE_SKILLS_DIR/<namespace>`
-  - For Pi: single directory symlink at `$PI_SKILLS_DIR/<namespace>`
-- `uninstall_skills <namespace> <source_dir>`:
-  - For Claude: iterate entries in `$CLAUDE_SKILLS_DIR`, remove symlinks pointing into `<source_dir>`
-  - For OpenCode and Pi: `uninstall_symlink` on the namespace directory
-- Skills keep the `<namespace>` parameter because OpenCode and Pi use namespace subdirectories (unlike agents which are flat)
-- Create `lib/install_skills.sh` and `lib/uninstall_skills.sh` as thin wrappers accepting `<namespace> <source_dir>`
-- Refactor `.ai`'s top-level scripts to call `lib/install_skills.sh generic "$SKILLS_DIR"`
-- Remove skills-related path variables from `paths.sh` — knowledge lives in `skill_helpers.sh`
-- Expose at `~/.ai/lib/`
+### ✅ Slice 8: Refactor `.ai` to consume from `~/.ai/lib/`
 
-**Tests**:
-- `./uninstall.sh && ./install.sh`: Claude gets individual per-skill symlinks, OpenCode and Pi get directory symlinks
-- `~/.ai/lib/install_skills.sh shopify /path/to/.shopify-ai/skills`: Claude gets individual symlinks for each skill directly in `~/.claude/skills/`
-- Uninstall removes only symlinks pointing into the correct source directory
-- Skill directory without `SKILL.md` is skipped for Claude
+**Status**: Complete (commit c0ea96d)
 
-### Slice 7: Expand `~/.ai/lib/` with all shared files
-
-**Goal**: Make all shared helpers discoverable by downstream repos at `~/.ai/lib/`.
-
-**Note**: `install_lib.sh`/`uninstall_lib.sh` already exist from Slice 1, symlinking `logging.sh` and `symlink_helpers.sh`. This slice expands them.
-
-**Approach**:
-- Update `lib/install_lib.sh` to also symlink: `paths.sh`, `agent_helpers.sh`, `skill_helpers.sh`, `install_agents.sh`, `uninstall_agents.sh`, `install_skills.sh`, `uninstall_skills.sh`
-- Update `lib/uninstall_lib.sh` to remove them
-
-**Tests**:
-- `./install.sh`: all shared files exist at `~/.ai/lib/` as symlinks
-- `./uninstall.sh`: all `~/.ai/lib/` symlinks removed
-- `source ~/.ai/lib/skill_helpers.sh` works from an external script
-
-### Slice 8: Refactor `.ai` to consume from `~/.ai/lib/`
-
-**Goal**: Dogfood the shared helpers by having `.ai`'s own install call scripts from `~/.ai/lib/` instead of relative paths. Proves the interface works before any downstream repo depends on it.
-
-**Approach**:
-- Lib install step (Slice 7) runs first
-- Refactor `.ai`'s top-level `install.sh` to call `~/.ai/lib/install_agents.sh "$AGENTS_DIR"`, `~/.ai/lib/install_skills.sh generic "$SKILLS_DIR"`, etc.
-- Refactor `uninstall.sh` to call from `~/.ai/lib/`, then uninstall the lib symlinks last
-- Install scripts for rules, scripts, and pi (not yet converted to the helper pattern) continue using local paths
-
-**Tests**:
-- `./uninstall.sh && ./install.sh`: all symlinks created, same end state as before
-- Delete `~/.ai/lib/` manually, run `./install.sh`: lib gets recreated first, then everything else succeeds
-- `./uninstall.sh`: everything removed, `~/.ai/lib/` emptied last
+**What was done**:
+- `install.sh` calls `~/.ai/lib/install_agents.sh` and `~/.ai/lib/install_skills.sh` instead of relative paths
+- `uninstall.sh` calls `~/.ai/lib/uninstall_agents.sh` and `~/.ai/lib/uninstall_skills.sh`
+- Lib install runs first, lib uninstall runs last
+- Scripts/rules stay as relative paths (not yet converted)
 
 ## After This
 
