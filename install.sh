@@ -24,7 +24,7 @@ echo ""
 "$SCRIPT_DIR/lib/install_lib.sh"
 
 # These use the shared helpers via ~/.ai/lib/
-"$HOME/.ai/lib/install_skills.sh" generic "$SCRIPT_DIR/skills"
+"$HOME/.ai/lib/install_skills.sh" "$SCRIPT_DIR/skills"
 "$HOME/.ai/lib/install_agents.sh" "$SCRIPT_DIR/agents"
 
 # These aren't converted yet, stay as relative paths

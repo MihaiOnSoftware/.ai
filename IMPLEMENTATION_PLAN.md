@@ -101,6 +101,24 @@ Most of `.shopify-ai/lib/` gets deleted. The Claude skill discovery bug gets fix
 - Lib install runs first, lib uninstall runs last
 - Scripts/rules stay as relative paths (not yet converted)
 
+### Slice 9: Flatten skill symlinking to per-skill for all targets
+
+**Goal**: Make all skill targets use per-skill individual symlinks (like agents). Drop the namespace parameter.
+
+**Approach**:
+- Change `skill_helpers.sh`: all three targets iterate skill subdirs with `SKILL.md`, create individual symlinks (Claude already does this)
+- Drop `<namespace>` from `install_skills`/`uninstall_skills` signatures
+- Update `paths.sh`: add `OPENCODE_SKILLS_DIR` and `PI_SKILLS_DIR`, remove `CLAUDE_SKILLS_DIR` (all three now use `*_SKILLS_DIR`)
+- Update `install_skills.sh`/`uninstall_skills.sh` wrappers to take just `<source_dir>`
+- Update `install.sh`/`uninstall.sh` callers
+- Add old-style namespace directory symlink cleanup to uninstall (like agents did for `generic`)
+
+**Tests**:
+- `./uninstall.sh && ./install.sh`: all three targets get individual per-skill symlinks
+- `ls ~/.claude/skills/`, `ls ~/.config/opencode/skills/`, `ls ~/.pi/agent/skills/` all show individual skill symlinks
+- `./install.sh` again: idempotent
+- `./uninstall.sh`: all removed, non-.ai entries untouched
+
 ## After This
 
 `.shopify-ai` can be independently refactored to source from `~/.ai/lib/` and delete its own `lib/`. That work happens in the `.shopify-ai` repo.

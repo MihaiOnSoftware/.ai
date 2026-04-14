@@ -5,31 +5,36 @@ source "$SCRIPT_DIR/symlink_helpers.sh"
 source "$SCRIPT_DIR/paths.sh"
 
 install_skills() {
-    local namespace="$1"
-    local source_dir="$2"
+    local source_dir="$1"
 
     validate_source_dir "$source_dir" "Skills directory"
 
-    mkdir -p "$CLAUDE_SKILLS_DIR"
-    for skill_dir in "$source_dir"/*/; do
-        [ -d "$skill_dir" ] || continue
-        [ -f "$skill_dir/SKILL.md" ] || continue
-        local skill_name
-        skill_name="$(basename "$skill_dir")"
-        create_symlink "$CLAUDE_SKILLS_DIR/$skill_name" "$skill_dir"
+    for target_dir in "$CLAUDE_SKILLS_DIR" "$OPENCODE_SKILLS_DIR" "$PI_SKILLS_DIR"; do
+        mkdir -p "$target_dir"
+        for skill_dir in "$source_dir"/*/; do
+            [ -d "$skill_dir" ] || continue
+            [ -f "$skill_dir/SKILL.md" ] || continue
+            local skill_name
+            skill_name="$(basename "$skill_dir")"
+            create_symlink "$target_dir/$skill_name" "$skill_dir"
+        done
     done
-
-    create_symlink "$OPENCODE_DIR/skills/$namespace" "$source_dir"
-
-    create_symlink "$PI_DIR/skills/$namespace" "$source_dir"
 }
 
 uninstall_skills() {
-    local namespace="$1"
-    local source_dir="$2"
+    local source_dir="$1"
 
-    if [ -d "$CLAUDE_SKILLS_DIR" ]; then
-        for entry in "$CLAUDE_SKILLS_DIR"/*; do
+    # Clean up old namespace directory symlinks (pre-refactor format)
+    for old_dir_symlink in "$CLAUDE_SKILLS_DIR/generic" "$OPENCODE_SKILLS_DIR/generic" "$PI_SKILLS_DIR/generic"; do
+        if [ -L "$old_dir_symlink" ]; then
+            rm "$old_dir_symlink"
+            log_info "  Removed old directory symlink: $old_dir_symlink"
+        fi
+    done
+
+    for target_dir in "$CLAUDE_SKILLS_DIR" "$OPENCODE_SKILLS_DIR" "$PI_SKILLS_DIR"; do
+        [ -d "$target_dir" ] || continue
+        for entry in "$target_dir"/*; do
             [ -L "$entry" ] || continue
             local link_target
             link_target="$(readlink "$entry")"
@@ -40,9 +45,5 @@ uninstall_skills() {
                     ;;
             esac
         done
-    fi
-
-    uninstall_symlink "$OPENCODE_DIR/skills/$namespace" "$source_dir"
-
-    uninstall_symlink "$PI_DIR/skills/$namespace" "$source_dir"
+    done
 }

@@ -13,7 +13,7 @@ echo "=============================="
 echo ""
 
 # These use shared helpers via ~/.ai/lib/
-"$HOME/.ai/lib/uninstall_skills.sh" generic "$SCRIPT_DIR/skills"
+"$HOME/.ai/lib/uninstall_skills.sh" "$SCRIPT_DIR/skills"
 echo ""
 
 "$HOME/.ai/lib/uninstall_agents.sh" "$SCRIPT_DIR/agents"
