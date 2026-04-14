@@ -12,7 +12,14 @@ echo "      Uninstalling...         "
 echo "=============================="
 echo ""
 
-# Run modular uninstall scripts
+# These use shared helpers via ~/.ai/lib/
+"$HOME/.ai/lib/uninstall_skills.sh" generic "$SCRIPT_DIR/skills"
+echo ""
+
+"$HOME/.ai/lib/uninstall_agents.sh" "$SCRIPT_DIR/agents"
+echo ""
+
+# These aren't converted yet, stay as relative paths
 "$SCRIPT_DIR/lib/uninstall_scripts.sh"
 echo ""
 
@@ -22,12 +29,7 @@ echo ""
 "$SCRIPT_DIR/lib/uninstall_commands.sh"
 echo ""
 
-"$SCRIPT_DIR/lib/uninstall_skills.sh" generic "$SCRIPT_DIR/skills"
-echo ""
-
-"$SCRIPT_DIR/lib/uninstall_agents.sh" "$SCRIPT_DIR/agents"
-echo ""
-
+# Uninstall lib last (must use relative path — removes the ~/.ai/lib/ symlinks)
 "$SCRIPT_DIR/lib/uninstall_lib.sh"
 
 echo ""
