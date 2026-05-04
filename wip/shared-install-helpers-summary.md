@@ -20,7 +20,7 @@ After `.ai/install.sh` runs, these files are symlinked to `~/.ai/lib/`:
 | `skill_helpers.sh` | Library: `install_skills()` / `uninstall_skills()` functions |
 | `symlink_helpers.sh` | Library: `create_symlink()` / `uninstall_symlink()` / `validate_source_dir()` |
 | `logging.sh` | Library: `log_info()` / `log_success()` / `log_warning()` / `log_error()` |
-| `paths.sh` | Variables: `CLAUDE_DIR`, `OPENCODE_DIR`, `PI_DIR`, `*_AGENTS_DIR`, `*_SKILLS_DIR` |
+| `paths.sh` | Variables: `CLAUDE_CONFIG_DIR`, `OPENCODE_CONFIG_DIR`, `PI_CODING_AGENT_DIR`, `*_AGENTS_DIR`, `*_SKILLS_DIR` |
 
 ## How to Use (Example: `.shopify-ai`)
 
@@ -123,12 +123,14 @@ No namespace subdirectories. All entries are flat. Agent names and skill names m
 | Variable | Default | Purpose |
 |----------|---------|---------|
 | `FORCE_MODE` | `false` | Set to `true` to fix wrong symlinks instead of warning |
-| `CLAUDE_DIR` | `~/.claude` | Override Claude config root |
-| `OPENCODE_DIR` | `~/.config/opencode` | Override OpenCode config root |
-| `PI_DIR` | `~/.pi/agent` | Override Pi config root |
-| `CLAUDE_AGENTS_DIR` | `$CLAUDE_DIR/agents` | Override Claude agents dir |
-| `CLAUDE_SKILLS_DIR` | `$CLAUDE_DIR/skills` | Override Claude skills dir |
-| (same pattern for OPENCODE_* and PI_*) | | |
+| `CLAUDE_CONFIG_DIR` | `~/.claude` | Claude Code's native override for its config root |
+| `OPENCODE_CONFIG_DIR` | `~/.config/opencode` | OpenCode's native override for its config root |
+| `PI_CODING_AGENT_DIR` | `~/.pi/agent` | pi's native override for its agent config root |
+| `CLAUDE_AGENTS_DIR` | `$CLAUDE_CONFIG_DIR/agents` | Override Claude agents dir |
+| `CLAUDE_SKILLS_DIR` | `$CLAUDE_CONFIG_DIR/skills` | Override Claude skills dir |
+| (same pattern for `OPENCODE_*` and `PI_*`) | | |
+
+The three root variables are the upstream tools' own env vars, so setting them for Claude Code / OpenCode / pi automatically reroutes our installer too.
 
 ## What Can Be Deleted from `.shopify-ai`
 

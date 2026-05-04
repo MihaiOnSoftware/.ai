@@ -36,7 +36,24 @@ The `-f` flag automatically fixes incorrect symlinks. It will **never** overwrit
 
 ### Advanced: Custom Paths
 
-Override default locations using environment variables:
+The installer honors the upstream tools' own config-root env vars:
+
+| Variable | Default | Origin |
+|---|---|---|
+| `CLAUDE_CONFIG_DIR` | `~/.claude` | Claude Code |
+| `OPENCODE_CONFIG_DIR` | `~/.config/opencode` | OpenCode |
+| `PI_CODING_AGENT_DIR` | `~/.pi/agent` | pi |
+
+If you've already set any of those for the real tools, our installer follows along automatically. To redirect everything to a custom tree:
+
+```bash
+CLAUDE_CONFIG_DIR=~/custom/.claude \
+OPENCODE_CONFIG_DIR=~/custom/.config/opencode \
+PI_CODING_AGENT_DIR=~/custom/.pi/agent \
+./install.sh
+```
+
+Individual subdirectories can also be overridden directly:
 
 ```bash
 AI_SCRIPTS_PATH=~/custom/.ai/scripts/generic \
@@ -45,7 +62,7 @@ CLAUDE_COMMANDS_PATH=~/custom/.claude/commands/generic \
 CLAUDE_SKILLS_DIR=~/custom/.claude/skills \
 CLAUDE_AGENTS_DIR=~/custom/.claude/agents \
 OPENCODE_COMMANDS_PATH=~/custom/.config/opencode/commands/generic \
-OPENCODE_SKILLS_PATH=~/custom/.config/opencode/skills/generic \
+OPENCODE_SKILLS_DIR=~/custom/.config/opencode/skills \
 OPENCODE_AGENTS_DIR=~/custom/.config/opencode/agents \
 ./install.sh
 ```
@@ -85,23 +102,19 @@ mkdir -p /tmp/ai-test/{ai/{scripts,rules},claude/{commands,skills,agents},openco
 # Test install with custom paths
 AI_SCRIPTS_PATH=/tmp/ai-test/ai/scripts/generic \
 AI_RULES_PATH=/tmp/ai-test/ai/rules \
+CLAUDE_CONFIG_DIR=/tmp/ai-test/claude \
 CLAUDE_COMMANDS_PATH=/tmp/ai-test/claude/commands/generic \
-CLAUDE_SKILLS_DIR=/tmp/ai-test/claude/skills \
-CLAUDE_AGENTS_DIR=/tmp/ai-test/claude/agents \
+OPENCODE_CONFIG_DIR=/tmp/ai-test/opencode \
 OPENCODE_COMMANDS_PATH=/tmp/ai-test/opencode/commands/generic \
-OPENCODE_SKILLS_PATH=/tmp/ai-test/opencode/skills/generic \
-OPENCODE_AGENTS_DIR=/tmp/ai-test/opencode/agents \
 ./install.sh
 
 # Test uninstall
 AI_SCRIPTS_PATH=/tmp/ai-test/ai/scripts/generic \
 AI_RULES_PATH=/tmp/ai-test/ai/rules \
+CLAUDE_CONFIG_DIR=/tmp/ai-test/claude \
 CLAUDE_COMMANDS_PATH=/tmp/ai-test/claude/commands/generic \
-CLAUDE_SKILLS_DIR=/tmp/ai-test/claude/skills \
-CLAUDE_AGENTS_DIR=/tmp/ai-test/claude/agents \
+OPENCODE_CONFIG_DIR=/tmp/ai-test/opencode \
 OPENCODE_COMMANDS_PATH=/tmp/ai-test/opencode/commands/generic \
-OPENCODE_SKILLS_PATH=/tmp/ai-test/opencode/skills/generic \
-OPENCODE_AGENTS_DIR=/tmp/ai-test/opencode/agents \
 ./uninstall.sh
 
 # Clean up
