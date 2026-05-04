@@ -1,10 +1,10 @@
 # .ai
 
-Shared configuration for AI coding assistants (Claude Code and OpenCode).
+Shared configuration for AI coding assistants (Claude Code, OpenCode, and pi).
 
 ## Installation
 
-The `install.sh` script creates symlinks from your home directory to this repository, allowing AI assistants to access shared scripts, rules, commands, skills, and agents.
+The `install.sh` script creates symlinks from your home directory to this repository, allowing AI assistants to access shared scripts, rules, skills, and agents.
 
 ### Standard Installation
 
@@ -13,16 +13,31 @@ The `install.sh` script creates symlinks from your home directory to this reposi
 ```
 
 This creates symlinks:
+
+**Shared library and project files**
+- `~/.ai/lib/<helper>.sh` → `lib/<helper>.sh` (per file: `logging.sh`, `symlink_helpers.sh`, `paths.sh`, `agent_helpers.sh`, `install_agents.sh`, `uninstall_agents.sh`, `skill_helpers.sh`, `install_skills.sh`, `uninstall_skills.sh`)
 - `~/.ai/scripts/generic` → `scripts/`
 - `~/.ai/rules` → `rules/`
-- `~/.claude/commands/generic` → `commands/`
-- `~/.claude/skills/<skill-name>` → `skills/<skill-name>/` (one per skill)
-- `~/.claude/agents/<agent>.md` → `agents/<agent>.md` (one per agent)
-- `~/.config/opencode/commands/generic` → `commands/`
-- `~/.config/opencode/skills/generic` → `skills/`
-- `~/.config/opencode/agents/<agent>.md` → `agents/<agent>.md` (one per agent)
 
-Note: Claude Code skills are symlinked individually because Claude only discovers skills one level deep.
+**Per-tool skills and agents** (flat, one symlink per skill/agent)
+- `~/.claude/skills/<skill-name>` → `skills/<skill-name>/`
+- `~/.claude/agents/<agent>.md` → `agents/<agent>.md`
+- `~/.config/opencode/skills/<skill-name>` → `skills/<skill-name>/`
+- `~/.config/opencode/agents/<agent>.md` → `agents/<agent>.md`
+- `~/.pi/agent/skills/<skill-name>` → `skills/<skill-name>/`
+- `~/.pi/agent/agents/<agent>.md` → `agents/<agent>.md`
+
+Skills and agents are symlinked individually (rather than via a single namespace directory) because Claude Code only discovers skills one level deep, and the flat layout keeps all three targets consistent.
+
+### Shared Libraries Only
+
+If you only want the shared install/uninstall helpers (so a downstream repo like `.shopify-ai` can call `~/.ai/lib/install_skills.sh` etc.) without symlinking this repo's own skills, agents, scripts, or rules:
+
+```bash
+./lib/install_lib.sh
+```
+
+This only creates the `~/.ai/lib/<helper>.sh` symlinks. See [`wip/shared-install-helpers-summary.md`](wip/shared-install-helpers-summary.md) for how downstream repos use them.
 
 ### Force Mode
 
@@ -56,14 +71,15 @@ PI_CODING_AGENT_DIR=~/custom/.pi/agent \
 Individual subdirectories can also be overridden directly:
 
 ```bash
+AI_LIB_PATH=~/custom/.ai/lib \
 AI_SCRIPTS_PATH=~/custom/.ai/scripts/generic \
 AI_RULES_PATH=~/custom/.ai/rules \
-CLAUDE_COMMANDS_PATH=~/custom/.claude/commands/generic \
 CLAUDE_SKILLS_DIR=~/custom/.claude/skills \
 CLAUDE_AGENTS_DIR=~/custom/.claude/agents \
-OPENCODE_COMMANDS_PATH=~/custom/.config/opencode/commands/generic \
 OPENCODE_SKILLS_DIR=~/custom/.config/opencode/skills \
 OPENCODE_AGENTS_DIR=~/custom/.config/opencode/agents \
+PI_SKILLS_DIR=~/custom/.pi/agent/skills \
+PI_AGENTS_DIR=~/custom/.pi/agent/agents \
 ./install.sh
 ```
 
@@ -93,32 +109,29 @@ This script safely removes only the symlinks pointing to this repository. It use
 
 ## Testing
 
-You can safely test the installation scripts without affecting your actual configuration by overriding all path variables to point to a test directory:
+You can safely test the installation scripts without affecting your actual configuration by pointing the three config-root env vars at a test directory:
 
 ```bash
-# Create test directory structure
-mkdir -p /tmp/ai-test/{ai/{scripts,rules},claude/{commands,skills,agents},opencode/{commands,skills,agents}}
-
 # Test install with custom paths
+AI_LIB_PATH=/tmp/ai-test/ai/lib \
 AI_SCRIPTS_PATH=/tmp/ai-test/ai/scripts/generic \
 AI_RULES_PATH=/tmp/ai-test/ai/rules \
 CLAUDE_CONFIG_DIR=/tmp/ai-test/claude \
-CLAUDE_COMMANDS_PATH=/tmp/ai-test/claude/commands/generic \
 OPENCODE_CONFIG_DIR=/tmp/ai-test/opencode \
-OPENCODE_COMMANDS_PATH=/tmp/ai-test/opencode/commands/generic \
+PI_CODING_AGENT_DIR=/tmp/ai-test/pi/agent \
 ./install.sh
 
-# Test uninstall
+# Test uninstall (use the same overrides)
+AI_LIB_PATH=/tmp/ai-test/ai/lib \
 AI_SCRIPTS_PATH=/tmp/ai-test/ai/scripts/generic \
 AI_RULES_PATH=/tmp/ai-test/ai/rules \
 CLAUDE_CONFIG_DIR=/tmp/ai-test/claude \
-CLAUDE_COMMANDS_PATH=/tmp/ai-test/claude/commands/generic \
 OPENCODE_CONFIG_DIR=/tmp/ai-test/opencode \
-OPENCODE_COMMANDS_PATH=/tmp/ai-test/opencode/commands/generic \
+PI_CODING_AGENT_DIR=/tmp/ai-test/pi/agent \
 ./uninstall.sh
 
 # Clean up
 rm -rf /tmp/ai-test
 ```
 
-This allows you to verify the scripts work correctly before running them on your actual configuration.
+The installer creates any missing parent directories automatically, so no `mkdir` is needed beforehand.
