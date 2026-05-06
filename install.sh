@@ -32,4 +32,4 @@ echo ""
 "$SCRIPT_DIR/lib/install_rules.sh"
 
 echo ""
-log_success "✅ Configuration complete! Configured symlinks for scripts, rules, commands, skills, agents, and pi."
+log_success "✅ Configuration complete! Configured symlinks for lib, scripts, rules, skills, and agents (across Claude Code, OpenCode, and pi)."

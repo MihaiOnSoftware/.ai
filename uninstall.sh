@@ -26,9 +26,6 @@ echo ""
 "$SCRIPT_DIR/lib/uninstall_rules.sh"
 echo ""
 
-"$SCRIPT_DIR/lib/uninstall_commands.sh"
-echo ""
-
 # Uninstall lib last (must use relative path — removes the ~/.ai/lib/ symlinks)
 "$SCRIPT_DIR/lib/uninstall_lib.sh"
 
