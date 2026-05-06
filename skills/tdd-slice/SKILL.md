@@ -274,10 +274,11 @@ After all micro cycles complete successfully:
 
 **Step 2: Create summary report**
 
-Use the write-agent-report skill to create the summary report:
+Use skill `write-agent-report` with:
+- `agent_name`: `tdd-slice`
+- `report_content`: the markdown below
 
-```bash
-cat <<EOF | ~/.ai/scripts/generic/write-agent-report.sh tdd-slice
+```markdown
 # TDD Slice Report - Slice [N]: [Slice Name]
 
 ## Slice Info
@@ -308,7 +309,6 @@ cat <<EOF | ~/.ai/scripts/generic/write-agent-report.sh tdd-slice
 
 ## Status
 ✅ Slice complete
-EOF
 ```
 
 **Step 3: Return report path**
@@ -329,7 +329,7 @@ All quality standards come from `~/.ai/rules/*` and are enforced by:
 - micro-tdd-agent (during execution)
 - tdd-validation-agent (after each cycle)
 
-The tdd-slice command's job is orchestration, not quality enforcement.
+The tdd-slice skill's job is orchestration, not quality enforcement.
 
 ## Success Criteria
 

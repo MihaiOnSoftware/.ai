@@ -8,7 +8,7 @@ metadata:
 
 Write a validation report using the standard validation reporting script.
 
-## What This Command Does
+## What This Skill Does
 
 **Input**: Validation report content and validation metadata
 
@@ -30,10 +30,10 @@ Write a validation report using the standard validation reporting script.
 
 ### Step 2: Write Validation Report
 
-Use the write-validation-report.sh script via Bash tool:
+Run the bundled `scripts/write-validation-report.sh` (resolved against this skill's directory) via Bash:
 
 ```bash
-cat <<EOF | ~/.ai/scripts/generic/write-validation-report.sh <report_being_validated> <pass|fail> [date]
+cat <<EOF | scripts/write-validation-report.sh <report_being_validated> <pass|fail> [date]
 <report_content>
 EOF
 ```
@@ -57,7 +57,7 @@ Validation report written: <full_path_to_report>
 
 ### Pass validation (auto-generate date)
 ```bash
-cat <<EOF | ~/.ai/scripts/generic/write-validation-report.sh 20250129_143022-2025-01-29.report.md pass
+cat <<EOF | scripts/write-validation-report.sh 20250129_143022-2025-01-29.report.md pass
 # Validation Report
 
 ## Verdict
@@ -70,7 +70,7 @@ EOF
 
 ### Fail validation with full path
 ```bash
-cat <<EOF | ~/.ai/scripts/generic/write-validation-report.sh ~/.ai/wip/agent_reports/micro-tdd-agent/20250129_143022-2025-01-29.report.md fail
+cat <<EOF | scripts/write-validation-report.sh ~/.ai/wip/agent_reports/micro-tdd-agent/20250129_143022-2025-01-29.report.md fail
 # Validation Report
 
 ## Verdict
@@ -84,7 +84,7 @@ EOF
 
 ### Specify date explicitly
 ```bash
-cat <<EOF | ~/.ai/scripts/generic/write-validation-report.sh 20250129_143022-2025-01-29.report.md pass 2025-01-29
+cat <<EOF | scripts/write-validation-report.sh 20250129_143022-2025-01-29.report.md pass 2025-01-29
 # Validation Report
 
 ## Verdict

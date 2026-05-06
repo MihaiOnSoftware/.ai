@@ -1,96 +1,40 @@
-# Agent Report Scripts
+# Generic Scripts
 
-Helper scripts for writing agent reports with proper naming conventions.
+Helper scripts shared across the repo and downstream consumers via `~/.ai/scripts/generic/`.
 
 ## Available Scripts
 
-### write-agent-report.sh
+### get-parent-branch.sh
 
-Creates normal agent reports (for non-validation agents like tdd-agent).
-
-**Usage:**
-```bash
-echo "# Report content" | write-agent-report.sh <agent_name> [agent_id] [date]
-```
-
-**Arguments:**
-- `agent_name`: Name of the agent (e.g., "tdd-agent")
-- `agent_id`: Optional unique identifier (default: auto-generated timestamp)
-- `date`: Optional ISO date (default: today)
-
-**Example:**
-```bash
-cat <<EOF | write-agent-report.sh tdd-agent
-# TDD Agent Report - Slice 1
-
-## Summary
-Implemented basic functionality.
-
-## Status
-✅ Success
-EOF
-```
-
-**Output:** Prints full path to created report file.
-
----
-
-### write-validation-report.sh
-
-Creates validation agent reports with pass/fail status.
+Resolves the parent branch of the current branch, preferring Graphite (`gt parent`) when available and falling back to `origin/HEAD` / `main`.
 
 **Usage:**
 ```bash
-echo "# Validation content" | write-validation-report.sh <report_being_validated> <pass|fail> [date]
+parent=$(get-parent-branch.sh)
+git diff "$parent"...HEAD
 ```
 
-**Arguments:**
-- `report_being_validated`: Path or filename of the report being validated
-- `pass|fail`: Validation result ("pass" or "fail")
-- `date`: Optional ISO date (default: today)
+## Skill-Local Scripts
 
-**Example:**
-```bash
-cat <<EOF | write-validation-report.sh 20250129_143022-2025-01-29.report.md pass
-# Validation Report
+Scripts that are only used by a single skill live with that skill, not here. Examples:
 
-## Final Verdict
-PASS
+- `skills/write-agent-report/scripts/write-agent-report.sh` — writes agent reports under `~/.ai/wip/agent_reports/<agent_name>/`
+- `skills/write-validation-report/scripts/write-validation-report.sh` — writes validation reports with pass/fail verdicts
+- `skills/branch-walkthrough/scripts/get-parent-branch.sh` — branch-walkthrough's own copy
 
-## Reasoning
-All checks passed successfully.
-EOF
-```
-
-**Output:** Prints full path to created validation report file.
-
----
+Skills reference their bundled scripts via relative paths (e.g. `scripts/write-agent-report.sh`), which the harness resolves against the skill's own directory. See each skill's `SKILL.md` for details.
 
 ## Report Locations
 
-Reports are organized in `~/.ai/wip/agent_reports/` by agent type:
+Reports written by the `write-agent-report` and `write-validation-report` skills land in:
 
 ```
 ~/.ai/wip/agent_reports/
-├── tdd-agent/
-│   └── 20250129_143022-2025-01-29.report.md
-├── tdd-validation-agent/
-│   ├── 20250129_143022-2025-01-29-2025-01-29.pass.md
-│   └── 20250129_150000-2025-01-29-2025-01-29.fail.md
-└── other-agent/
-    └── ...
-```
-
-## Naming Conventions
-
-**Normal agent reports:**
-```
-<agent_id>-<date>.report.md
-```
-
-**Validation reports:**
-```
-<report_base_name>-<date>.<pass|fail>.md
+├── <agent-name>/
+│   └── <agent_id>-<date>.report.md
+└── tdd-validation-agent/
+    ├── <report_base_name>-<date>.pass.md
+    └── <report_base_name>-<date>.fail.md
 ```
 
 Where:

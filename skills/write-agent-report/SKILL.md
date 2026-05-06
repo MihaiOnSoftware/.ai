@@ -8,7 +8,7 @@ metadata:
 
 Write an agent report using the standard reporting script.
 
-## What This Command Does
+## What This Skill Does
 
 **Input**: Report content and agent metadata
 
@@ -30,10 +30,10 @@ Write an agent report using the standard reporting script.
 
 ### Step 2: Write Report
 
-Use the write-agent-report.sh script via Bash tool:
+Run the bundled `scripts/write-agent-report.sh` (resolved against this skill's directory) via Bash:
 
 ```bash
-cat <<EOF | ~/.ai/scripts/generic/write-agent-report.sh <agent_name> [agent_id] [date]
+cat <<EOF | scripts/write-agent-report.sh <agent_name> [agent_id] [date]
 <report_content>
 EOF
 ```
@@ -56,7 +56,7 @@ Report written: <full_path_to_report>
 
 ### Auto-generate agent_id and date
 ```bash
-cat <<EOF | ~/.ai/scripts/generic/write-agent-report.sh micro-tdd-agent
+cat <<EOF | scripts/write-agent-report.sh micro-tdd-agent
 # Micro TDD Report - Test Name
 
 ## Status
@@ -66,7 +66,7 @@ EOF
 
 ### Specify agent_id
 ```bash
-cat <<EOF | ~/.ai/scripts/generic/write-agent-report.sh micro-tdd-agent 20250129_143022
+cat <<EOF | scripts/write-agent-report.sh micro-tdd-agent 20250129_143022
 # Micro TDD Report - Test Name
 
 ## Status
@@ -76,7 +76,7 @@ EOF
 
 ### Specify agent_id and date
 ```bash
-cat <<EOF | ~/.ai/scripts/generic/write-agent-report.sh micro-tdd-agent 20250129_143022 2025-01-29
+cat <<EOF | scripts/write-agent-report.sh micro-tdd-agent 20250129_143022 2025-01-29
 # Micro TDD Report - Test Name
 
 ## Status
