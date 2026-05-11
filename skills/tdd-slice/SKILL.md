@@ -263,6 +263,8 @@ For a worked example session showing cycles with retries and fixes, see [example
 
 ## Anti-Patterns to AVOID
 
+**DO NOT**:
+
 - Write tests or code directly (use micro agents)
 - Skip validation steps
 - Give up after first failure without retry
