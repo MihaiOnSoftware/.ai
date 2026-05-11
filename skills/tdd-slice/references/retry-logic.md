@@ -26,7 +26,7 @@ Use this flow when the micro-tdd-agent or micro-refactor-agent invocation in Pha
 ### Second failure: stop and report
 
 1. Analyze what went wrong across both attempts (errors, code state, test output).
-2. Write a failure analysis report using the `write-agent-report` skill (format in `references/failure-report-format.md`). Include:
+2. Write a failure analysis report using the `write-agent-report` skill (format in `failure-report-format.md`, sibling to this file). Include:
    - Slice info
    - Failed item
    - Both attempts (prompts + outcomes)
