@@ -136,18 +136,7 @@ Track:
 - Micro report path
 - Commit hash created
 
-**If agent fails:**
-
-1. **First failure**: Retry once with additional context
-   - Analyze the failure (error messages, what went wrong)
-   - Provide context: "Previous attempt failed because [reason]. Consider [suggestion]."
-   - Delegate to the same agent type again with enhanced prompt
-
-2. **Second failure**: Stop and report
-   - Analyze what went wrong (examine errors, code state, test output)
-   - Write failure analysis report using write-agent-report skill
-   - Include: slice info, failed item, both attempts, error details, possible causes
-   - Return the failure report path and STOP
+**If agent fails:** Read `references/retry-logic.md` ("Micro Agent Retry" section) and follow it. Do not improvise.
 
 **If agent succeeds:**
 
@@ -183,78 +172,7 @@ Track:
 - Validation report path
 - Validation verdict (pass/fail)
 
-**If validation fails:**
-
-1. **First validation failure**: Analyze and attempt fix
-
-   **Step A: Categorize issues**
-
-   Read validation report and categorize issues:
-
-   **Trivial issues** (try fix path):
-   - Commit message only (passive voice, process description, missing note)
-   - Comments that should be methods
-   - One-line code issues (unused variable, dead code)
-   - Simple duplication
-   - Formatting/whitespace
-
-   **Substantial issues** (use reset path):
-   - Test quality (branching, multiple behaviors, weak assertions)
-   - Multi-line logic changes
-   - Coverage problems
-   - Behavior changes needed
-
-   **Step B: If ONLY trivial issues, attempt fix**
-
-   **For commit message issues only:**
-   - Soft reset: `git reset --soft HEAD~1`
-   - Delegate to `commit-agent` to create new commit
-   - Track new commit hash
-   - Validate again with new commit hash (include same slice context)
-   - If validation passes → continue
-   - If validation fails → proceed to Step C (reset path)
-
-   **For code issues (with or without commit message issues):**
-   - Delegate to `micro-fix-agent` with validation report path
-   - If micro-fix-agent succeeds:
-     - Amend commit: `git commit --amend --no-edit`
-     - Track commit hash (stays same after amend)
-     - Validate again with same commit hash (include same slice context)
-     - If validation passes → continue
-     - If validation fails → proceed to Step C (reset path)
-   - If micro-fix-agent fails → proceed to Step C (reset path)
-
-   **Step C: If substantial issues OR fix failed, use reset path**
-
-   - Read validation report to understand issues
-   - Provide context: "Previous attempt didn't meet quality standards: [issues from validation report]"
-   - Revert the commit: `git reset --hard HEAD~1`
-   - Delegate to the same agent type (micro-tdd or micro-refactor) again with validation feedback
-   - If succeeds, call commit-agent again to create new commit
-   - Validate again with new commit hash (include same slice context)
-
-2. **Second validation failure**: Investigate and stop
-
-   **Step A: Call investigator-agent**
-
-   Delegate to `investigator-agent` with:
-   - Validation report path (from second failure)
-   - Micro agent report path
-   - Commit hash
-
-   The investigator will:
-   - Apply problem-solving discipline
-   - Determine root cause
-   - Analyze what went wrong in both attempts
-   - Provide recommendations for what should have been done
-
-   **Step B: Write failure analysis report**
-
-   - Include: slice info, item description, both validation reports, quality issues, fix attempts
-   - Include: investigator report path and key findings
-   - Include: investigator's root cause analysis and recommendations
-   - Write failure analysis report using write-agent-report skill
-   - Return the failure report path and STOP
+**If validation fails:** Read `references/retry-logic.md` ("Validation Retry" section) and follow it. Do not improvise.
 
 **If validation passes:**
 
@@ -345,7 +263,6 @@ For a worked example session showing cycles with retries and fixes, see [example
 
 ## Anti-Patterns to AVOID
 
-**DO NOT**:
 - Write tests or code directly (use micro agents)
 - Skip validation steps
 - Give up after first failure without retry
@@ -354,25 +271,3 @@ For a worked example session showing cycles with retries and fixes, see [example
 - Run cleanup commands (micro agents do this)
 - Make assumptions about failure causes without analysis
 - Use micro-tdd-agent for refactorings (use micro-refactor-agent)
-
-**DO**:
-- Delegate to micro agents systematically to orchestrate them
-- Choose correct agent type (tdd vs refactor)
-- Validate every commit
-- Provide helpful context on retries
-- Analyze failures thoroughly before stopping
-- Reference child reports by path
-- Keep all micro commits intact
-- Trust micro agents to handle cleanup
-
-## Why This Approach
-
-**Benefits**:
-- Atomic commits (one change per commit - test or refactor)
-- Validation at each step (catch issues early)
-- Clear failure isolation (know exactly which item failed)
-- Retry logic (handle transient failures)
-- Detailed audit trail (all reports preserved)
-- Incremental progress (can see work even if interrupted)
-- Follows TDD discipline (via micro-tdd-agent) and refactoring discipline (via micro-refactor-agent)
-- Separation of concerns (adding behavior vs improving structure)
