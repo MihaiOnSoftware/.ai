@@ -91,51 +91,14 @@ EOF
 )"
 ```
 
-## Quality Standards
-
-**Commit message must**:
-- ✅ Describe final state, not process
-- ✅ Use active voice
-- ✅ Be concise and direct
-- ✅ Follow simple writing style (no buzzwords)
-- ✅ Include Claude Code note
-- ✅ Only mention what's different from last commit
-
-**Commit message must NOT**:
-- ❌ Describe process ("first tried X, then Y")
-- ❌ Use passive voice
-- ❌ Include corporate buzzwords
-- ❌ Be unnecessarily verbose
-- ❌ Mention intermediary steps that were reverted
-
-For good and bad commit message examples, see [examples/good-bad-messages.md](examples/good-bad-messages.md).
-
 ## Anti-Patterns to AVOID
 
 **DO NOT**:
-- Write commit messages describing your debugging process
-- Use passive voice ("was added", "has been updated")
-- Include corporate buzzwords or jargon
-- Mention changes that were added and then removed in same session
 - Make commits without examining the actual changes
 - Write vague messages like "update files" or "fix issues"
 
-**DO**:
-- Examine the actual diff before writing message
-- Use active, direct language
-- Focus on final state
-- Be concise but clear
-- Follow the style of recent commits in the repo
-- Include body if explaining "why" adds value
+For message-style rules (active voice, no buzzwords, focus on final state, etc.) trust `~/.ai/rules/6_commit.md` and `~/.ai/rules/7_writing_style.md` — already loaded in Step 1 — instead of restating them here.
 
 For a worked example session, see [examples/session.md](examples/session.md).
 
-## Success Criteria
-
-- ✅ Commit message follows all rules from `6_commit.md`
-- ✅ Writing style matches `7_writing_style.md`
-- ✅ Message describes what changed, not how
-- ✅ Active voice used throughout
-- ✅ No corporate buzzwords or jargon
-- ✅ Claude Code note included
-- ✅ Message is concise and direct
+For good and bad commit message examples, see [examples/good-bad-messages.md](examples/good-bad-messages.md).

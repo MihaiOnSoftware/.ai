@@ -9,7 +9,7 @@
 1. Reads commit rules and writing style rules
 2. Runs `git status` → sees 2 modified files
 3. Runs `git diff HEAD` → sees schema hash code added
-4. Runs `git log -3 --online` → sees recent commit style
+4. Runs `git log -3 --oneline` → sees recent commit style
 5. Stages all changes: `git add -A`
 6. Drafts message: "Add schema hash to cache keys"
 7. Creates commit with proper format
