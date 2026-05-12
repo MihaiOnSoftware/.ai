@@ -187,7 +187,7 @@ Repeat Steps 1-3 for each test behavior in the execution plan.
 After all micro cycles complete successfully:
 
 **Step 1: Collect report paths**
-- Gather all micro-tdd-agent report paths
+- Gather all micro-tdd-agent and micro-refactor-agent report paths
 - Gather all tdd-validation-agent report paths
 
 **Step 2: Create summary report**
