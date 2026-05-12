@@ -73,8 +73,8 @@ If **any** substantial issue is present, go straight to Step C. Do not try to fi
 1. Delegate to `micro-fix-agent` with the validation report path.
 2. If `micro-fix-agent` succeeds:
    - Amend commit: `git commit --amend --no-edit`
-   - Commit hash stays the same after amend.
-   - Re-validate with the same commit hash (include the same slice context).
+   - Capture the new commit hash (`git rev-parse HEAD`) — `--amend` always creates a new SHA, even with `--no-edit`.
+   - Re-validate with the **new** commit hash (include the same slice context).
    - If validation passes → continue.
    - If validation fails → fall through to Step C.
 3. If `micro-fix-agent` fails → fall through to Step C.

@@ -20,8 +20,8 @@
 - Delegates to `tdd-validation-agent` with slice context and "path/to/report2.md def456" → Fails (comment should be method)
 - Categorizes as trivial issue
 - Delegates to `micro-fix-agent` with validation report → Success (extracted method)
-- Amends commit def456
-- Re-validates with slice context and "path/to/report2.md def456" → Pass
+- Amends commit def456 → new commit def789 (`--amend` always creates a new SHA)
+- Re-validates with slice context and "path/to/report2.md def789" → Pass
 - Posts: ✅ Cycle 2/3 complete (1 fix)
 
 **Cycle 3**: "Test saves config after run"
