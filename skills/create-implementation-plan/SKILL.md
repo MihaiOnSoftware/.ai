@@ -1,6 +1,6 @@
 ---
 name: create-implementation-plan
-description: Create an implementation plan with incremental slices using story splitting patterns
+description: Break a large task into incremental slices using story splitting patterns. Use when planning a feature, breaking down a complex task, or turning an investigation document into a slice-by-slice plan.
 license: MIT
 metadata:
   category: planning
@@ -54,10 +54,11 @@ Before creating a plan, you need:
 
 ## Reference Examples
 
-**Note**: These examples show complete plans for reference and learning. When creating your plan, present slices one at a time to the user, not all at once.
+**Note**: These examples cover both complete multi-slice plans and the format of a single slice. When creating your plan, present slices one at a time to the user, not all at once.
 
 - For an example of a multi-slice plan with pattern analysis, see [examples/iterm-profile-generation.md](examples/iterm-profile-generation.md)
 - For an example using the SIMPLE/COMPLEX pattern, see [examples/schema-hash-cache-keys.md](examples/schema-hash-cache-keys.md)
+- For the format of a single slice (goal/approach/tests), see [examples/presenting-a-slice.md](examples/presenting-a-slice.md)
 
 ## Key Principles
 
@@ -69,21 +70,13 @@ For the full list of patterns (WORKFLOW STEPS, OPERATIONS, BUSINESS RULES, VARIA
 
 ### Choosing the Right Pattern
 
-For this project, **SIMPLE/COMPLEX** was chosen because:
-- Biggest risk was "does Sorbet introspection work?"
-- Slice 1 validates the entire approach
-- Each subsequent slice adds one new complexity
-- Can stop after any slice and still have value
+Use the decision tree in [references/flowchart.md](references/flowchart.md) to pick a pattern. For two worked examples of pattern selection, see [examples/iterm-profile-generation.md](examples/iterm-profile-generation.md) (multi-pattern) and [examples/schema-hash-cache-keys.md](examples/schema-hash-cache-keys.md) (SIMPLE/COMPLEX).
 
 ### 2. Think About What Validates the Approach
 
-Slice 1 must prove the core concept works:
-- Does Sorbet introspection work at all?
-- Can we calculate a hash?
-- Does including it in the cache key work?
-- Do tests pass?
+Slice 1 must prove the core concept works. List the assumption that, if false, kills the whole approach - and design Slice 1 to test it. If Slice 1 fails, the whole approach fails. This is intentional - fail fast.
 
-If Slice 1 fails, the whole approach fails. This is intentional - fail fast.
+See [examples/thought-process.md](examples/thought-process.md) for the Q&A framing.
 
 ### 3. Each Slice Must Be Independently Valuable
 
@@ -92,12 +85,6 @@ Ask for each slice:
 - **What value does it deliver?** (even if incomplete)
 - **Can I test this?** (verify it works)
 - **Does it stand alone?** (could stop here if needed)
-
-Example from this project:
-- Slice 1: Proves introspection works, delivers basic cache invalidation
-- Slice 2: Proves dev workflow works (hot reload)
-- Slice 3: Extends to direct children
-- Slice 5: Solves the actual bug (SelectConfigFieldOption)
 
 ### 4. Build Complexity Incrementally
 
@@ -171,15 +158,9 @@ Read the investigation document to understand:
 - What are the key challenges?
 - What patterns exist in the codebase?
 
-For this project: Sorbet introspection via `decorator.props`, recursive type discovery, sealed subclasses, Rails config patterns.
-
 ### Step 2: Identify the Simplest Proof of Concept
 
 Ask: What's the absolute minimum that validates this approach?
-
-For this project: Hash one class (Task) with no children, put it in cache key, verify cache invalidates.
-
-That became Slice 1.
 
 ### Step 3: Map the Path from Simple to Complete
 
@@ -205,46 +186,3 @@ Each slice should satisfy INVEST (Independent, Negotiable, Valuable, Estimable, 
 For the full breakdown and an applied example, see [references/invest-criteria.md](references/invest-criteria.md).
 
 For common red flags in plans (too large, not testable, unordered dependencies, etc.), see [references/red-flags.md](references/red-flags.md).
-
-For a worked example of the thought process when splitting a task, see [examples/thought-process.md](examples/thought-process.md).
-
-## Using This Process
-
-When creating a new plan:
-
-1. **Read investigation/problem statement thoroughly** - Understand the solution architecture, not just the problem
-2. **Evaluate the story against INVEST** - If it doesn't satisfy INVEST (especially Small), it needs splitting
-3. **Choose a splitting pattern** - Review the patterns above and pick the one that fits:
-   - Is there a simple core to build on? → SIMPLE/COMPLEX
-   - Can you take a thin slice through the workflow? → WORKFLOW STEPS
-   - Are there distinct operations? → OPERATIONS
-   - Multiple variations or rules? → BUSINESS RULES / VARIATIONS
-   - Different data types? → VARIATIONS IN DATA
-4. **Find the simplest proof of concept** - What's the bare minimum that validates the approach?
-5. **Map the incremental path** - List concepts to add, order by dependency and complexity
-6. **Make each step specific and testable** - Write concrete test requirements for each slice
-7. **Verify each slice with INVEST** - Check all six criteria for each slice
-8. **Check the order makes sense** - Each slice should build logically on previous work
-
-### Presenting Your Plan
-
-**Present slices one at a time, not all at once:**
-
-1. **Present Slice 1** with:
-   - Goal: What this slice proves or delivers
-   - Approach: How to implement it (described in natural language, NO CODE)
-   - Tests: Concrete success criteria
-
-2. **Wait for user feedback** - User may approve, ask questions, or request changes
-
-3. **Once approved, present Slice 2** in the same format
-
-4. **Repeat** until all slices are presented and approved
-
-5. **Provide final summary** - After all slices approved, summarize the complete plan
-
-**The goal**: Someone else should be able to implement slice 1 without reading slice 2. Each slice should feel like a complete mini-project that delivers value. Each slice description should be clear enough to implement without including actual code.
-
-For an example of how to present a single slice, see [examples/presenting-a-slice.md](examples/presenting-a-slice.md).
-
-For a quick-reference flowchart to choose the right splitting pattern, see [references/flowchart.md](references/flowchart.md).
