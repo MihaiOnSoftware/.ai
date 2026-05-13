@@ -88,24 +88,25 @@ Ask for each slice:
 
 ### 4. Build Complexity Incrementally
 
-Order slices by increasing complexity:
-1. Single class, no recursion
-2. Infrastructure (config, initializer)
-3. Direct children only
-4. Handle complex types (Array, Union)
-5. Full recursion
-6. Automatic discovery (sealed subclasses)
+Order slices by increasing complexity. Typical axes to layer along:
 
-Each slice adds exactly one new concept. Don't combine "handle arrays" with "add recursion."
+- **Scope of data**: one case → a few common cases → the full set
+- **Edge cases**: happy path → known edge cases → recursive / nested / cyclic shapes
+- **Automation**: hard-coded list → discovered automatically
+- **Surrounding infrastructure**: bare function → wired into config / initialization / hot reload
+
+Each slice adds exactly one new concept. Don't combine two axes (e.g. "handle nested types" plus "add automatic discovery") in the same slice.
+
+See [examples/schema-hash-cache-keys.md](examples/schema-hash-cache-keys.md) for a six-slice plan that layers exactly one new concept per slice across these axes.
 
 ### 5. Make Each Slice Testable
 
-For each slice, identify concrete test cases:
-- "Hash is deterministic" (can verify)
-- "Hash changes when field added" (can verify)
-- "Discovers SelectConfigFieldOption" (can verify)
+For each slice, identify concrete test cases. Specific over vague:
 
-Avoid vague requirements like "works correctly" - be specific about what correctness means.
+- ❌ "works correctly" / "handles errors"
+- ✅ "endpoint returns the expected count", "output is deterministic across runs", "response body matches the schema", "discovers the known fixture item"
+
+Name the property you can check, not the feeling you want.
 
 ### 6. Describe, Don't Implement
 
@@ -132,21 +133,19 @@ The implementer will figure out the exact syntax. Your job is to clearly explain
 
 ### 7. Consider Dependencies
 
-Some work must happen in order:
-- Can't test cache key format until hash calculation exists
-- Can't do recursion until you handle direct children
-- Can't handle Arrays until you handle Simple types
+Some work must happen in order. Common shapes:
+
+- A consumer can't be exercised until the producer it reads from exists (e.g. can't test a route handler until the request parser it depends on exists)
+- A recursive case can't be exercised until the base case works
+- A composite type (Array, Union, nested record) can't be handled until its element types are handled
 
 Order slices so each builds on previous work.
 
 ### 8. Acknowledge Untestable Slices
 
-Some things can't be fully automated:
-- Rails initializers (boot-time behavior)
-- Hot reloading (development mode)
-- Manual verification steps
+Some behavior can't be fully automated - boot-time code, hot-reload paths, anything that depends on a real process restart, dev-only tooling, third-party UI flows.
 
-For Slice 2, we explicitly noted: "limited automated testing" and documented manual verification.
+When a slice falls into this bucket, state it explicitly in the slice's plan and document the manual verification steps the implementer should run. Don't pretend a half-test covers it.
 
 ## The Planning Process
 
@@ -164,20 +163,21 @@ Ask: What's the absolute minimum that validates this approach?
 
 ### Step 3: Map the Path from Simple to Complete
 
-List the concepts that need to be added:
-- Hot reloading support
-- Direct child discovery
-- Array/Union type handling
-- Recursion
-- Sealed subclass handling
+List every concept that has to be added on top of the proof of concept to reach the end goal. Concepts typically fall into a few buckets:
 
-Order them by dependency and complexity.
+- Broader data scope (more inputs, more types, more cases)
+- Edge cases (nesting, recursion, cycles, nulls, empty collections)
+- Surrounding infrastructure (config, initialization, hot reload, persistence)
+- Automation (discovery, defaults, cleanup) replacing hand-maintained lists
+
+Order them by dependency (Principle 7) and complexity (Principle 4). For a finished plan that came out of this kind of mapping, see [examples/iterm-profile-generation.md](examples/iterm-profile-generation.md).
 
 ### Step 4: Make Each Step Testable
 
-For each concept, write specific test requirements:
-- Not: "discovery works"
-- Instead: "discovers expected number of children", "hash includes SelectConfigFieldOption"
+For each concept, write specific test requirements (Principle 5):
+
+- ❌ "discovery works"
+- ✅ "discovers the expected number of items", "output includes the known fixture item that motivated the work"
 
 ### Step 5: Verify Each Slice with INVEST Criteria
 
