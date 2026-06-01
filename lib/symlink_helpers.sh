@@ -92,3 +92,13 @@ validate_source_dir() {
         exit 2
     fi
 }
+
+validate_source_file() {
+    local file_path="$1"
+    local label="$2"
+
+    if [ ! -f "$file_path" ]; then
+        log_error "✗ Error: $label not found: $file_path"
+        exit 2
+    fi
+}

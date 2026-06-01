@@ -19,6 +19,9 @@ echo ""
 "$HOME/.ai/lib/uninstall_agents.sh" "$SCRIPT_DIR/agents"
 echo ""
 
+"$HOME/.ai/lib/uninstall_pi_packages.sh" "$SCRIPT_DIR/pi.jsonc"
+echo ""
+
 # These aren't converted yet, stay as relative paths
 "$SCRIPT_DIR/lib/uninstall_scripts.sh"
 echo ""

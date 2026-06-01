@@ -1,0 +1,9 @@
+{
+  // Preferred pi packages — installed globally via `install.sh`
+  "packages": [
+    "npm:pi-subagents",
+    "npm:pi-mcp-adapter",
+    "npm:@juicesharp/rpiv-ask-user-question",
+    "npm:pi-intercom"
+  ]
+}

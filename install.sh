@@ -26,10 +26,11 @@ echo ""
 # These use the shared helpers via ~/.ai/lib/
 "$HOME/.ai/lib/install_skills.sh" "$SCRIPT_DIR/skills"
 "$HOME/.ai/lib/install_agents.sh" "$SCRIPT_DIR/agents"
+"$HOME/.ai/lib/install_pi_packages.sh" "$SCRIPT_DIR/pi.jsonc"
 
 # These aren't converted yet, stay as relative paths
 "$SCRIPT_DIR/lib/install_scripts.sh"
 "$SCRIPT_DIR/lib/install_rules.sh"
 
 echo ""
-log_success "✅ Configuration complete! Configured symlinks for lib, scripts, rules, skills, and agents (across Claude Code, OpenCode, and pi)."
+log_success "✅ Configuration complete! Configured symlinks for lib, scripts, rules, skills, and agents (across Claude Code, OpenCode, and pi), and installed pi packages."

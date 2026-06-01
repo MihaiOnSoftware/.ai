@@ -15,7 +15,7 @@ The `install.sh` script creates symlinks from your home directory to this reposi
 This creates symlinks:
 
 **Shared library and project files**
-- `~/.ai/lib/<helper>.sh` → `lib/<helper>.sh` (per file: `logging.sh`, `symlink_helpers.sh`, `paths.sh`, `agent_helpers.sh`, `install_agents.sh`, `uninstall_agents.sh`, `skill_helpers.sh`, `install_skills.sh`, `uninstall_skills.sh`)
+- `~/.ai/lib/<helper>.sh` → `lib/<helper>.sh` (per file: `logging.sh`, `symlink_helpers.sh`, `paths.sh`, `agent_helpers.sh`, `install_agents.sh`, `uninstall_agents.sh`, `skill_helpers.sh`, `install_skills.sh`, `uninstall_skills.sh`, `pi_package_helpers.sh`, `install_pi_packages.sh`, `uninstall_pi_packages.sh`)
 - `~/.ai/scripts/generic` → `scripts/`
 - `~/.ai/rules` → `rules/`
 
@@ -28,6 +28,10 @@ This creates symlinks:
 - `~/.pi/agent/agents/<agent>.md` → `agents/<agent>.md`
 
 Skills and agents are symlinked individually (rather than via a single namespace directory) because Claude Code only discovers skills one level deep, and the flat layout keeps all three targets consistent.
+
+**Pi packages**
+
+Preferred pi packages are listed in [`pi.jsonc`](pi.jsonc) and installed with `pi install` (not symlinked). The installer skips any already-installed package, so it's safe to re-run. Edit `pi.jsonc` to add or remove packages.
 
 ### Shared Libraries Only
 
