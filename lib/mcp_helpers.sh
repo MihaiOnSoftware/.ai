@@ -25,6 +25,35 @@ source "$SCRIPT_DIR/paths.sh"
 #     every host at once.
 #   - No secrets live in the canonical file. Each host runs its own OAuth on
 #     first use; tokens are stored per-host, outside the repo.
+#
+# Secret injection:
+#   A server's `oauth` block may reference env vars with ${VAR} / $env:VAR (e.g.
+#   a pre-registered Slack app's client id/secret). pi-mcp-adapter does NOT
+#   interpolate inside `oauth` at runtime, so the emitters resolve those refs
+#   from the install environment and write the real values into the generated
+#   (out-of-repo) host configs. The canonical mcp.json only ever holds the
+#   ${VAR} placeholders. If a referenced var is unset, that server is SKIPPED
+#   with a warning (other servers still install).
+
+# Shared JS resolver injected into each emitter: interpolate ${VAR}/$env:VAR in
+# an oauth object from the environment, reporting any unset names.
+_OAUTH_RESOLVER_JS='
+function resolveOauth(oauth) {
+  const missing = new Set();
+  const re = /\$\{(\w+)\}|\$env:(\w+)/g;
+  const res = (v) => {
+    if (typeof v === "string") return v.replace(re, (m, a, b) => {
+      const n = a || b; const val = process.env[n];
+      if (val === undefined || val === "") { missing.add(n); return m; }
+      return val;
+    });
+    if (Array.isArray(v)) return v.map(res);
+    if (v && typeof v === "object") { const o = {}; for (const k of Object.keys(v)) o[k] = res(v[k]); return o; }
+    return v;
+  };
+  return { resolved: res(oauth), missing: [...missing] };
+}
+'
 
 # ---------------------------------------------------------------------------
 # pi emitter — merge canonical servers into $PI_MCP_CONFIG_PATH verbatim.
@@ -32,7 +61,7 @@ source "$SCRIPT_DIR/paths.sh"
 # Prints "<comma-separated names>" applied, or "UNPARSEABLE" if the existing
 # destination is not valid JSON (left untouched in that case).
 _pi_apply() {
-    node -e '
+    node -e "$_OAUTH_RESOLVER_JS"'
 const fs = require("fs");
 const path = require("path");
 const [src, dst] = process.argv.slice(1);
@@ -51,15 +80,21 @@ if (Array.isArray(cfg.imports)) {
 }
 
 if (typeof cfg.mcpServers !== "object" || cfg.mcpServers === null) cfg.mcpServers = {};
-const applied = [];
+const applied = [], skipped = [];
 for (const [name, def] of Object.entries(servers)) {
-  cfg.mcpServers[name] = { ...def }; // pi schema IS the canonical schema
+  const entry = { ...def }; // pi schema IS the canonical schema
+  if (def.oauth) {
+    const { resolved, missing } = resolveOauth(def.oauth);
+    if (missing.length) { skipped.push(name + " (set " + missing.join(", ") + ")"); continue; }
+    entry.oauth = resolved;
+  }
+  cfg.mcpServers[name] = entry;
   applied.push(name);
 }
 
 fs.mkdirSync(path.dirname(dst), { recursive: true });
 fs.writeFileSync(dst, JSON.stringify(cfg, null, 2) + "\n");
-console.log(applied.join(","));
+console.log(applied.join(",") + "\t" + skipped.join("; "));
 ' "$1" "$2"
 }
 
@@ -92,7 +127,7 @@ console.log(removed.join(","));
 # Prints "<applied names>\t<names whose excludeTools was dropped>", or
 # "UNPARSEABLE".
 _opencode_apply() {
-    node -e '
+    node -e "$_OAUTH_RESOLVER_JS"'
 const fs = require("fs");
 const path = require("path");
 const [src, dst] = process.argv.slice(1);
@@ -106,11 +141,15 @@ if (fs.existsSync(dst)) {
 if (!cfg["$schema"]) cfg["$schema"] = "https://opencode.ai/config.json";
 if (typeof cfg.mcp !== "object" || cfg.mcp === null) cfg.mcp = {};
 
-const applied = [], droppedExclude = [];
+const applied = [], droppedExclude = [], skipped = [];
 for (const [name, def] of Object.entries(servers)) {
   const oc = { type: "remote", url: def.url, enabled: true };
   if (def.headers) oc.headers = def.headers;
-  if (def.oauth) oc.oauth = def.oauth;
+  if (def.oauth) {
+    const { resolved, missing } = resolveOauth(def.oauth);
+    if (missing.length) { skipped.push(name + " (set " + missing.join(", ") + ")"); continue; }
+    oc.oauth = resolved;
+  }
   cfg.mcp[name] = oc;
   applied.push(name);
   if (Array.isArray(def.excludeTools) && def.excludeTools.length) droppedExclude.push(name);
@@ -118,7 +157,7 @@ for (const [name, def] of Object.entries(servers)) {
 
 fs.mkdirSync(path.dirname(dst), { recursive: true });
 fs.writeFileSync(dst, JSON.stringify(cfg, null, 2) + "\n");
-console.log(applied.join(",") + "\t" + droppedExclude.join(","));
+console.log(applied.join(",") + "\t" + droppedExclude.join(",") + "\t" + skipped.join("; "));
 ' "$1" "$2"
 }
 
@@ -162,8 +201,12 @@ install_mcp() {
         log_error "✗ Error: $PI_MCP_CONFIG_PATH is not valid JSON — leaving it untouched"
         exit 3
     fi
-    MCP_PI_APPLIED="$r"
-    [ -n "$r" ] && log_success "  ✓ pi servers: $r"
+    local pi_applied pi_skipped
+    pi_applied="${r%%$'\t'*}"
+    pi_skipped="${r#*$'\t'}"
+    MCP_PI_APPLIED="$pi_applied"
+    [ -n "$pi_applied" ] && log_success "  ✓ pi servers: $pi_applied"
+    [ -n "$pi_skipped" ] && log_warning "  ⚠ pi servers skipped (missing OAuth env): $pi_skipped"
 
     # --- OpenCode ---
     log_info "  Generating OpenCode config: $OPENCODE_MCP_CONFIG_PATH"
@@ -172,14 +215,17 @@ install_mcp() {
         log_error "✗ Error: $OPENCODE_MCP_CONFIG_PATH is not valid JSON — leaving it untouched"
         exit 3
     fi
-    local oc_applied oc_dropped
+    local oc_applied oc_rest oc_dropped oc_skipped
     oc_applied="${r%%$'\t'*}"
-    oc_dropped="${r#*$'\t'}"
+    oc_rest="${r#*$'\t'}"
+    oc_dropped="${oc_rest%%$'\t'*}"
+    oc_skipped="${oc_rest#*$'\t'}"
     MCP_OPENCODE_APPLIED="$oc_applied"
     [ -n "$oc_applied" ] && log_success "  ✓ OpenCode servers: $oc_applied"
     if [ -n "$oc_dropped" ]; then
         log_warning "  ⚠ excludeTools not supported by OpenCode — full tool surface exposed for: $oc_dropped"
     fi
+    [ -n "$oc_skipped" ] && log_warning "  ⚠ OpenCode servers skipped (missing OAuth env): $oc_skipped"
 }
 
 uninstall_mcp() {
