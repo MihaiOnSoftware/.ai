@@ -68,6 +68,7 @@ const path = require("path");
 const [src, dst] = process.argv.slice(1);
 const host = "claude-code";
 const source = JSON.parse(fs.readFileSync(src, "utf8"));
+const servers = source.mcpServers || {};
 const overrides = source.piOverrides || {};
 
 let cfg = {};
@@ -79,10 +80,13 @@ if (!Array.isArray(cfg.imports)) cfg.imports = [];
 let importAdded = false;
 if (!cfg.imports.includes(host)) { cfg.imports.push(host); importAdded = true; }
 
+// pi replaces (does not merge) an imported server when a same-named entry
+// exists in its own config, so each override must be self-contained: carry
+// the full server definition (url/type/headers) plus the adapter-only fields.
 if (typeof cfg.mcpServers !== "object" || cfg.mcpServers === null) cfg.mcpServers = {};
 const applied = [];
 for (const name of Object.keys(overrides)) {
-  cfg.mcpServers[name] = { ...(cfg.mcpServers[name] || {}), ...overrides[name] };
+  cfg.mcpServers[name] = { ...(servers[name] || {}), ...(cfg.mcpServers[name] || {}), ...overrides[name] };
   applied.push(name);
 }
 
