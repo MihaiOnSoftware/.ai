@@ -4,230 +4,205 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/symlink_helpers.sh"
 source "$SCRIPT_DIR/paths.sh"
 
-# MCP servers are declared in a standard mcpServers JSON file (no secrets) and
-# installed into Claude at user scope via the maintained `claude mcp` CLI, which
-# handles merge/validation/OAuth. pi then reads them through pi-mcp-adapter's
-# "claude-code" compatibility import, registered in $PI_MCP_CONFIG_PATH.
+# MCP servers are declared once in a canonical mcpServers JSON file (pi-mcp-adapter
+# schema, no secrets) and *generated* into each host's native MCP config:
 #
-# An optional "piOverrides" map carries pi-mcp-adapter-only settings (e.g.
-# excludeTools) that Claude's config can't hold; these are merged into
-# $PI_MCP_CONFIG_PATH as partial server entries layered onto the imported server.
+#   - pi:       $PI_MCP_CONFIG_PATH        — pi-mcp-adapter, "mcpServers" map,
+#                                            carries pi-only fields verbatim
+#                                            (e.g. excludeTools, oauth).
+#   - OpenCode: $OPENCODE_MCP_CONFIG_PATH  — opencode.json "mcp" block, each
+#                                            server translated to {type:"remote",
+#                                            url, enabled, headers?, oauth?}.
+#
+# Claude is intentionally NOT emitted right now. To restore it, add a
+# `_claude_apply` / `_claude_remove` pair below and a line in install_mcp /
+# uninstall_mcp — the rest of the flow is host-agnostic.
+#
+# Translation notes:
+#   - OpenCode has no reliable per-tool filter, so `excludeTools` is dropped for
+#     OpenCode (warned). Prefer server-side filtering in the `url` (e.g. a
+#     server's own omit/toolsets params) when you need to shrink the surface for
+#     every host at once.
+#   - No secrets live in the canonical file. Each host runs its own OAuth on
+#     first use; tokens are stored per-host, outside the repo.
 
-_require_claude() {
-    if ! command -v claude >/dev/null 2>&1; then
-        log_error "✗ Error: claude CLI not found on PATH — required to install MCP servers"
-        exit 1
-    fi
-}
-
-# Emit "<action>\t<name>\t<compact-json>" per server, where action is
-# ADD (not in Claude), UPDATE (def changed), or SKIP (matches). Compares the
-# fields we manage against Claude's user config so existing auth is preserved
-# for unchanged servers.
-_mcp_plan() {
-    local source_file="$1"
+# ---------------------------------------------------------------------------
+# pi emitter — merge canonical servers into $PI_MCP_CONFIG_PATH verbatim.
+# ---------------------------------------------------------------------------
+# Prints "<comma-separated names>" applied, or "UNPARSEABLE" if the existing
+# destination is not valid JSON (left untouched in that case).
+_pi_apply() {
     node -e '
-const fs = require("fs");
-const [src, claudePath] = process.argv.slice(1);
-const want = (JSON.parse(fs.readFileSync(src, "utf8")).mcpServers) || {};
-let have = {};
-if (fs.existsSync(claudePath)) {
-  try { have = (JSON.parse(fs.readFileSync(claudePath, "utf8")).mcpServers) || {}; } catch (e) {}
-}
-const matches = (w, h) => {
-  if (!h) return false;
-  for (const k of Object.keys(w)) {
-    if (JSON.stringify(h[k]) !== JSON.stringify(w[k])) return false;
-  }
-  return true;
-};
-for (const name of Object.keys(want)) {
-  const action = have[name] === undefined ? "ADD" : (matches(want[name], have[name]) ? "SKIP" : "UPDATE");
-  console.log([action, name, JSON.stringify(want[name])].join("\t"));
-}
-' "$source_file" "$CLAUDE_USER_CONFIG"
-}
-
-# Emit server names that carry piOverrides.
-_mcp_override_names() {
-    node -e '
-const fs = require("fs");
-const o = (JSON.parse(fs.readFileSync(process.argv[1], "utf8")).piOverrides) || {};
-for (const n of Object.keys(o)) console.log(n);
-' "$1"
-}
-
-# Merge the claude-code import + any piOverrides from the source file into
-# $PI_MCP_CONFIG_PATH, preserving other keys. Refuses to touch an unparseable file.
-_apply_pi_config() {
-    local source_file="$1"
-    local result
-    result="$(node -e '
 const fs = require("fs");
 const path = require("path");
 const [src, dst] = process.argv.slice(1);
-const host = "claude-code";
-const source = JSON.parse(fs.readFileSync(src, "utf8"));
-const servers = source.mcpServers || {};
-const overrides = source.piOverrides || {};
+const servers = (JSON.parse(fs.readFileSync(src, "utf8")).mcpServers) || {};
 
 let cfg = {};
 if (fs.existsSync(dst)) {
   try { cfg = JSON.parse(fs.readFileSync(dst, "utf8")); }
   catch (e) { console.log("UNPARSEABLE"); process.exit(0); }
 }
-if (!Array.isArray(cfg.imports)) cfg.imports = [];
-let importAdded = false;
-if (!cfg.imports.includes(host)) { cfg.imports.push(host); importAdded = true; }
 
-// pi replaces (does not merge) an imported server when a same-named entry
-// exists in its own config, so each override must be self-contained: carry
-// the full server definition (url/type/headers) plus the adapter-only fields.
+// Dropping Claude: stop importing its servers into pi.
+if (Array.isArray(cfg.imports)) {
+  cfg.imports = cfg.imports.filter((h) => h !== "claude-code");
+  if (cfg.imports.length === 0) delete cfg.imports;
+}
+
 if (typeof cfg.mcpServers !== "object" || cfg.mcpServers === null) cfg.mcpServers = {};
 const applied = [];
-for (const name of Object.keys(overrides)) {
-  cfg.mcpServers[name] = { ...(servers[name] || {}), ...(cfg.mcpServers[name] || {}), ...overrides[name] };
+for (const [name, def] of Object.entries(servers)) {
+  cfg.mcpServers[name] = { ...def }; // pi schema IS the canonical schema
   applied.push(name);
 }
 
 fs.mkdirSync(path.dirname(dst), { recursive: true });
 fs.writeFileSync(dst, JSON.stringify(cfg, null, 2) + "\n");
-console.log((importAdded ? "IMPORT_ADDED" : "IMPORT_PRESENT") + "\t" + applied.join(","));
-' "$source_file" "$PI_MCP_CONFIG_PATH")"
-
-    if [ "$result" = "UNPARSEABLE" ]; then
-        log_error "✗ Error: $PI_MCP_CONFIG_PATH is not valid JSON — leaving it untouched"
-        exit 3
-    fi
-    local importflag applied
-    importflag="${result%%$'\t'*}"
-    applied="${result#*$'\t'}"
-    case "$importflag" in
-        IMPORT_ADDED)   log_info "  ➕ Registered claude-code import in $PI_MCP_CONFIG_PATH" ;;
-        IMPORT_PRESENT) log_success "  ✓ pi already imports claude-code" ;;
-    esac
-    if [ -n "$applied" ]; then
-        log_info "  ⚙️  Applied pi overrides: $applied"
-    fi
+console.log(applied.join(","));
+' "$1" "$2"
 }
 
-install_mcp() {
-    local source_file="$1"
-
-    validate_source_file "$source_file" "MCP config file"
-    _require_claude
-
-    MCP_COUNT_ADDED=0
-    MCP_COUNT_UPDATED=0
-    MCP_COUNT_PRESENT=0
-    while IFS=$'\t' read -r action name json; do
-        [ -z "$action" ] && continue
-        case "$action" in
-            ADD)
-                log_info "  ➕ Adding server to Claude (user scope): $name"
-                claude mcp add-json "$name" "$json" -s user >/dev/null
-                MCP_COUNT_ADDED=$((MCP_COUNT_ADDED + 1)) ;;
-            UPDATE)
-                log_info "  ♻️  Updating changed server in Claude: $name (re-auth may be needed)"
-                claude mcp remove "$name" >/dev/null 2>&1 || true
-                claude mcp add-json "$name" "$json" -s user >/dev/null
-                MCP_COUNT_UPDATED=$((MCP_COUNT_UPDATED + 1)) ;;
-            SKIP)
-                log_success "  ✓ Server already current in Claude: $name"
-                MCP_COUNT_PRESENT=$((MCP_COUNT_PRESENT + 1)) ;;
-        esac
-    done <<< "$(_mcp_plan "$source_file")"
-
-    _apply_pi_config "$source_file"
-}
-
-uninstall_mcp() {
-    local source_file="$1"
-
-    validate_source_file "$source_file" "MCP config file"
-    _require_claude
-
-    local entries
-    entries="$(_mcp_servers_tsv "$source_file")"
-
-    MCP_COUNT_REMOVED=0
-    MCP_COUNT_SKIPPED=0
-    while IFS=$'\t' read -r name json; do
-        [ -z "$name" ] && continue
-        if claude mcp get "$name" >/dev/null 2>&1; then
-            log_info "  ➖ Removing server from Claude: $name"
-            claude mcp remove "$name" >/dev/null 2>&1 || log_warning "  Could not remove $name"
-            MCP_COUNT_REMOVED=$((MCP_COUNT_REMOVED + 1))
-        else
-            log_info "  Skipping server: $name (not in Claude)"
-            MCP_COUNT_SKIPPED=$((MCP_COUNT_SKIPPED + 1))
-        fi
-    done <<< "$entries"
-
-    _cleanup_pi_config "$source_file"
-}
-
-# List "<name>\t<compact-json>" for each declared server.
-_mcp_servers_tsv() {
+# Remove the canonical servers from $PI_MCP_CONFIG_PATH. Prints removed names.
+_pi_remove() {
     node -e '
 const fs = require("fs");
-const s = (JSON.parse(fs.readFileSync(process.argv[1], "utf8")).mcpServers) || {};
-for (const n of Object.keys(s)) console.log(n + "\t" + JSON.stringify(s[n]));
-' "$1"
-}
-
-# Remove our piOverrides from $PI_MCP_CONFIG_PATH, and drop the claude-code
-# import if no local Claude servers remain to import.
-_cleanup_pi_config() {
-    local source_file="$1"
-    [ -f "$PI_MCP_CONFIG_PATH" ] || { log_info "  No pi MCP config to clean up"; return 0; }
-
-    local result
-    result="$(node -e '
-const fs = require("fs");
-const [src, dst, claudePath] = process.argv.slice(1);
-const source = JSON.parse(fs.readFileSync(src, "utf8"));
-const overrideNames = Object.keys(source.piOverrides || {});
-
+const [src, dst] = process.argv.slice(1);
+const names = Object.keys((JSON.parse(fs.readFileSync(src, "utf8")).mcpServers) || {});
+if (!fs.existsSync(dst)) { console.log(""); process.exit(0); }
 let cfg;
 try { cfg = JSON.parse(fs.readFileSync(dst, "utf8")); }
 catch (e) { console.log("UNPARSEABLE"); process.exit(0); }
-
 const removed = [];
 if (cfg.mcpServers && typeof cfg.mcpServers === "object") {
-  for (const n of overrideNames) {
+  for (const n of names) {
     if (cfg.mcpServers[n] !== undefined) { delete cfg.mcpServers[n]; removed.push(n); }
   }
   if (Object.keys(cfg.mcpServers).length === 0) delete cfg.mcpServers;
 }
-
-// Drop the import if Claude has no local servers left to import.
-let claudeServers = 0;
-if (fs.existsSync(claudePath)) {
-  try { claudeServers = Object.keys(JSON.parse(fs.readFileSync(claudePath, "utf8")).mcpServers || {}).length; }
-  catch (e) { claudeServers = -1; }
-}
-let importDropped = false;
-if (claudeServers === 0 && Array.isArray(cfg.imports)) {
-  cfg.imports = cfg.imports.filter((h) => h !== "claude-code");
-  if (cfg.imports.length === 0) delete cfg.imports;
-  importDropped = true;
-}
-
 fs.writeFileSync(dst, JSON.stringify(cfg, null, 2) + "\n");
-console.log(removed.join(",") + "\t" + (importDropped ? "IMPORT_DROPPED" : "IMPORT_KEPT"));
-' "$source_file" "$PI_MCP_CONFIG_PATH" "$CLAUDE_USER_CONFIG")"
+console.log(removed.join(","));
+' "$1" "$2"
+}
 
-    if [ "$result" = "UNPARSEABLE" ]; then
-        log_warning "  $PI_MCP_CONFIG_PATH is not valid JSON — left untouched"
-        return 0
+# ---------------------------------------------------------------------------
+# OpenCode emitter — translate canonical servers into the opencode.json "mcp"
+# block, preserving every other key in the file.
+# ---------------------------------------------------------------------------
+# Prints "<applied names>\t<names whose excludeTools was dropped>", or
+# "UNPARSEABLE".
+_opencode_apply() {
+    node -e '
+const fs = require("fs");
+const path = require("path");
+const [src, dst] = process.argv.slice(1);
+const servers = (JSON.parse(fs.readFileSync(src, "utf8")).mcpServers) || {};
+
+let cfg = {};
+if (fs.existsSync(dst)) {
+  try { cfg = JSON.parse(fs.readFileSync(dst, "utf8")); }
+  catch (e) { console.log("UNPARSEABLE"); process.exit(0); }
+}
+if (!cfg["$schema"]) cfg["$schema"] = "https://opencode.ai/config.json";
+if (typeof cfg.mcp !== "object" || cfg.mcp === null) cfg.mcp = {};
+
+const applied = [], droppedExclude = [];
+for (const [name, def] of Object.entries(servers)) {
+  const oc = { type: "remote", url: def.url, enabled: true };
+  if (def.headers) oc.headers = def.headers;
+  if (def.oauth) oc.oauth = def.oauth;
+  cfg.mcp[name] = oc;
+  applied.push(name);
+  if (Array.isArray(def.excludeTools) && def.excludeTools.length) droppedExclude.push(name);
+}
+
+fs.mkdirSync(path.dirname(dst), { recursive: true });
+fs.writeFileSync(dst, JSON.stringify(cfg, null, 2) + "\n");
+console.log(applied.join(",") + "\t" + droppedExclude.join(","));
+' "$1" "$2"
+}
+
+# Remove the canonical servers from the opencode.json "mcp" block. Prints names.
+_opencode_remove() {
+    node -e '
+const fs = require("fs");
+const [src, dst] = process.argv.slice(1);
+const names = Object.keys((JSON.parse(fs.readFileSync(src, "utf8")).mcpServers) || {});
+if (!fs.existsSync(dst)) { console.log(""); process.exit(0); }
+let cfg;
+try { cfg = JSON.parse(fs.readFileSync(dst, "utf8")); }
+catch (e) { console.log("UNPARSEABLE"); process.exit(0); }
+const removed = [];
+if (cfg.mcp && typeof cfg.mcp === "object") {
+  for (const n of names) {
+    if (cfg.mcp[n] !== undefined) { delete cfg.mcp[n]; removed.push(n); }
+  }
+  if (Object.keys(cfg.mcp).length === 0) delete cfg.mcp;
+}
+fs.writeFileSync(dst, JSON.stringify(cfg, null, 2) + "\n");
+console.log(removed.join(","));
+' "$1" "$2"
+}
+
+# ---------------------------------------------------------------------------
+# Public entry points
+# ---------------------------------------------------------------------------
+install_mcp() {
+    local source_file="$1"
+    validate_source_file "$source_file" "MCP config file"
+
+    MCP_PI_APPLIED=""
+    MCP_OPENCODE_APPLIED=""
+
+    # --- pi ---
+    log_info "  Generating pi config: $PI_MCP_CONFIG_PATH"
+    local r
+    r="$(_pi_apply "$source_file" "$PI_MCP_CONFIG_PATH")"
+    if [ "$r" = "UNPARSEABLE" ]; then
+        log_error "✗ Error: $PI_MCP_CONFIG_PATH is not valid JSON — leaving it untouched"
+        exit 3
     fi
-    local removed importflag
-    removed="${result%%$'\t'*}"
-    importflag="${result#*$'\t'}"
-    [ -n "$removed" ] && log_info "  ⚙️  Removed pi overrides: $removed"
-    case "$importflag" in
-        IMPORT_DROPPED) log_info "  ➖ Removed claude-code import (no local Claude servers remain)" ;;
-        IMPORT_KEPT)    log_info "  Leaving claude-code import (other Claude servers still present)" ;;
-    esac
+    MCP_PI_APPLIED="$r"
+    [ -n "$r" ] && log_success "  ✓ pi servers: $r"
+
+    # --- OpenCode ---
+    log_info "  Generating OpenCode config: $OPENCODE_MCP_CONFIG_PATH"
+    r="$(_opencode_apply "$source_file" "$OPENCODE_MCP_CONFIG_PATH")"
+    if [ "$r" = "UNPARSEABLE" ]; then
+        log_error "✗ Error: $OPENCODE_MCP_CONFIG_PATH is not valid JSON — leaving it untouched"
+        exit 3
+    fi
+    local oc_applied oc_dropped
+    oc_applied="${r%%$'\t'*}"
+    oc_dropped="${r#*$'\t'}"
+    MCP_OPENCODE_APPLIED="$oc_applied"
+    [ -n "$oc_applied" ] && log_success "  ✓ OpenCode servers: $oc_applied"
+    if [ -n "$oc_dropped" ]; then
+        log_warning "  ⚠ excludeTools not supported by OpenCode — full tool surface exposed for: $oc_dropped"
+    fi
+}
+
+uninstall_mcp() {
+    local source_file="$1"
+    validate_source_file "$source_file" "MCP config file"
+
+    MCP_PI_REMOVED=""
+    MCP_OPENCODE_REMOVED=""
+
+    local r
+    r="$(_pi_remove "$source_file" "$PI_MCP_CONFIG_PATH")"
+    if [ "$r" = "UNPARSEABLE" ]; then
+        log_warning "  $PI_MCP_CONFIG_PATH is not valid JSON — left untouched"
+    else
+        MCP_PI_REMOVED="$r"
+        [ -n "$r" ] && log_info "  ➖ Removed pi servers: $r"
+    fi
+
+    r="$(_opencode_remove "$source_file" "$OPENCODE_MCP_CONFIG_PATH")"
+    if [ "$r" = "UNPARSEABLE" ]; then
+        log_warning "  $OPENCODE_MCP_CONFIG_PATH is not valid JSON — left untouched"
+    else
+        MCP_OPENCODE_REMOVED="$r"
+        [ -n "$r" ] && log_info "  ➖ Removed OpenCode servers: $r"
+    fi
 }

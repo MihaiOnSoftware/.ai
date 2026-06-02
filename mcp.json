@@ -2,19 +2,7 @@
   "mcpServers": {
     "notion": {
       "type": "http",
-      "url": "https://mcp.notion.com/mcp"
-    },
-    "linear": {
-      "type": "http",
-      "url": "https://mcp.linear.app/mcp"
-    },
-    "datadog": {
-      "type": "http",
-      "url": "https://mcp.datadoghq.com/api/unstable/mcp-server/mcp?toolsets=alerting,core,dashboards,error-tracking,software-delivery&omit_tools=create_datadog_monitor,create_datadog_notebook,delete_datadog_dashboard,edit_datadog_notebook,update_datadog_error_tracking_issue,update_datadog_flaky_test_states"
-    }
-  },
-  "piOverrides": {
-    "notion": {
+      "url": "https://mcp.notion.com/mcp",
       "excludeTools": [
         "notion-create-pages",
         "notion-update-page",

@@ -12,6 +12,6 @@ SOURCE_FILE="$1"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/mcp_helpers.sh"
 
-log_info "Uninstalling MCP servers..."
+log_info "Uninstalling MCP servers (per-host)..."
 uninstall_mcp "$SOURCE_FILE"
-log_success "✅ MCP servers uninstallation complete! (Removed: $MCP_COUNT_REMOVED, Skipped: $MCP_COUNT_SKIPPED)"
+log_success "✅ MCP servers uninstallation complete! (pi: ${MCP_PI_REMOVED:-none}; OpenCode: ${MCP_OPENCODE_REMOVED:-none})"

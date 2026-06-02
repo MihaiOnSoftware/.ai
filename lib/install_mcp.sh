@@ -12,6 +12,6 @@ SOURCE_FILE="$1"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/mcp_helpers.sh"
 
-log_info "Installing MCP servers..."
+log_info "Installing MCP servers (generating per-host configs)..."
 install_mcp "$SOURCE_FILE"
-log_success "✅ MCP servers installation complete! (Added: $MCP_COUNT_ADDED, Updated: $MCP_COUNT_UPDATED, Present: $MCP_COUNT_PRESENT)"
+log_success "✅ MCP servers installation complete! (pi: ${MCP_PI_APPLIED:-none}; OpenCode: ${MCP_OPENCODE_APPLIED:-none})"

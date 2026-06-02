@@ -35,14 +35,19 @@ Preferred pi packages are listed in [`pi.jsonc`](pi.jsonc) and installed with `p
 
 **MCP servers**
 
-MCP servers are declared in [`mcp.json`](mcp.json) (standard `mcpServers` format, no secrets). The installer adds each one to Claude at user scope via the `claude mcp` CLI (which handles merge/validation/OAuth), then registers pi-mcp-adapter's `claude-code` import in `~/.pi/agent/mcp.json` so pi reads them too — one source of truth served to both Claude and pi. Requires the `claude` CLI on `PATH`. The installer skips servers that are already current, **updates** servers whose definition changed (re-auth may be needed), and is safe to re-run. Servers needing OAuth authenticate on first use (in pi via `/mcp`).
+MCP servers are declared once in [`mcp.json`](mcp.json) — a canonical `mcpServers` map in pi-mcp-adapter schema, **no secrets**. The installer *generates* each host's native MCP config from it (one source of truth, fanned out per host like skills/agents):
 
-An optional `piOverrides` map in `mcp.json` carries pi-mcp-adapter-only settings that Claude's config can't hold — for example `excludeTools` to hide tools. The installer merges these into `~/.pi/agent/mcp.json` as partial entries layered onto the imported server. This is how servers are made effectively read-only in pi:
+- **pi** → `~/.pi/agent/mcp.json` — servers are copied verbatim, so pi-only fields like `excludeTools` and `oauth` apply directly.
+- **OpenCode** → `~/.config/opencode/opencode.json` `mcp` block — each server is translated to `{ "type": "remote", "url", "enabled": true, headers?, oauth? }`, preserving any other keys already in the file.
 
-- **Server-side (preferred when available):** some servers filter tools via URL params (e.g. Datadog's `omit_tools=`), so the write tools are dropped at the source — set directly in the server's `url`.
-- **pi-side:** when a server has no server-side filter (e.g. Notion's hosted MCP), list its write tools under `piOverrides.<server>.excludeTools` to hide them from pi.
+No `claude` CLI dependency. The generator is idempotent and safe to re-run; uninstall removes only this repo's servers from each host. Servers needing OAuth authenticate on first use (in pi via `/mcp`; OpenCode on first call). After changing MCP config, `/reload` pi (or start a new session).
 
-After changing MCP config, `/reload` pi (or start a new session) so pi-mcp-adapter picks up the changes.
+> **Claude** is intentionally not a target right now. The emitters in [`lib/mcp_helpers.sh`](lib/mcp_helpers.sh) are host-keyed, so adding a Claude emitter later is a localized change — no rework of the canonical file or the install flow.
+
+Reducing a server's tool surface (e.g. making Notion effectively read-only):
+
+- **Server-side (preferred — works for every host):** some servers filter tools via URL params (e.g. Datadog's `omit_tools=`), dropping tools at the source. Set this directly in the server's `url`.
+- **pi-side (`excludeTools`):** list the tool names to hide on the server entry. Honored by pi; **OpenCode has no reliable per-tool filter**, so it ignores `excludeTools` and the installer warns that the full surface is exposed there. Prefer the server-side option when you need parity across hosts.
 
 ### Shared Libraries Only
 
