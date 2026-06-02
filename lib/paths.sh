@@ -30,4 +30,13 @@ PI_CODING_AGENT_DIR="${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}"
 PI_SKILLS_DIR="${PI_SKILLS_DIR:-$PI_CODING_AGENT_DIR/skills}"
 PI_AGENTS_DIR="${PI_AGENTS_DIR:-$PI_CODING_AGENT_DIR/agents}"
 
+# MCP Paths
+# MCP servers are installed into Claude (user scope, ~/.claude.json) via the
+# claude CLI; pi reads them through pi-mcp-adapter's claude-code import, which
+# we register in pi's agent MCP config below.
+PI_MCP_CONFIG_PATH="${PI_MCP_CONFIG_PATH:-$PI_CODING_AGENT_DIR/mcp.json}"
+# Claude's user-scope config (where `claude mcp ... -s user` stores servers);
+# read on uninstall to decide whether pi still needs the claude-code import.
+CLAUDE_USER_CONFIG="${CLAUDE_USER_CONFIG:-$HOME/.claude.json}"
+
 

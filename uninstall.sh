@@ -22,6 +22,9 @@ echo ""
 "$HOME/.ai/lib/uninstall_pi_packages.sh" "$SCRIPT_DIR/pi.jsonc"
 echo ""
 
+"$HOME/.ai/lib/uninstall_mcp.sh" "$SCRIPT_DIR/mcp.json"
+echo ""
+
 # These aren't converted yet, stay as relative paths
 "$SCRIPT_DIR/lib/uninstall_scripts.sh"
 echo ""

@@ -21,5 +21,8 @@ uninstall_symlink "$AI_LIB_PATH/uninstall_skills.sh" "$LIB_DIR/uninstall_skills.
 uninstall_symlink "$AI_LIB_PATH/pi_package_helpers.sh" "$LIB_DIR/pi_package_helpers.sh"
 uninstall_symlink "$AI_LIB_PATH/install_pi_packages.sh" "$LIB_DIR/install_pi_packages.sh"
 uninstall_symlink "$AI_LIB_PATH/uninstall_pi_packages.sh" "$LIB_DIR/uninstall_pi_packages.sh"
+uninstall_symlink "$AI_LIB_PATH/mcp_helpers.sh" "$LIB_DIR/mcp_helpers.sh"
+uninstall_symlink "$AI_LIB_PATH/install_mcp.sh" "$LIB_DIR/install_mcp.sh"
+uninstall_symlink "$AI_LIB_PATH/uninstall_mcp.sh" "$LIB_DIR/uninstall_mcp.sh"
 
 log_success "✅ Lib uninstallation complete!"

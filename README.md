@@ -15,7 +15,7 @@ The `install.sh` script creates symlinks from your home directory to this reposi
 This creates symlinks:
 
 **Shared library and project files**
-- `~/.ai/lib/<helper>.sh` → `lib/<helper>.sh` (per file: `logging.sh`, `symlink_helpers.sh`, `paths.sh`, `agent_helpers.sh`, `install_agents.sh`, `uninstall_agents.sh`, `skill_helpers.sh`, `install_skills.sh`, `uninstall_skills.sh`, `pi_package_helpers.sh`, `install_pi_packages.sh`, `uninstall_pi_packages.sh`)
+- `~/.ai/lib/<helper>.sh` → `lib/<helper>.sh` (per file: `logging.sh`, `symlink_helpers.sh`, `paths.sh`, `agent_helpers.sh`, `install_agents.sh`, `uninstall_agents.sh`, `skill_helpers.sh`, `install_skills.sh`, `uninstall_skills.sh`, `pi_package_helpers.sh`, `install_pi_packages.sh`, `uninstall_pi_packages.sh`, `mcp_helpers.sh`, `install_mcp.sh`, `uninstall_mcp.sh`)
 - `~/.ai/scripts/generic` → `scripts/`
 - `~/.ai/rules` → `rules/`
 
@@ -32,6 +32,17 @@ Skills and agents are symlinked individually (rather than via a single namespace
 **Pi packages**
 
 Preferred pi packages are listed in [`pi.jsonc`](pi.jsonc) and installed with `pi install` (not symlinked). The installer skips any already-installed package, so it's safe to re-run. Edit `pi.jsonc` to add or remove packages.
+
+**MCP servers**
+
+MCP servers are declared in [`mcp.json`](mcp.json) (standard `mcpServers` format, no secrets). The installer adds each one to Claude at user scope via the `claude mcp` CLI (which handles merge/validation/OAuth), then registers pi-mcp-adapter's `claude-code` import in `~/.pi/agent/mcp.json` so pi reads them too — one source of truth served to both Claude and pi. Requires the `claude` CLI on `PATH`. The installer skips servers that are already current, **updates** servers whose definition changed (re-auth may be needed), and is safe to re-run. Servers needing OAuth authenticate on first use (in pi via `/mcp`).
+
+An optional `piOverrides` map in `mcp.json` carries pi-mcp-adapter-only settings that Claude's config can't hold — for example `excludeTools` to hide tools. The installer merges these into `~/.pi/agent/mcp.json` as partial entries layered onto the imported server. This is how servers are made effectively read-only in pi:
+
+- **Server-side (preferred when available):** some servers filter tools via URL params (e.g. Datadog's `omit_tools=`), so the write tools are dropped at the source — set directly in the server's `url`.
+- **pi-side:** when a server has no server-side filter (e.g. Notion's hosted MCP), list its write tools under `piOverrides.<server>.excludeTools` to hide them from pi.
+
+After changing MCP config, `/reload` pi (or start a new session) so pi-mcp-adapter picks up the changes.
 
 ### Shared Libraries Only
 
@@ -84,6 +95,7 @@ OPENCODE_SKILLS_DIR=~/custom/.config/opencode/skills \
 OPENCODE_AGENTS_DIR=~/custom/.config/opencode/agents \
 PI_SKILLS_DIR=~/custom/.pi/agent/skills \
 PI_AGENTS_DIR=~/custom/.pi/agent/agents \
+PI_MCP_CONFIG_PATH=~/custom/.pi/agent/mcp.json \
 ./install.sh
 ```
 
