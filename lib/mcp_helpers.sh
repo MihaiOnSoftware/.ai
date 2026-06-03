@@ -226,6 +226,7 @@ install_mcp() {
         log_warning "  ⚠ excludeTools not supported by OpenCode — full tool surface exposed for: $oc_dropped"
     fi
     [ -n "$oc_skipped" ] && log_warning "  ⚠ OpenCode servers skipped (missing OAuth env): $oc_skipped"
+    return 0  # don't let a falsey trailing test become the function's exit code
 }
 
 uninstall_mcp() {
@@ -251,4 +252,5 @@ uninstall_mcp() {
         MCP_OPENCODE_REMOVED="$r"
         [ -n "$r" ] && log_info "  ➖ Removed OpenCode servers: $r"
     fi
+    return 0  # don't let a falsey trailing test become the function's exit code
 }
