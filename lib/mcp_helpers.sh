@@ -80,6 +80,12 @@ if (Array.isArray(cfg.imports)) {
 }
 
 if (typeof cfg.mcpServers !== "object" || cfg.mcpServers === null) cfg.mcpServers = {};
+
+// pi has no headless /mcp-auth, so enable autoAuth: servers run OAuth on first
+// tool use (and retry once) instead of needing a manual /mcp-auth per server.
+if (typeof cfg.settings !== "object" || cfg.settings === null) cfg.settings = {};
+cfg.settings.autoAuth = true;
+
 const applied = [], skipped = [];
 for (const [name, def] of Object.entries(servers)) {
   const entry = { ...def }; // pi schema IS the canonical schema
