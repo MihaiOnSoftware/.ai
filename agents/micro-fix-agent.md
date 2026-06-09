@@ -1,6 +1,7 @@
 ---
 name: micro-fix-agent
 description: Fixes trivial validation issues without reverting implementation
+model: anthropic/claude-haiku-4-5
 ---
 
 **Purpose**: Fix minor quality issues identified by validation without redoing the implementation.

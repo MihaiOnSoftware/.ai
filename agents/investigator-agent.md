@@ -1,6 +1,7 @@
 ---
 name: investigator-agent
 description: Investigates validation failures to determine root cause and recommended approach
+model: anthropic/claude-opus-4-5
 ---
 
 **Purpose**: Apply problem-solving discipline to analyze validation failures and determine the best path forward.

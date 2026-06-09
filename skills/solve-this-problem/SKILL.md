@@ -42,18 +42,9 @@ problem statement
 
 ## Your role
 
-You are the conductor. **You do not do design / plan / implementation yourself.** For each phase, dispatch a fresh-context worker subagent with the relevant skill loaded and let it own the phase end-to-end. You re-engage at checkpoints and whenever the phase subagent escalates for a decision.
+You are the conductor. **You do not do design / plan / implementation yourself.** For each phase, dispatch the dedicated phase agent and let it own the phase end-to-end. You re-engage at checkpoints and whenever the phase subagent escalates for a decision.
 
-**Mid-phase user input.** The `worker` agent as shipped does NOT have an `ask_user_question` tool (its `tools:` line is `read, grep, find, ls, bash, edit, write, contact_supervisor`). When the phase subagent's loaded skill says "ask the user", the subagent must instead escalate to you via `contact_supervisor` with `reason: "need_decision"`. The full loop is:
-
-1. Phase subagent calls `contact_supervisor({ reason: "need_decision", message: <question + context> })` and **blocks** waiting for the reply (per worker.md: "stay alive to receive the reply before continuing").
-2. You (conductor) receive the escalation. Note the subagent's `run-id`.
-3. You call `ask_user_question(...)` with the subagent's question, surfaced to the user with the phase context.
-4. User answers.
-5. You resume the subagent: `subagent({ action: "resume", id: <run-id>, message: <user's answer> })`.
-6. Subagent unblocks with the answer and continues.
-
-If your harness ships a custom worker variant that includes `ask_user_question` directly, the subagent can skip steps 2–5 and ask the user itself — note which mode you're in inside the pipeline state file (template field: "Mid-phase user-input mode: via-supervisor | direct").
+**Mid-phase user input.** Phase agents have `ask_user_question` available (they don't restrict their tool set), so when a skill says "ask the user" the agent asks directly. Set the pipeline state file's "Mid-phase user-input mode" field to `direct`.
 
 When a subagent returns, **read its summary file**, **merge the key fields into the pipeline state file**, surface at the checkpoint if there is one, then proceed. See `references/phase-dispatch.md` for the summary-file convention and the merge step.
 
@@ -82,27 +73,24 @@ When resuming, create the wip file with skipped phases marked as "skipped (artif
 
 ## Phase dispatch shape
 
-For each phase, spawn a fresh-context `worker` subagent. Pattern (see `references/phase-dispatch.md` for one-per-phase recipes, the agent-capability gotcha, and the summary-file convention):
+For each phase, dispatch the dedicated phase agent (see `references/phase-dispatch.md` for one-per-phase recipes and the summary-file convention):
 
 ```
 subagent({
-  agent: "worker",
-  context: "fresh",          // REQUIRED — worker's defaultContext is "fork"; without this, the worker inherits parent context
-  task: "Load skill at ~/.pi/agent/skills/<skill>/SKILL.md (read references too). Then <phase task>. Write a phase-summary to <wip-summary-path> with: artifact_path, status, key counts/numbers, notable findings. Return briefly.",
+  agent: "<phase-agent-name>",
+  task: "<phase task>. Write a phase-summary to <wip-summary-path> with: artifact_path, status, key counts/numbers, notable findings. Return briefly.",
   output: "<wip-summary-path>",
   outputMode: "file-only"
 })
 ```
 
-The subagent inherits no context (because of `context: "fresh"`) — it must read the prior phase's artifact from disk. Pass the wip file path so it knows where to read the prior phase's notes if needed.
-
-**Agent-capability prerequisite.** Phases 2, 4, and 5 dispatch skills that themselves spawn subagents, but the shipped `worker` agent lacks the `subagent` tool. See `references/phase-dispatch.md` ("Agent-capability gotcha") for the inline-fallback workaround and which phases are affected.
+Each phase agent wraps its skill, pins its model, and has the `subagent` tool — so inner loops (adversarial-review iterations, tdd-slice micro cycles) run as real fresh-context dispatches. The agent starts with no inherited context and must read the prior phase's artifact from disk. Pass the wip file path so it knows where to read prior phases' notes.
 
 ## Phase 1: Design
 
 Input: a problem statement from the user, OR a `~/.ai/wip/<topic>-<date>.md` scratchpad.
 
-Dispatch a worker loading `explore-and-design`. Pass the problem statement. The subagent investigates, scopes, talks to the user as needed, and commits a design doc (`design/<topic>.md` in the project repo, or `~/.ai/wip/<topic>-<date>.md` for scratch).
+Dispatch `explore-and-design-agent`. Pass the problem statement. The agent investigates, scopes, talks to the user as needed, and commits a design doc (`design/<topic>.md` in the project repo, or `~/.ai/wip/<topic>-<date>.md` for scratch).
 
 After it returns:
 1. Read the design doc path from the subagent's summary.
@@ -111,7 +99,7 @@ After it returns:
 
 ## Phase 2: Design review
 
-Dispatch a worker loading `adversarial-review-loop`. Pass: design doc path, problem statement, and "ground truth" pointers (any source code, prior art docs, real-data probes the design references).
+Dispatch `adversarial-review-loop-agent`. Pass: design doc path, problem statement, and "ground truth" pointers (any source code, prior art docs, real-data probes the design references).
 
 After it returns:
 1. Read review log + termination reason.
@@ -128,9 +116,9 @@ After it returns:
 
 ## Phase 3: Plan
 
-Dispatch a worker loading `create-implementation-plan`. Pass: design doc path, wip file path.
+Dispatch `create-implementation-plan-agent`. Pass: design doc path, wip file path.
 
-**Important — batch mode:** Tell the subagent to produce the *full plan in this run* (committed as a single doc), not iterate slice-by-slice with the user. The user will review the whole plan at the next checkpoint. Iterative-per-slice presentation is for direct user invocations of `create-implementation-plan`; from here, the subagent's only "user" is the wip file.
+**Important — batch mode:** Tell the agent to produce the *full plan in this run* (committed as a single doc), not iterate slice-by-slice with the user. The user will review the whole plan at the next checkpoint. Iterative-per-slice presentation is for direct user invocations of `create-implementation-plan`; from here, the agent's only "user" is the wip file.
 
 After it returns:
 1. Read plan doc path.
@@ -139,7 +127,7 @@ After it returns:
 
 ## Phase 4: Plan review
 
-Dispatch a worker loading `adversarial-review-loop`. Pass plan doc path, design doc path (the plan is reviewed *against* the design), wip file path.
+Dispatch `adversarial-review-loop-agent`. Pass plan doc path, design doc path (the plan is reviewed *against* the design), wip file path.
 
 After it returns:
 1. Read review log.
@@ -160,11 +148,11 @@ For each slice in the plan, in order:
 
 1. Update wip file: starting slice N. **Capture the current branch HEAD SHA as the pre-slice SHA for slice N** and record it in the wip file before dispatching (`git rev-parse HEAD`). This is needed for the Re-run slice N checkpoint option below.
 2. Extract slice N from the plan into tdd-slice's documented input format (see `tdd-slice/SKILL.md` "Input Format": `# Slice [N]: [Name] / ## Goal / ## Features / ## Tests to Write / ## Commit Message`) and write it to `~/.ai/wip/<feature>-pipeline-<date>-slice<N>-spec.md`.
-3. Dispatch a worker loading `tdd-slice`. Pass: slice spec path, plan doc path (for cross-slice context), design doc path (omit if not supplied at resume), wip file path. See `references/phase-dispatch.md` for the recipe.
+3. Dispatch `tdd-slice-agent`. Pass: slice spec path, plan doc path (for cross-slice context), design doc path (omit if not supplied at resume), wip file path. See `references/phase-dispatch.md` for the recipe.
 4. `tdd-slice` runs its own internal cycles (per item it dispatches the right micro agent — micro-tdd-agent for test behaviors or micro-refactor-agent for refactors — then commit-agent, then tdd-validation-agent **per micro commit** with micro-fix-agent / investigator-agent on retry). It commits as it goes.
 5. After it returns:
    - Read the tdd-slice report path.
-   - Update wip file: slice N done; commits (SHAs + one-line summaries); tests added (count); report at `<path>`; ran_mode.
+   - Update wip file: slice N done; commits (SHAs + one-line summaries); tests added (count); report at `<path>`.
 6. **CHECKPOINT.** Surface to user:
    - Slice goal + result
    - Commit SHAs + summaries
@@ -187,7 +175,7 @@ When all slices are done: update wip file with "pipeline complete", surface a fi
 
 ## What you do NOT do
 
-- You do **not** load `explore-and-design` / `create-implementation-plan` / `tdd-slice` / `adversarial-review` / `adversarial-review-loop` yourself in your own context. They get loaded by phase subagents in fresh contexts. Loading them in the conductor's context bloats it for no gain.
+- You do **not** run phase skills in your own context. They run inside dedicated phase agents in fresh contexts. Loading skills in the conductor's context bloats it for no gain.
 - You do **not** write design docs / plans / code. The phase subagents own that.
 - You do **not** retry a failed phase silently. If a subagent fails or returns ambiguously, surface to the user with the failure and ask for direction.
 - You do **not** skip the wip file. It's the source of truth across sessions and contexts.
@@ -195,7 +183,7 @@ When all slices are done: update wip file with "pipeline complete", surface a fi
 
 ## Anti-patterns
 
-- **Doing a phase inline to save tokens** — defeats the point of fresh-context dispatch. Each skill is designed to run with a clean slate; mixing them in one context creates conflicts (e.g. `explore-and-design` says "you are an investigator, not an implementer"; `tdd-slice` says implement). This is distinct from the **inline-fallback workaround** documented in `references/phase-dispatch.md` for the case where the dispatched agent lacks the `subagent` tool: that workaround runs the inner cycles inline with fresh-context discipline (re-deriving from artifacts on disk) and is acceptable when noted in the wip file's `ran_mode` field. The anti-pattern is skipping fresh-context dispatch for the OUTER phase boundary to save tokens, not running inner cycles inline when no other option exists.
+- **Doing a phase inline to save tokens** — defeats the point of fresh-context dispatch. Each skill is designed to run with a clean slate; mixing them in one context creates conflicts (e.g. `explore-and-design` says "you are an investigator, not an implementer"; `tdd-slice` says implement). The anti-pattern is skipping fresh-context dispatch for the outer phase boundary to save tokens.
 - **Skipping checkpoints when the artifacts look fine** — the user has context you don't (priorities, side projects, half-remembered constraints). Always surface.
 - **Letting the wip file lag** — update it at every phase boundary, not "at the end". If a session dies between phases without an updated file, the resume case can't work.
 - **Running slice N+1 before checkpointing slice N** — slice N's report may surface a scope change that affects N+1. The serialization is load-bearing.

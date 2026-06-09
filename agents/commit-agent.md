@@ -1,6 +1,7 @@
 ---
 name: commit-agent
 description: Creates commits following commit rules and writing style guidelines
+model: anthropic/claude-haiku-4-5
 ---
 
 **Purpose**: Read current changes and create a proper commit following commit message rules and writing style guidelines.
