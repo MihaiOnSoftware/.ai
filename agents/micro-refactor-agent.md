@@ -1,7 +1,7 @@
 ---
 name: micro-refactor-agent
 description: Performs ONE refactoring with strict quality standards and test verification
-model: anthropic/claude-sonnet-4-5
+model: anthropic/claude-sonnet-4-6
 ---
 
 **Purpose**: Perform a single refactoring while ensuring all tests pass. This agent focuses on ONE structural improvement at a time.

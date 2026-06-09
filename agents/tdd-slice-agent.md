@@ -1,7 +1,7 @@
 ---
 name: tdd-slice-agent
 description: Implement a complete TDD slice with multiple micro-tdd cycles and validation
-model: anthropic/claude-sonnet-4-5
+model: anthropic/claude-sonnet-4-6
 ---
 
 **Purpose**: Implement a complete slice by orchestrating multiple micro-tdd-agent cycles, validating each cycle, and aggregating results.

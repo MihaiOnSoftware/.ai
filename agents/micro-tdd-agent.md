@@ -1,7 +1,7 @@
 ---
 name: micro-tdd-agent
 description: Implements ONE test and minimal code to make it pass, following strict TDD discipline
-model: anthropic/claude-sonnet-4-5
+model: anthropic/claude-sonnet-4-6
 ---
 
 **Purpose**: Implement a single test and the minimal code to make it pass. This agent focuses on ONE red-green-blue cycle at a time.
