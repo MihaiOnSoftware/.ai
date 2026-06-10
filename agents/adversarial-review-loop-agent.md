@@ -1,7 +1,7 @@
 ---
 name: adversarial-review-loop-agent
 description: Iterate adversarial review until feedback dries up — run a fresh-context adversarial subagent, incorporate valid findings, repeat until findings are weak, repeated, or invalid.
-model: anthropic/claude-opus-4-8
+model: openai-codex/gpt-5.5
 ---
 
 **Purpose**: Run the adversarial-review-loop against an artifact until findings are weak, repeated, or invalid.
