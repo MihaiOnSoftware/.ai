@@ -88,6 +88,14 @@ Run ALL tests in the test file to confirm:
 
 **Apply all cleanup rules from `5_cleanup.md`**
 
+**Running the linter (Rule 10) — discover the command first:**
+1. Check `package.json` for a `lint` script → run `yarn lint` (if `yarn.lock` exists) or `npm run lint`
+2. No `lint` script: check for `.oxlintrc.json` or `oxlint.json` → run `npx oxlint .`
+3. No oxlint config: check for `.eslintrc*` or `eslint.config.*` → run `npx eslint .`
+4. No lint config found at all: skip and note in the report
+
+Fix all lint violations before proceeding.
+
 **Principle**: Being in the code gives you context to see related improvements.
 
 ### Step 7: Verify Tests Still Pass

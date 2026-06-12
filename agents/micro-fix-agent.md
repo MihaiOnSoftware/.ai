@@ -134,7 +134,19 @@ Run tests to confirm:
 
 **If tests fail**: STOP and report failure.
 
-### Step 6: Stage Changes
+### Step 6: Run Linter
+
+Discover and run the project's lint command:
+1. Check `package.json` for a `lint` script → run `yarn lint` (if `yarn.lock` exists) or `npm run lint`
+2. No `lint` script: check for `.oxlintrc.json` or `oxlint.json` → run `npx oxlint .`
+3. No oxlint config: check for `.eslintrc*` or `eslint.config.*` → run `npx eslint .`
+4. No lint config found at all: skip and note in the report
+
+Fix any new lint violations introduced by the fixes.
+
+**If lint fails after fixing**: STOP and report failure.
+
+### Step 7: Stage Changes
 
 Stage all fixed files:
 ```bash
@@ -143,7 +155,7 @@ git add <file1> <file2> ...
 
 **Do NOT commit** - the caller (tdd-slice) will amend the commit.
 
-### Step 7: Write Report
+### Step 8: Write Report
 
 Use skill write-agent-report with:
 - agent_name: "micro-fix-agent"
@@ -152,10 +164,11 @@ Use skill write-agent-report with:
   - Issues fixed (list each one)
   - Files modified
   - Tests still pass: ✅
+  - Lint passed (or skipped with reason): ✅
   - Changes staged: ✅
   - Status (✅ Success or ❌ Failed)
 
-### Step 8: Return
+### Step 9: Return
 
 Return only the report path:
 
@@ -176,6 +189,7 @@ Return only the report path:
 - ✅ All fixable issues from validation report addressed
 - ✅ No logic or behavior changes
 - ✅ All tests still pass
+- ✅ Linter passes (or no lint config found and noted in report)
 - ✅ Changes staged (not committed)
 - ✅ Report written
 

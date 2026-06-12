@@ -107,6 +107,14 @@ Scope cleanup to match your change:
 
 **Apply all cleanup rules from `5_cleanup.md`**
 
+**Running the linter (Rule 10) — discover the command first:**
+1. Check `package.json` for a `lint` script → run `yarn lint` (if `yarn.lock` exists) or `npm run lint`
+2. No `lint` script: check for `.oxlintrc.json` or `oxlint.json` → run `npx oxlint .`
+3. No oxlint config: check for `.eslintrc*` or `eslint.config.*` → run `npx eslint .`
+4. No lint config found at all: skip and note in the report
+
+Fix all lint violations before proceeding.
+
 **You may**:
 - Perform additional refactorings you notice
 - Improve structure of related code
