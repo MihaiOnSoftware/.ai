@@ -1,6 +1,6 @@
 ---
 name: solve-this-problem
-description: End-to-end: problem → committed design → plan → TDD slices. Chains explore-and-design + adversarial-review-loop → create-implementation-plan → tdd-slice. Supports mid-pipeline entry.
+description: "End-to-end: problem → committed design → plan → TDD slices. Chains explore-and-design + adversarial-review-loop → create-implementation-plan → tdd-slice. Supports mid-pipeline entry."
 license: MIT
 metadata:
   category: orchestration
