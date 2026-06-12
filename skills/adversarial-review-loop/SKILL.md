@@ -1,6 +1,6 @@
 ---
 name: adversarial-review-loop
-description: Iterate adversarial-review until feedback dries up — run a fresh-context adversarial subagent, incorporate the valid findings, run again on the updated work, repeat until findings are weak, repeated, or invalid. Use when stakes justify several passes and a single review isn't enough.
+description: Run fresh adversarial subagent, incorporate findings, repeat until findings are weak/repeated/invalid. Use when a single review pass is not enough.
 license: MIT
 metadata:
   category: review

@@ -73,20 +73,7 @@ Slice requirements should be provided as:
 
 ## Workflow
 
-### Phase 1: Read Rules
-
-Read ALL files in `~/.ai/rules/*` in order:
-1. `1_running_into_problems.md`
-2. `2_approaching_work.md`
-3. `3_quality.md`
-4. `4_testing.md`
-5. `5_cleanup.md`
-6. `6_writing_style.md`
-7. `7_let_me_just.md`
-
-Post "✅ Rules loaded"
-
-### Phase 2: Analyze & Plan
+### Phase 1: Analyze & Plan
 
 **Step 1: Read slice requirements**
 - Parse slice number, name, goal
@@ -115,7 +102,7 @@ Post "✅ Codebase analyzed"
 
 Post "✅ Execution plan created: [N] items ([X] tests, [Y] refactors)"
 
-### Phase 3: Execute Micro Cycles
+### Phase 2: Execute Micro Cycles
 
 For each item in the execution plan:
 
@@ -181,7 +168,7 @@ Post "✅ Validation [N/Total] passed: [test name]"
 
 Repeat Steps 1-3 for each test behavior in the execution plan.
 
-### Phase 4: Final Report
+### Phase 3: Final Report
 
 After all micro cycles complete successfully:
 

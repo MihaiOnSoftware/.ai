@@ -56,6 +56,8 @@ Design-specific triggers for reaching for them:
 
 The signature move when an agent reports a clean refutation: *"what have I asked the last 2 times regarding double checking?"* — a single clean round is not enough.
 
+**Scope**: Rule 4 fires during investigation (Phases 1–3). Do not run an adversarial pass on the committed design artifact at the end of Phase 4 — that review is a separate phase handled by `adversarial-review-loop` after e-a-d completes (see Handoff below).
+
 ### 4a. If the user already has a draft, attack it before extending it
 
 When the user hands you a hand-written `spec.md` / design doc / PR description, your **first** action after reading it is to run an adversarial-review-loop against it. Not after a polishing pass, not after expanding it — first. The pi-fleet 2026-05-11 session is the canonical example: the user's 404-line spec had a core premise (tmux attaching to pi-subagents-spawned workers) that an adversarial review collapsed on the first iteration. The verbatim instruction:
@@ -127,6 +129,11 @@ Capture the design as a durable artifact. Which artifact, and where it lives, de
 
 (Prior-art scans, when triggered in Phase 2, land at `research/<date>-prior-art.md` alongside the design doc.)
 
+Exit state: the committed artifact is **not yet adversarially reviewed**. Add the following line at the bottom of the committed doc before pushing:
+```
+<!-- not yet adversarially reviewed as a complete artifact -->
+```
+
 ## Anti-patterns
 
 See `references/anti-patterns.md` for the long list with quotes. Highlights:
@@ -142,7 +149,7 @@ See `references/anti-patterns.md` for the long list with quotes. Highlights:
 
 ## Handoff to create-implementation-plan
 
-When the design is settled — committed design doc, open questions resolved, scope locked — say so explicitly. Suggest the user open a new session and load `create-implementation-plan` against the artifact. The two skills are deliberately separated; the slicer needs a clean head, and `create-implementation-plan` is itself a planner skill, not the implementer (that's `tdd-slice`).
+When the design is settled — committed design doc, open questions resolved, scope locked — say so explicitly. The committed artifact is marked "not yet adversarially reviewed"; the next step is to run `adversarial-review-loop` against it as a standalone phase before planning. Then load `create-implementation-plan` against the reviewed artifact. The three phases are deliberately separated: e-a-d authors the design, the adversarial loop stress-tests it, the slicer breaks it into work. `create-implementation-plan` is itself a planner skill, not the implementer (that's `tdd-slice`).
 
 ## Examples
 

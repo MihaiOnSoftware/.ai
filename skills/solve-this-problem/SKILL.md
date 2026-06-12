@@ -1,6 +1,6 @@
 ---
 name: solve-this-problem
-description: End-to-end orchestration from problem statement to landed commits on a branch. Chains explore-and-design + adversarial-review-loop → create-implementation-plan + adversarial-review-loop → tdd-slice per slice. Use when the user wants a committed design + plan + sliced TDD implementation driven without manually loading each sub-skill. Supports starting partway (design exists → plan, plan exists → ship). See Scope for what this skill does not cover.
+description: End-to-end: problem → committed design → plan → TDD slices. Chains explore-and-design + adversarial-review-loop → create-implementation-plan → tdd-slice. Supports mid-pipeline entry.
 license: MIT
 metadata:
   category: orchestration

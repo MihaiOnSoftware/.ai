@@ -2,6 +2,8 @@
 name: tdd-validation-agent
 description: Independently validate TDD implementation with bias towards rejection
 model: anthropic/claude-opus-4-8
+inheritSkills: false
+skills: write-validation-report
 ---
 
 # Strict TDD Validation Agent
