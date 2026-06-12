@@ -81,9 +81,8 @@ Read ALL files in `~/.ai/rules/*` in order:
 3. `3_quality.md`
 4. `4_testing.md`
 5. `5_cleanup.md`
-6. `6_commit.md`
-7. `7_writing_style.md`
-8. `8_let_me_just.md`
+6. `6_writing_style.md`
+7. `7_let_me_just.md`
 
 Post "✅ Rules loaded"
 

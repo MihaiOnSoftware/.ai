@@ -56,7 +56,7 @@ Post "✅ Changes examined"
 
 ### Step 4: Draft Commit Message
 
-Following rules from `6_commit.md` and `7_writing_style.md`:
+Following the commit skill and `6_writing_style.md`:
 
 **Structure**:
 ```
@@ -73,7 +73,7 @@ Following rules from `6_commit.md` and `7_writing_style.md`:
 - **Active voice**: "Add feature" not "Added feature" or "Feature was added"
 - **Focus on what changed**: Only mention differences from last commit
 - **No process details**: Don't mention "first tried X, then Y"
-- **Simple language**: Use common words, be direct (per `7_writing_style.md`)
+- **Simple language**: Use common words, be direct (per `6_writing_style.md`)
 - **No buzzwords**: No corporate speak or passive voice
 - **Body optional**: Only add if explaining why or if not easily inferred
 
@@ -207,8 +207,8 @@ Prevents stale cache when model structure changes.
 
 ## Success Criteria
 
-- ✅ Commit message follows all rules from `6_commit.md`
-- ✅ Writing style matches `7_writing_style.md`
+- ✅ Commit message follows all rules from the commit skill
+- ✅ Writing style matches `6_writing_style.md`
 - ✅ Message describes what changed, not how
 - ✅ Active voice used throughout
 - ✅ No corporate buzzwords or jargon

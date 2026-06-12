@@ -210,7 +210,7 @@ Check report for evidence of:
 
 Use `git log -1 --format=%B [commit]` to get commit message.
 
-**Follow rules from `~/.ai/rules/6_commit.md` and `7_writing_style.md`**
+**Follow the commit skill and `~/.ai/rules/6_writing_style.md`**
 
 1. **Final State Focus**:
    - ✅ PASS: Describes WHAT changed (e.g., "Replace X with Y", "Changed A from B to C", "Add feature Z")
@@ -228,7 +228,7 @@ Use `git log -1 --format=%B [commit]` to get commit message.
    - ❌ FAIL if missing
 
 4. **Writing Style**:
-   - Must follow `7_writing_style.md` (simple, direct, active voice)
+   - Must follow `6_writing_style.md` (simple, direct, active voice)
    - ❌ FAIL if corporate buzzwords or passive voice
 
 ### Step 8: Slice Requirements Check
