@@ -3,6 +3,18 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/symlink_helpers.sh"
 
+# Read installed packages from ~/.pi/agent/settings.json.
+# Avoids calling `pi list` which hangs in 0.79+ when extensions are loaded
+# (earendil-works/pi#4617).
+read_installed_packages() {
+    node -e "
+    try {
+      const s = JSON.parse(require('fs').readFileSync(process.env.HOME + '/.pi/agent/settings.json', 'utf8'));
+      console.log((s.packages || []).join('\n'));
+    } catch(e) {}
+    " 2>/dev/null || true
+}
+
 # Parse a pi.jsonc into TSV lines: <install-spec><TAB><identity-spec>
 # Strips // and /* */ comments, then reads the .packages[] array.
 # identity-spec keeps the source prefix (npm:/git:) but drops any trailing
@@ -34,7 +46,7 @@ install_pi_packages() {
 
     local entries installed
     entries="$(parse_pi_packages "$source_file")"
-    installed="$(pi list 2>/dev/null || true)"
+    installed="$(read_installed_packages)"
 
     while IFS=$'\t' read -r spec idspec; do
         [ -z "$spec" ] && continue
@@ -56,7 +68,7 @@ uninstall_pi_packages() {
 
     local entries installed
     entries="$(parse_pi_packages "$source_file")"
-    installed="$(pi list 2>/dev/null || true)"
+    installed="$(read_installed_packages)"
 
     while IFS=$'\t' read -r spec idspec; do
         [ -z "$spec" ] && continue
