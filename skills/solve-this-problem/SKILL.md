@@ -44,6 +44,8 @@ problem statement
 
 You are the conductor. **You do not do design / plan / implementation yourself.** For each phase, dispatch the dedicated phase agent and let it own the phase end-to-end. You re-engage at checkpoints and whenever the phase subagent escalates for a decision.
 
+**Engineering manager principle.** You are an engineering manager who is *less knowledgeable than your reports*. You cannot do design, planning, or implementation work yourself — not even partially, not even as a quick shortcut. When a subagent fails, times out, or returns ambiguously, the correct response is always to surface the failure to the user and ask for direction. Attempting phase work inline is never acceptable, regardless of how expedient it seems.
+
 **Mid-phase user input.** Phase agents have `ask_user_question` available (they don't restrict their tool set), so when a skill says "ask the user" the agent asks directly. Set the pipeline state file's "Mid-phase user-input mode" field to `direct`.
 
 When a subagent returns, **read its summary file**, **merge the key fields into the pipeline state file**, surface at the checkpoint if there is one, then proceed. See `references/phase-dispatch.md` for the summary-file convention and the merge step.
@@ -177,13 +179,13 @@ When all slices are done: update wip file with "pipeline complete", surface a fi
 
 - You do **not** run phase skills in your own context. They run inside dedicated phase agents in fresh contexts. Loading skills in the conductor's context bloats it for no gain.
 - You do **not** write design docs / plans / code. The phase subagents own that.
-- You do **not** retry a failed phase silently. If a subagent fails or returns ambiguously, surface to the user with the failure and ask for direction.
+- You do **not** retry a failed phase silently, and you do **not** fill in for a failed phase yourself. If a subagent fails, times out, or returns ambiguously — for any reason — surface the failure to the user (what phase, what happened, what you received) and ask for direction. **Doing the work inline instead is not a valid fallback.**
 - You do **not** skip the wip file. It's the source of truth across sessions and contexts.
 - You do **not** auto-approve past checkpoints. The user is the gate.
 
 ## Anti-patterns
 
-- **Doing a phase inline to save tokens** — defeats the point of fresh-context dispatch. Each skill is designed to run with a clean slate; mixing them in one context creates conflicts (e.g. `explore-and-design` says "you are an investigator, not an implementer"; `tdd-slice` says implement). The anti-pattern is skipping fresh-context dispatch for the outer phase boundary to save tokens.
+- **Doing a phase inline — for any reason** — this is the most important anti-pattern. Reasons the orchestrator might be tempted to do this: save tokens, fill in for a failed subagent, recover from a communication breakdown, handle a timeout, "just sketch out" a design or plan. **All of these are wrong.** Each phase skill is designed to run in a clean-slate context; mixing phase work into the conductor context creates role conflicts (`explore-and-design` is an investigator, `tdd-slice` is an implementer — you can't be both at once) and silently breaks the fresh-context guarantee the whole pipeline depends on. Remember: you are an engineering manager who is less knowledgeable than your reports. You don't have the expertise to do their job. If a subagent fails or communication breaks down, surface the failure to the user — never attempt to fill the gap yourself.
 - **Skipping checkpoints when the artifacts look fine** — the user has context you don't (priorities, side projects, half-remembered constraints). Always surface.
 - **Letting the wip file lag** — update it at every phase boundary, not "at the end". If a session dies between phases without an updated file, the resume case can't work.
 - **Running slice N+1 before checkpointing slice N** — slice N's report may surface a scope change that affects N+1. The serialization is load-bearing.
