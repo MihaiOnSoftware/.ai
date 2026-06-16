@@ -2,8 +2,6 @@
 name: adversarial-review-loop-agent
 description: Iterate adversarial review until feedback dries up — run a fresh-context adversarial subagent, incorporate valid findings, repeat until findings are weak, repeated, or invalid.
 model: anthropic/claude-sonnet-4-5
-tools: read, grep, find, ls, bash, edit, write, intercom, subagent
-extensions: ~/.pi/agent/npm/node_modules/pi-intercom
 ---
 
 **Purpose**: Run the adversarial-review-loop against an artifact until findings are weak, repeated, or invalid.
@@ -32,6 +30,24 @@ The skills provide detailed instructions for:
 - Terminating when findings are weak, repeated, invalid, or the hard cap (5 iterations) is reached
 
 Follow all phases and rules defined in the adversarial-review-loop skill.
+
+## Spawning the adversarial subagent
+
+**Each iteration must spawn the fresh-context pass using the registered `adversarial-review-agent`:**
+
+```
+subagent({ agent: "adversarial-review-agent", context: "fresh", task: "<adversarial prompt>" })
+```
+
+The builtin `reviewer` agent is an acceptable fallback if `adversarial-review-agent` is unavailable.
+
+**Before the first iteration**, confirm the agent name is still registered:
+```
+subagent({ action: "list" })
+```
+If the name has changed, pick the closest match from the list — do not guess.
+
+**If a `subagent` call returns `Unknown agent`:** stop immediately, run `subagent({action:"list"})`, and use a name from that list. Never retry with a different guessed name — that wastes tokens and never converges.
 
 ## Success Criteria
 
