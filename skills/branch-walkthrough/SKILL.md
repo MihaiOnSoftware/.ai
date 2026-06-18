@@ -1,176 +1,143 @@
 ---
 name: branch-walkthrough
-description: Walk through code changes chunk by chunk for code review. Pairs with code review skills for deeper analysis.
+description: Use when the user asks to interactively walk through branch or uncommitted code changes chunk by chunk before or during review. Presents actual diffs and waits for feedback; not a defect-finding review unless the user asks evaluative questions.
 license: MIT
 metadata:
   category: analysis
 ---
 
-Present code changes in digestible conceptual "chunks" one by one, allowing review, questions, and approval.
+Present code changes in digestible conceptual chunks, one at a time, so the user can review, ask questions, request edits, approve, or skip each chunk.
 
-## What This Command Does
+## Scope Boundaries
 
-**Input**: Optional branch name or "uncommitted" (defaults to uncommitted)
+This skill is a walkthrough skill, not a general code-review or implementation workflow.
 
-**Output**: Interactive walkthrough of code changes with context
+**Do:**
+- Show actual diff hunks, not paraphrases.
+- Group related changes into focused chunks.
+- Add enough context for the user to understand why each chunk exists.
+- Wait for feedback after every chunk.
 
-**Presents**:
-- Actual code changes (not paraphrased)
-- Additional context provided by the user
-- Changes grouped into conceptual chunks (MAX 50 lines each)
-- One chunk at a time, waiting for feedback
+**Do not:**
+- Hunt for defects unless the user asks an evaluative question about the code.
+- Load code-review skills unless the user asks for review judgment, risk assessment, bug finding, security concerns, or similar evaluation.
+- Modify files unless the user directly requests a change.
+- Present all chunks at once.
 
-## Nota Bene
+When the user does ask an evaluative question, delegate that question to a subagent and tell the subagent to load relevant code-review skills first. This keeps the walkthrough focused and avoids flooding the main context with investigation output.
 
-This skill walks through code changes but is **not a code review skill itself**. The user will use it during code reviews and will ask you to dig into potential problems. When they do, you **must** search your available skills for any related to code review, load them, and apply their review criteria before answering. Do not skip this step — those skills contain specific review guidelines and known problem patterns that you don't have.
+## Inputs and Output
+
+**Input**: Optional branch name or `uncommitted`. Defaults to uncommitted changes.
+
+**Output**: An interactive walkthrough containing:
+- Sequentially numbered chunks.
+- Actual diff output for each chunk.
+- Brief purpose and file context.
+- A final summary with counts for approved, skipped, and modified chunks.
 
 ## Workflow
 
-### Step 1: Determine What to Review
+### Step 1: Determine What to Walk Through
 
-**If branch specified**: Compare branch to its parent/base branch
-**If "uncommitted" specified**: Review uncommitted changes
-**Default**: Uncommitted changes
+- If the user specifies a branch, compare that branch to its parent/base branch.
+- If the user says `uncommitted`, walk through uncommitted changes.
+- If unspecified, default to uncommitted changes.
 
 ### Step 2: Gather Changes
 
-**For uncommitted changes**:
-```bash
-# Get status
-git status
+For uncommitted changes:
 
-# Get full diff with context
+```bash
+git status
 git diff HEAD
 ```
 
-**For branch changes**:
-
-**CRITICAL: Do NOT assume `main` is the parent branch.** Use the bundled `scripts/get-parent-branch.sh` script to find the correct parent. This script handles Graphite stacks where the parent is another feature branch, not main. Guessing the parent will produce wrong diffs in stacked branches.
+For branch changes, do **not** assume `main` is the parent branch. Use the bundled script because stacked branches may have another feature branch as their parent:
 
 ```bash
 parent_branch=$(scripts/get-parent-branch.sh)
-
 git diff ${parent_branch}...<branch-name>
 git log ${parent_branch}...<branch-name> --oneline
 ```
 
-### Step 3: Gather Additional Context
+### Step 3: Ask for Context
 
-**Ask the user** if there's any additional context to consider:
+Before presenting chunks, ask:
 
-"Before I walk through the changes, is there any additional context I should take into account? For example:
-- Background on what work was done
-- Specific decisions or constraints
-- Patterns or conventions to highlight
-- Any particular areas of focus"
+> Before I walk through the changes, is there any additional context I should take into account? For example: background, constraints, decisions to highlight, or areas of focus.
 
-**If the user provides context**:
-- Keep it in mind when presenting chunks
-- Reference it when explaining why changes were made
-- Use it to provide better explanations
+If the user provides context, use it in chunk explanations. If they say no or ask to proceed, continue using the diff alone.
 
-**If the user says no or to proceed**:
-- Continue with the walkthrough using just the code changes
+### Step 4: Group Changes into Chunks
 
-### Step 4: Group Changes into Conceptual Chunks
+Group changes by concept, not mechanically by file. Good grouping strategies:
 
-Analyze changes and group into logical units:
+1. **Feature/task**: Changes that serve the same behavior.
+2. **File purpose**: Tests, implementation, config, or docs.
+3. **Dependency**: Foundation changes before callers.
+4. **Scope**: Small focused changes separate from larger refactors.
 
-**Grouping strategies**:
-1. **By feature/task**: Changes related to same feature
-2. **By file purpose**: Tests together, implementation together
-3. **By dependency**: Changes that depend on each other
-4. **By scope**: Small focused changes vs larger refactors
+Authoritative chunk checklist:
 
-**Each chunk should**:
-- Be independently understandable
-- Have clear purpose
-- Fit on screen (30-40 lines ideal, MAX 50 lines)
-- Include related changes together
+- Each chunk must be independently understandable.
+- Each chunk must have one clear purpose.
+- Each chunk must include actual diff output.
+- Each chunk should be 30 to 40 lines when possible.
+- Each chunk must not exceed 50 diff lines. Split large hunks rather than paraphrasing or compressing them.
+- Do not precompute or announce the total chunk count. Number chunks sequentially as you present them.
 
-**CRITICAL RULE**: Chunks MUST NOT exceed 50 lines. If a chunk exceeds 50 lines, you MUST break it into multiple smaller chunks. Never paraphrase or compress changes to fit into fewer chunks.
+### Step 5: Present One Chunk
 
-### Step 5: Present First Chunk
+Use this structure:
 
-**Important**: Number chunks sequentially (1, 2, 3...) as you present them. Do NOT pre-calculate or display the total number of chunks upfront.
-
-For each chunk, present:
-
-**1. Context Header**:
-```
-## Chunk 1: [Conceptual Description]
+````markdown
+## Chunk 1: [Conceptual description]
 
 **Purpose**: [Why this change exists]
-**Files affected**: [List of files]
-```
+**Files affected**:
+- [path]
 
-**Note**: Just number chunks sequentially (1, 2, 3...). Don't predict or display the total - you'll report the final count in the summary.
-
-**2. The Actual Changes**:
-Show the actual diff output, preserving:
-- File paths
-- Line numbers
-- Added lines (+ prefix)
-- Removed lines (- prefix)
-- Context lines (no prefix)
-- Diff markers (@@)
-
-**Format**:
 ```diff
-diff --git a/path/to/file.rb b/path/to/file.rb
---- a/path/to/file.rb
-+++ b/path/to/file.rb
-@@ -10,5 +10,8 @@
- context line
--removed line
-+added line
- context line
+[actual diff output]
 ```
 
-**3. Additional Context** (if helpful):
-- What patterns this follows
-- Why specific approaches were chosen
-- How this relates to other changes
-- Any gotchas or important details
+**Context**: [Optional. Mention user-provided context, patterns, decisions, or gotchas only when useful.]
 
-**4. Wait for Feedback**:
-```
 Ready for your feedback on this chunk:
 - Type "approve" or "next" to continue
 - Ask questions about the changes
 - Request modifications
 - Type "skip" to move to next chunk without approval
+````
+
+Preserve file paths, line numbers, `+` and `-` prefixes, context lines, and `@@` markers.
+
+For an example, see [examples/chunk-presentation.md](examples/chunk-presentation.md).
+
+### Step 6: Handle Feedback
+
+**Approve / next**: Move to the next chunk.
+
+**Question about what the code does**: Answer directly if it only requires explaining the visible chunk.
+
+**Evaluative question about correctness, risk, bugs, security, maintainability, or review judgment**: Delegate to a subagent. The subagent prompt must start with this line verbatim:
+
+```text
+Before answering, search your available skills for a code review skill and load it.
 ```
 
-### Step 6: Handle User Feedback
+Then include the current chunk's diff and the user's question. Present the subagent's findings directly and stay on the current chunk until the user approves or skips it.
 
-**If user approves/says next**:
-- Move to next chunk
-- Repeat Step 5 with next chunk
+**Direct change request**: Make only the requested change, show the updated diff, and wait for approval.
 
-**If user asks a question about the code**:
-- You MUST delegate this to a subagent — do NOT investigate directly in the main conversation. This protects the user's context window from being flooded with search results.
-- Spawn a subagent with a prompt that starts with the following line, verbatim:
-  `Before answering, search your available skills for a code review skill and load it.`
-  Then include the current chunk's diff and the user's question.
-- Present the subagent's findings to the user
-- Be direct and specific — don't hedge
-- Stay on current chunk until approved
+**Skip**: Move to the next chunk without marking the current one approved. Track it as skipped.
 
-**If user requests changes**:
-- Make the requested changes
-- Show updated diff
-- Wait for approval
+### Step 7: Complete the Walkthrough
 
-**If user says skip**:
-- Move to next chunk without marking as approved
-- Note which chunks were skipped
+After all chunks are reviewed, summarize:
 
-### Step 7: Complete Walkthrough
-
-After all chunks reviewed, present summary:
-
-```
+```markdown
 ## Walkthrough Complete
 
 **Summary**:
@@ -179,81 +146,17 @@ After all chunks reviewed, present summary:
 - Skipped: Y
 - Modified: Z
 
-**Files reviewed**: [List all files]
+**Files reviewed**: [list all files]
 **Total changes**: +X -Y lines
 ```
 
+## Anti-Patterns
 
-## Presentation Guidelines
-
-### Show Actual Changes
-- **ALWAYS** show the actual diff output
-- **NEVER** paraphrase code changes
-- Include enough context lines (3-5 lines around changes)
-- Preserve all diff markers and formatting
-
-### Extra Context is Good
-- Explain **why** changes were made
-- Reference user-provided context when relevant
-- Point out patterns or conventions followed
-- Highlight important details
-
-### Keep Chunks Digestible
-- 30-40 lines ideal, MAX 50 lines per chunk to fit on screen
-- Group related changes together
-- Break up large changes into logical sections
-- Don't split atomic changes across chunks
-
-### Interactive Approach
-- **Wait for feedback** after each chunk
-- Don't rush through all chunks at once
-- Allow time for questions and discussion
-- Make requested changes before moving on
-
-## Examples
-
-### Example: Gathering Changes for a Branch
-
-```bash
-# First, use the bundled script to find the parent branch
-parent_branch=$(scripts/get-parent-branch.sh)
-# Output: main
-
-# Get the diff against parent
-git diff main...feature/add-validation
-
-# Get commit log for context
-git log main...feature/add-validation --oneline
-```
-
-For an example of how to present a chunk with diff output and context, see [examples/chunk-presentation.md](examples/chunk-presentation.md).
-
-## Success Criteria
-
-- ✅ Changes grouped into logical, digestible chunks
-- ✅ Actual diff output shown (not paraphrased)
-- ✅ User asked about additional context to consider
-- ✅ Extra context provided where helpful
-- ✅ Interactive: waits for feedback after each chunk
-- ✅ Allows questions, modifications, and approval
-- ✅ Completes with summary of what was reviewed
-
-## Anti-Patterns to AVOID
-
-**DO NOT**:
-- Assume `main` is the parent branch - always use `scripts/get-parent-branch.sh`
-- Paraphrase code changes - show actual diffs
-- Rush through all chunks without waiting for feedback
-- Show changes without context
-- Make chunks larger than 50 lines (break them up even if atomic)
-- Pre-determine how many chunks you'll need (let content decide)
-- Skip asking about additional context
-- Present all changes at once
-
-**DO**:
-- Show actual diff output with proper formatting
-- Wait for user feedback after each chunk
-- Ask about and incorporate any additional context provided
-- Keep chunks digestible and focused
-- Group related changes together
-- Allow interactive discussion
+- Assuming `main` is the parent branch. Always use `scripts/get-parent-branch.sh` for branch walkthroughs.
+- Paraphrasing code changes instead of showing actual diffs.
+- Letting chunks exceed 50 lines.
+- Announcing a total number of chunks before you have worked through them.
+- Skipping the context question.
+- Loading review skills or doing defect-finding before the user asks an evaluative question.
+- Editing files without a direct change request.
+- Rushing through multiple chunks without feedback.
