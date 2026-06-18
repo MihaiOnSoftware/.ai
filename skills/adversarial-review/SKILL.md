@@ -56,6 +56,14 @@ Be brutally honest. Include any "I think" / "probably" / "I assumed" steps. The 
 
 ### Step 2: Launch the Subagent
 
+Before launching, stop and report instead of improvising a lower-signal review if any required piece is missing:
+
+- You cannot launch a fresh-context subagent in the current harness.
+- You cannot read `references/subagent-prompt.md` and therefore cannot use the required prompt template verbatim.
+- You cannot capture enough concrete context for the subagent to verify the work (for example, no exact conclusion, no relevant paths/outputs, or only a vague approach summary).
+
+When this happens, tell the user the adversarial review was **not run**, name the blocker, and list the specific context or capability needed to run it properly. Do not replace it with an inherited-context review or a softened self-review while implying the skill was followed.
+
 Spawn a subagent **in a fresh context** — no inherited session history, only the prompt you provide. Use whichever subagent / Task mechanism your harness offers (Claude Code's Task tool, OpenCode's subagent invocation, pi's `subagent` tool, etc.). The fresh context is required: it prevents the subagent from anchoring on the original reasoning.
 
 For the prompt template (use verbatim, substituting only the bracketed sections), see [references/subagent-prompt.md](references/subagent-prompt.md).

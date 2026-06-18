@@ -48,6 +48,15 @@ If a single `adversarial-review` would suffice, use that instead. The loop costs
 
 ### Step 1: Set Up the Loop
 
+Before iteration 1, stop and report instead of starting a low-signal loop if any required piece is missing:
+
+- You cannot load the `adversarial-review` skill or its required prompt reference.
+- You cannot launch a fresh-context subagent for each iteration.
+- You cannot read this skill's triage or termination reference files.
+- You cannot capture enough concrete context for the first pass to verify the work (for example, no exact conclusion, no relevant paths/outputs, or only a vague approach summary).
+
+When this happens, tell the user the adversarial review loop was **not run**, name the blocker, and list the specific context or capability needed. If a later iteration hits one of these blockers, stop the loop, return the log so far, and make clear that termination was caused by the blocker rather than by convergence.
+
 Before iteration 1, capture and freeze:
 
 1. **Original conclusion / end state** (same definition as `adversarial-review` Step 1).
