@@ -20,24 +20,17 @@ skills: adversarial-review, adversarial-review-loop
 
 ## Workflow
 
-Use the adversarial-review and adversarial-review-loop skills:
+The adversarial-review and adversarial-review-loop skills are pre-loaded into your system context. Follow their instructions directly — do not call any tool to "load" them.
 
-```
-Load skill: adversarial-review
-Load skill: adversarial-review-loop
-```
-
-The skills provide detailed instructions for:
+The skills cover:
 - Spawning fresh-context adversarial subagents per iteration
 - Triaging findings (accept / reject-weak / reject-invalid / defer)
 - Applying accepted fixes in place to the artifact
 - Terminating when findings are weak, repeated, invalid, or the hard cap (5 iterations) is reached
 
-Follow all phases and rules defined in the adversarial-review-loop skill.
-
 ## Spawning the adversarial subagent
 
-**Each iteration must spawn the fresh-context pass using the registered `adversarial-review-agent`:**
+**Each iteration must spawn the fresh-context pass using `adversarial-review-agent`:**
 
 ```
 subagent({ agent: "adversarial-review-agent", context: "fresh", task: "<adversarial prompt>" })
@@ -45,13 +38,9 @@ subagent({ agent: "adversarial-review-agent", context: "fresh", task: "<adversar
 
 The builtin `reviewer` agent is an acceptable fallback if `adversarial-review-agent` is unavailable.
 
-**Before the first iteration**, confirm the agent name is still registered:
-```
-subagent({ action: "list" })
-```
-If the name has changed, pick the closest match from the list — do not guess.
+**Do NOT call `subagent({action:"list"})` before dispatching.** The agent name is fixed. Dispatch directly.
 
-**If a `subagent` call returns `Unknown agent`:** stop immediately, run `subagent({action:"list"})`, and use a name from that list. Never retry with a different guessed name — that wastes tokens and never converges.
+**If a dispatch returns `Unknown agent`:** call `subagent({action:"list"})` exactly once, pick the closest match, and dispatch immediately. Do not call list again.
 
 ## Success Criteria
 
