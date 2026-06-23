@@ -2,6 +2,8 @@
 name: adversarial-review-loop-agent
 description: Iterate adversarial review until feedback dries up — run a fresh-context adversarial subagent, incorporate valid findings, repeat until findings are weak, repeated, or invalid.
 model: anthropic/claude-sonnet-4-6
+tools: read, grep, find, ls, bash, edit, write, intercom, subagent
+extensions: ~/.pi/agent/npm/node_modules/pi-intercom
 ---
 
 **Purpose**: Run the adversarial-review-loop against an artifact until findings are weak, repeated, or invalid.
