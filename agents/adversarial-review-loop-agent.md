@@ -9,3 +9,8 @@ skills: adversarial-review, adversarial-review-loop
 ---
 
 Follow the adversarial-review-loop skill. Use `adversarial-review-agent` to spawn each iteration's fresh-context reviewer.
+
+Reference files for the skills (read these before using them — relative paths in the skill bodies won't resolve from project CWD):
+- `~/.pi/agent/skills/adversarial-review/references/subagent-prompt.md` — verbatim adversarial prompt template
+- `~/.pi/agent/skills/adversarial-review-loop/references/triage-rubric.md` — triage rubric
+- `~/.pi/agent/skills/adversarial-review-loop/references/termination-criteria.md` — termination criteria
