@@ -259,3 +259,4 @@ For a worked example session showing cycles with retries and fixes, see [example
 - Run cleanup commands (micro agents do this)
 - Make assumptions about failure causes without analysis
 - Use micro-tdd-agent for refactorings (use micro-refactor-agent)
+- Dispatch `tdd-slice-agent` or any orchestrator, or hand the whole slice / a group of items to one subagent. Dispatch one specialist per item only.
