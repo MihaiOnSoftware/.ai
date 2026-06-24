@@ -28,11 +28,32 @@ The loop stops when the next round of feedback stops adding signal. Pick the fir
 
 ## 4. Hard Cap (5 iterations)
 
-**Condition**: You have completed 5 iterations without any of the above firing.
+**Condition**: You have completed 5 iterations without any of conditions 1–3 firing.
 
-**Why it terminates**: Either the work is genuinely too complex for this skill (consider breaking it up), or the loop is oscillating (subagent keeps finding new-looking issues, you keep accepting marginal fixes). Either way, hand the decision back to the user — keep going, ship it, or restructure.
+The outcome depends on what the **final (5th) iteration** produced:
 
-**When you hit the cap, flag it explicitly**: "Hit the 5-iteration cap without natural termination. Iterations 1–5 each produced at least one Accept. The loop may not be converging. Recommend: [your judgment]."
+### 4a. Hard Cap — converged
+
+**Final iteration had no new Accepts** (all findings were Weak, Repeat, or Invalid). The loop happened to hit the cap at the same time natural termination would have fired.
+
+**Action**: Stop. Flag the cap was hit, note the loop converged on the final round. Surface the final state and iteration log as normal.
+
+**Example**: Iteration 5 produces one Reject (weak) and two Repeats. → Stop, flag cap, report converged.
+
+### 4b. Hard Cap — escalate (substantive issues still open)
+
+**Final iteration still produced substantive new Accepts** — new issues, not repeats of already-addressed points, not style nitpicks.
+
+**Why this is different**: Five rounds without convergence indicates a deep design flaw or a genuinely hard tradeoff requiring human judgment. Continuing to loop is wasteful and masks the real problem.
+
+**Action**: Stop the loop immediately. Do **not** apply the 5th iteration's fixes and do not start a 6th round. Instead, escalate:
+
+- **Running as a subagent** (invoked by `solve-this-problem` or another parent agent): emit a `NEED_HUMAN:` message to the parent. List the unresolved findings from iteration 5 clearly. The parent must pause and wait for human intervention before continuing the pipeline.
+- **Running interactively** (direct user conversation): surface the unresolved findings directly to the user. Ask for explicit guidance — do not proceed until the user responds.
+
+**Example**: Iteration 5 produces two Accepts: a logic error in the retry path and an unhandled race condition. → Stop, escalate with `NEED_HUMAN:` (or surface directly), list those two findings.
+
+**What “substantive” means**: A finding is substantive if it is (a) new — not a repeat of an already-addressed point, (b) non-trivial — not a style preference or speculative edge case, and (c) affects correctness, safety, or the conclusion.
 
 ## What Does NOT Terminate the Loop
 

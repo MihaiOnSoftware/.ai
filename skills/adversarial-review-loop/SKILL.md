@@ -94,7 +94,10 @@ Stop the loop when **any** of these holds (see [references/termination-criteria.
 - **Weak**: Every finding this iteration was Reject (weak), Reject (invalid), or Repeat. No Accepts.
 - **Repeated**: Two consecutive iterations produced no new accepted findings (covers the case where iteration N had one weak Accept but iteration N+1 had nothing).
 - **Invalid**: Every finding this iteration was Reject (invalid) — the subagent is now fabricating problems.
-- **Hard cap**: You have completed **5 iterations**. Stop regardless and flag this explicitly to the user — hitting the cap means either the work is genuinely complex or the loop isn't converging, and the user should decide.
+- **Hard cap — converged**: You have completed **5 iterations** and the final iteration produced no new Accepts (all findings were Weak, Repeat, or Invalid). Stop and flag to the user that the cap was hit but the loop converged.
+- **Hard cap — escalate**: You have completed **5 iterations** and the final iteration *still produced substantive new Accepts* (new issues, not repeats, not nitpicks). **Do not continue the loop.** This signals a deep design flaw or a hard tradeoff that needs human judgment — continuing to loop is wasteful and masks the real problem. Escalate:
+  - **Running as a subagent** (invoked by `solve-this-problem` or another parent agent): emit a `NEED_HUMAN:` message to the parent listing the unresolved findings after 5 rounds. The parent must pause and wait for human intervention before continuing.
+  - **Running interactively** (direct user conversation): surface the unresolved findings directly to the user and ask for explicit guidance before doing anything else.
 
 If none of these holds, go to Step 2 for iteration `N+1`.
 
