@@ -22,6 +22,11 @@ echo ""
 "$HOME/.ai/lib/uninstall_pi_packages.sh" "$SCRIPT_DIR/pi.jsonc"
 echo ""
 
+# TEMPORARY workaround removal for pi-subagents#334. Remove with the workaround
+# once upstream ships a fix: https://github.com/nicobailon/pi-subagents/issues/334
+"$SCRIPT_DIR/lib/uninstall_pi_subagents_workaround.sh"
+echo ""
+
 "$HOME/.ai/lib/uninstall_mcp.sh" "$SCRIPT_DIR/mcp.json"
 echo ""
 
@@ -30,6 +35,9 @@ echo ""
 echo ""
 
 "$SCRIPT_DIR/lib/uninstall_rules.sh"
+echo ""
+
+"$SCRIPT_DIR/lib/uninstall_agents_md.sh"
 echo ""
 
 # Uninstall lib last (must use relative path — removes the ~/.ai/lib/ symlinks)

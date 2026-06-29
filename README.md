@@ -19,6 +19,10 @@ This creates symlinks:
 - `~/.ai/scripts/generic` → `scripts/`
 - `~/.ai/rules` → `rules/`
 
+**Generated context files** (built from `rules/` on install; `AGENTS.md` is gitignored)
+- `~/.pi/agent/AGENTS.md` → `AGENTS.md`
+- `~/.claude/CLAUDE.md` → `AGENTS.md`
+
 **Per-tool skills and agents** (flat, one symlink per skill/agent)
 - `~/.claude/skills/<skill-name>` → `skills/<skill-name>/`
 - `~/.claude/agents/<agent>.md` → `agents/<agent>.md`
