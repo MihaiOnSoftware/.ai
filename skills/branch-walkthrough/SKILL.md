@@ -53,7 +53,7 @@ git status
 git diff HEAD
 ```
 
-For branch changes, do **not** assume `main` is the parent branch. Use the bundled `get-parent-branch.sh` script (located in the `scripts/` directory alongside this SKILL.md file) to determine the real parent. Run it from inside the repo directory and capture its output as the parent branch, then use that in `git diff` and `git log` with three-dot range syntax against the target branch.
+For branch changes, run the bundled `get-parent-branch.sh` script (in the `scripts/` directory alongside this SKILL.md file) from inside the repo. It returns a merge-base SHA — use that directly in `git diff` and `git log` with three-dot range syntax, no branch name resolution needed.
 
 ### Step 3: Ask for Context
 
