@@ -53,13 +53,7 @@ git status
 git diff HEAD
 ```
 
-For branch changes, do **not** assume `main` is the parent branch. Use the bundled script because stacked branches may have another feature branch as their parent:
-
-```bash
-parent_branch=$(scripts/get-parent-branch.sh)
-git diff ${parent_branch}...<branch-name>
-git log ${parent_branch}...<branch-name> --oneline
-```
+For branch changes, do **not** assume `main` is the parent branch. Use the bundled `get-parent-branch.sh` script (located in the `scripts/` directory alongside this SKILL.md file) to determine the real parent. Run it from inside the repo directory and capture its output as the parent branch, then use that in `git diff` and `git log` with three-dot range syntax against the target branch.
 
 ### Step 3: Ask for Context
 
@@ -152,7 +146,7 @@ After all chunks are reviewed, summarize:
 
 ## Anti-Patterns
 
-- Assuming `main` is the parent branch. Always use `scripts/get-parent-branch.sh` for branch walkthroughs.
+- Assuming `main` is the parent branch. Always run the bundled `get-parent-branch.sh` script (in the skill's `scripts/` directory) to find the real parent.
 - Paraphrasing code changes instead of showing actual diffs.
 - Letting chunks exceed 50 lines.
 - Announcing a total number of chunks before you have worked through them.
