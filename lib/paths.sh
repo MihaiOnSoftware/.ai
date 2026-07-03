@@ -34,10 +34,6 @@ PI_AGENTS_DIR="${PI_AGENTS_DIR:-$PI_CODING_AGENT_DIR/agents}"
 
 # pi-managed npm package tree (where `pi install npm:...` materializes extensions)
 PI_NPM_MODULES_DIR="${PI_NPM_MODULES_DIR:-$PI_CODING_AGENT_DIR/npm/node_modules}"
-# TEMPORARY: symlink target for the pi-subagents#334 async-runner workaround.
-# Remove this var together with the workaround once upstream ships a fix:
-# https://github.com/nicobailon/pi-subagents/issues/334
-PI_SUBAGENTS_PCA_LINK="${PI_SUBAGENTS_PCA_LINK:-$PI_NPM_MODULES_DIR/@earendil-works/pi-coding-agent}"
 
 # Generated context files (built from rules on install, gitignored)
 AGENTS_MD_PATH="$REPO_ROOT/AGENTS.md"

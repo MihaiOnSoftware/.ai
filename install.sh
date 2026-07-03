@@ -27,11 +27,6 @@ echo ""
 "$HOME/.ai/lib/install_skills.sh" "$SCRIPT_DIR/skills"
 "$HOME/.ai/lib/install_agents.sh" "$SCRIPT_DIR/agents"
 "$HOME/.ai/lib/install_pi_packages.sh" "$SCRIPT_DIR/pi.jsonc"
-# TEMPORARY workaround for pi-subagents#334 (async/parallel subagent runner
-# can't resolve @earendil-works/pi-coding-agent). Runs after pi packages so
-# pi-subagents is installed. Remove once upstream ships a fix:
-# https://github.com/nicobailon/pi-subagents/issues/334
-"$SCRIPT_DIR/lib/install_pi_subagents_workaround.sh"
 "$HOME/.ai/lib/install_mcp.sh" "$SCRIPT_DIR/mcp.json"
 
 # These aren't converted yet, stay as relative paths
