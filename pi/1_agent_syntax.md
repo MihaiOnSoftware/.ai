@@ -1,21 +1,13 @@
-# Pi Agent Model Strings
+# Pi Agent Syntax
 
-When spawning agents, use `provider/model` format. Map from tier to model string:
-
-| Tier | Model string |
-|------|-------------|
-| Haiku | `anthropic/claude-haiku-4-5` |
-| Sonnet | `anthropic/claude-sonnet-4-6` |
-| GPT-5.5 | `openai-codex/gpt-5.5` |
-| Opus | `anthropic/claude-opus-4-8` |
-| Fable | `anthropic/claude-fable-5` |
+Model strings are documented in `rules/9_model_selection.md`. Usage:
 
 In agent frontmatter (`agents/*.md`):
 ```yaml
-model: anthropic/claude-sonnet-4-6
+model: anthropic/claude-sonnet-4
 ```
 
 In `fleet_spawn` or the `subagent` tool's `model` parameter:
 ```
-anthropic/claude-sonnet-4-6
+anthropic/claude-sonnet-4
 ```
