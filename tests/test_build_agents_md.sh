@@ -68,6 +68,22 @@ assert "remaining rules still present after removal" grep -q "Rule One" "$OUTPUT
 
 assert_not "fails when rules dir does not exist" "$BUILD_SCRIPT" "$TEST_DIR/nonexistent" "$OUTPUT"
 
+# ── Extras directory ──────────────────────────────────────────────────────────
+
+EXTRAS_DIR="$TEST_DIR/extras"
+mkdir -p "$EXTRAS_DIR"
+printf '# Pi Extra\n\nPi-specific content.\n' > "$EXTRAS_DIR/1_pi_extra.md"
+
+"$BUILD_SCRIPT" "$RULES_DIR" "$OUTPUT" "$EXTRAS_DIR" > /dev/null
+assert "includes extras dir content" grep -q "Pi Extra" "$OUTPUT"
+assert "still includes base rules" grep -q "Rule One" "$OUTPUT"
+
+EMPTY_EXTRAS_DIR="$TEST_DIR/empty_extras"
+mkdir -p "$EMPTY_EXTRAS_DIR"
+"$BUILD_SCRIPT" "$RULES_DIR" "$OUTPUT" "$EMPTY_EXTRAS_DIR" > /dev/null
+assert "empty extras dir produces same output as no extras" grep -q "Rule One" "$OUTPUT"
+assert_not "empty extras dir adds no extra content" grep -q "Pi Extra" "$OUTPUT"
+
 # ── Summary ───────────────────────────────────────────────────────────────────
 
 echo ""

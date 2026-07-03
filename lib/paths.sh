@@ -7,6 +7,8 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 LIB_DIR="$REPO_ROOT/lib"
 SCRIPTS_DIR="$REPO_ROOT/scripts"
 RULES_DIR="$REPO_ROOT/rules"
+CLAUDE_RULES_DIR="$REPO_ROOT/claude"
+PI_RULES_DIR="$REPO_ROOT/pi"
 
 # AI Paths
 AI_LIB_PATH="${AI_LIB_PATH:-$HOME/.ai/lib}"
@@ -37,8 +39,9 @@ PI_NPM_MODULES_DIR="${PI_NPM_MODULES_DIR:-$PI_CODING_AGENT_DIR/npm/node_modules}
 # https://github.com/nicobailon/pi-subagents/issues/334
 PI_SUBAGENTS_PCA_LINK="${PI_SUBAGENTS_PCA_LINK:-$PI_NPM_MODULES_DIR/@earendil-works/pi-coding-agent}"
 
-# Generated context file (built from rules on install, gitignored)
+# Generated context files (built from rules on install, gitignored)
 AGENTS_MD_PATH="$REPO_ROOT/AGENTS.md"
+PI_AGENTS_BUILT_PATH="$REPO_ROOT/PI_AGENTS.md"
 PI_AGENTS_MD_PATH="$PI_CODING_AGENT_DIR/AGENTS.md"
 CLAUDE_AGENTS_MD_PATH="$CLAUDE_CONFIG_DIR/CLAUDE.md"
 
