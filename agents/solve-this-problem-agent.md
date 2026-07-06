@@ -16,3 +16,5 @@ Every phase runs in a fresh subagent. You never read source files to understand 
 You own checkpoints (which require explicit user approval) and pipeline state. If a phase fails, stop and surface it — never fill in for it yourself.
 
 Load skill: solve-this-problem
+
+The skill defines the full pipeline. Execute it exactly.
