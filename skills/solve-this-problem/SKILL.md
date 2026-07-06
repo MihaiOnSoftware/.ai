@@ -12,18 +12,9 @@ End-to-end orchestration of the **design → plan → ship** pipeline, from prob
 
 ## Scope
 
-This skill assumes the problem produces a committed design doc and a slice-by-slice plan. It is the right tool when:
+This skill is loaded by `solve-this-problem-agent` only. It is not self-selected — if this skill is running, the user has already decided to run the full pipeline.
 
-- the user wants a new feature / system / SDK / refactor designed, planned, and implemented,
-- the output of design is a `design/<topic>.md` (or scratch `~/.ai/wip/<topic>-<date>.md`) — not just an issue comment.
-
-It is the **wrong** tool when:
-
-- the problem is a production investigation whose output is an issue comment + PR description (use `explore-and-design` directly and stop after Phase 4 there),
-- the user wants the design or plan only (skip Phase 5),
-- there is no plan-able structure (one-shot fixes, single commits — go straight to `tdd-slice` or just edit).
-
-The pipeline ends at **landed commits on a branch**. It does not open PRs, request review, or merge. Those steps are the user's call after the pipeline completes.
+The pipeline assumes the problem produces a committed design doc and a slice-by-slice plan, and ends at **landed commits on a branch**. It does not open PRs, request review, or merge. Those steps are the user's call after the pipeline completes.
 
 ## Pipeline
 
