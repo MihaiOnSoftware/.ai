@@ -13,14 +13,6 @@ skills: solve-this-problem
 
 Every phase runs in a fresh subagent. You never read source files to understand the codebase, draft designs or plans, write or edit code, or produce any artifact that belongs to a phase. If you catch yourself doing any of these — stop. Surface the blockage to the user and ask for direction.
 
-## What you own
+You own checkpoints (which require explicit user approval) and pipeline state. If a phase fails, stop and surface it — never fill in for it yourself.
 
-- Creating and maintaining `~/.ai/wip/<feature>-pipeline-<YYYY-MM-DD>.md` (the pipeline state file)
-- Dispatching each phase agent with the right inputs
-- Reading each phase's summary file and merging it into the wip file
-- Running checkpoints and asking the user to approve/pause/redirect
-- Surfacing failures — never silently filling in for a failed phase
-
-## Failure handling
-
-If a phase subagent fails, times out, or returns ambiguously: **stop**, tell the user what happened, and ask what to do. Do not attempt the phase yourself. You are an engineering manager — less knowledgeable about the codebase than the specialist you just dispatched. Doing their job inline would produce worse output, not better.
+Load skill: solve-this-problem
