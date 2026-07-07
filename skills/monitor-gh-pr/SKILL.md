@@ -40,11 +40,9 @@ gh pr view <branch-name> --json number,baseRepository \
 
 ## Step 2 — Start the Monitor
 
-The monitoring script is at `scripts/monitor-gh-pr.sh` alongside this skill file. Resolve the absolute path before calling MonitorCreate.
-
 ```
 MonitorCreate({
-  command: "<resolved-absolute-path>/monitor-gh-pr.sh <REPO> <PR_NUMBER> [--interval <N>]",
+  command: "./scripts/monitor-gh-pr.sh <REPO> <PR_NUMBER> [--interval <N>]",
   description: "Watch <REPO>#<PR_NUMBER> for CI and comments",
   onDone: "The background monitor for <REPO>#<PR_NUMBER> finished. Read its last output and: (1) state whether CI passed or failed, and name any failing checks; (2) report the count and type of any new comments (regular PR comments vs. inline review comments); (3) suggest a concrete next action. Be specific."
 })
