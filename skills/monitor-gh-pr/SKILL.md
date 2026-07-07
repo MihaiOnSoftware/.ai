@@ -40,9 +40,13 @@ gh pr view <branch-name> --json number,baseRepository \
 
 ## Step 2 — Run the Script in the Background
 
-Monitor `./scripts/monitor-gh-pr.sh <REPO> <PR_NUMBER> [--interval <N>]`. The script exits 0 with a human-readable summary on stdout when something actionable is detected.
+Create a monitor with the following script:
 
-When it exits, read its output and report to the user: (1) whether CI passed or failed (naming any failing checks); (2) the count and type of any new comments (regular vs. inline review); (3) a concrete next action.
+```
+./scripts/monitor-gh-pr.sh <REPO> <PR_NUMBER> [--interval <N>]
+```
+
+The script exits 0 with a human-readable summary on stdout when something actionable is detected. When it exits, read its output and report to the user: (1) whether CI passed or failed (naming any failing checks); (2) the count and type of any new comments (regular vs. inline review); (3) a concrete next action.
 
 ## Step 3 — Confirm to the User
 
