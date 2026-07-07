@@ -66,11 +66,13 @@ mkdir -p "$STATE_DIR"
 
 REGULAR_IDS_FILE="$STATE_DIR/regular_ids"
 REVIEW_IDS_FILE="$STATE_DIR/review_ids"
+PR_REVIEWS_IDS_FILE="$STATE_DIR/pr_review_ids"
 INITIALIZED_FILE="$STATE_DIR/initialized"
 
 CURRENT_REGULAR_TMP=$(mktemp)
 CURRENT_REVIEW_TMP=$(mktemp)
-trap 'rm -f "$CURRENT_REGULAR_TMP" "$CURRENT_REVIEW_TMP"' EXIT
+CURRENT_PR_REVIEWS_TMP=$(mktemp)
+trap 'rm -f "$CURRENT_REGULAR_TMP" "$CURRENT_REVIEW_TMP" "$CURRENT_PR_REVIEWS_TMP"' EXIT
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
 now() { date '+%H:%M:%S'; }
@@ -83,6 +85,11 @@ fetch_regular_ids() {
 fetch_review_ids() {
   gh api "/repos/${REPO}/pulls/${PR_NUMBER}/comments" --paginate \
     --jq '.[].id' 2>/dev/null || true
+}
+
+fetch_pr_review_ids() {
+  gh api "/repos/${REPO}/pulls/${PR_NUMBER}/reviews" --paginate \
+    --jq '[.[] | select(.body != "")] | .[].id' 2>/dev/null || true
 }
 
 # IDs present in $2 but absent from $1 (both are file paths).
@@ -100,12 +107,14 @@ count_lines() {
 # ── Baseline (first run) ───────────────────────────────────────────────────────
 if [[ ! -f "$INITIALIZED_FILE" ]]; then
   echo "[$(now)] Initializing baseline for ${REPO}#${PR_NUMBER}..." >&2
-  fetch_regular_ids > "$REGULAR_IDS_FILE"
-  fetch_review_ids  > "$REVIEW_IDS_FILE"
+  fetch_regular_ids    > "$REGULAR_IDS_FILE"
+  fetch_review_ids     > "$REVIEW_IDS_FILE"
+  fetch_pr_review_ids  > "$PR_REVIEWS_IDS_FILE"
   touch "$INITIALIZED_FILE"
-  R=$(wc -l < "$REGULAR_IDS_FILE" | tr -d ' ')
-  V=$(wc -l < "$REVIEW_IDS_FILE"  | tr -d ' ')
-  echo "[$(now)] Baseline: ${R} regular comment(s), ${V} inline review comment(s)." >&2
+  R=$(wc -l < "$REGULAR_IDS_FILE"    | tr -d ' ')
+  V=$(wc -l < "$REVIEW_IDS_FILE"     | tr -d ' ')
+  P=$(wc -l < "$PR_REVIEWS_IDS_FILE" | tr -d ' ')
+  echo "[$(now)] Baseline: ${R} regular comment(s), ${V} inline review comment(s), ${P} PR review(s)." >&2
 fi
 
 echo "[$(now)] Watching ${REPO}#${PR_NUMBER} every ${INTERVAL}s. Ctrl+C to stop." >&2
@@ -164,6 +173,18 @@ while true; do
     SUMMARY+=("## ${N} new inline review comment(s) on ${REPO}#${PR_NUMBER}")
     SUMMARY+=("")
     cp "$CURRENT_REVIEW_TMP" "$REVIEW_IDS_FILE"
+    ACTIONABLE=true
+  fi
+
+  # PR reviews (top-level review submissions, e.g. bugbot, approve/request-changes)
+  fetch_pr_review_ids > "$CURRENT_PR_REVIEWS_TMP"
+  NEW_PR_REVIEWS=$(new_ids "$PR_REVIEWS_IDS_FILE" "$CURRENT_PR_REVIEWS_TMP")
+
+  if [[ -n "$NEW_PR_REVIEWS" ]]; then
+    N=$(count_lines "$NEW_PR_REVIEWS")
+    SUMMARY+=("## ${N} new PR review(s) on ${REPO}#${PR_NUMBER}")
+    SUMMARY+=("")
+    cp "$CURRENT_PR_REVIEWS_TMP" "$PR_REVIEWS_IDS_FILE"
     ACTIONABLE=true
   fi
 
