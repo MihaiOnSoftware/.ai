@@ -40,7 +40,7 @@ gh pr view <branch-name> --json number,baseRepository \
 
 ## Step 2 — Start the Monitor
 
-The monitoring script lives at `../../scripts/monitor-gh-pr.sh` relative to this skill file. Resolve the absolute path before calling MonitorCreate.
+The monitoring script is at `scripts/monitor-gh-pr.sh` alongside this skill file. Resolve the absolute path before calling MonitorCreate.
 
 ```
 MonitorCreate({
