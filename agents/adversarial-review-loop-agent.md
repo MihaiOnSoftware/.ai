@@ -4,6 +4,7 @@ description: Iterate adversarial review until feedback dries up — run a fresh-
 model: anthropic/claude-sonnet-4-6
 tools: read, grep, find, ls, bash, edit, write, intercom, subagent
 extensions: ~/.pi/agent/npm/node_modules/pi-intercom
+completionGuard: false
 inheritSkills: false
 skills: adversarial-review, adversarial-review-loop
 ---

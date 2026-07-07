@@ -2,6 +2,7 @@
 name: explore-and-design-agent
 description: Investigate, scope, and shape a solution before breaking it into implementation slices.
 model: anthropic/claude-fable-5
+completionGuard: false
 ---
 
 **Purpose**: Investigate the problem space, shape a solution, and produce a committed design doc.
