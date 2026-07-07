@@ -40,25 +40,9 @@ gh pr view <branch-name> --json number,baseRepository \
 
 ## Step 2 — Run the Script in the Background
 
-Use whatever background execution mechanism your harness provides. The script exits 0 with a human-readable summary on stdout when something actionable is detected.
+Run `./scripts/monitor-gh-pr.sh <REPO> <PR_NUMBER> [--interval <N>]` in the background using whatever mechanism your harness provides for background execution with completion notification. The script exits 0 with a human-readable summary on stdout when something actionable is detected.
 
-**pi** — use `MonitorCreate` so `onDone` fires automatically:
-```
-MonitorCreate({
-  command: "./scripts/monitor-gh-pr.sh <REPO> <PR_NUMBER> [--interval <N>]",
-  description: "Watch <REPO>#<PR_NUMBER> for CI and comments",
-  onDone: "The monitor for <REPO>#<PR_NUMBER> exited. Read its output and: (1) state whether CI passed or failed, naming any failing checks; (2) report the count and type of any new comments (regular vs. inline review); (3) suggest a concrete next action."
-})
-```
-
-**Background bash** — redirect output to a log file and check it later:
-```bash
-nohup ./scripts/monitor-gh-pr.sh <REPO> <PR_NUMBER> \
-  > /tmp/pr-watch-<PR_NUMBER>.log 2>&1 &
-echo "Watching in background (PID $!). Check /tmp/pr-watch-<PR_NUMBER>.log when ready."
-```
-
-**Blocking** — if no background support is available, run it inline. It returns when something actionable happens.
+When it exits, read its output and report to the user: (1) whether CI passed or failed (naming any failing checks); (2) the count and type of any new comments (regular vs. inline review); (3) a concrete next action.
 
 ## Step 3 — Confirm to the User
 
