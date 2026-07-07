@@ -132,10 +132,13 @@ while true; do
 
   if [[ "$TOTAL" -gt 0 ]]; then
     FAILED=$(echo "$CI_JSON" | jq '[.[] | select(.bucket == "fail")] | length')
+    # Exclude state=WAITING (manual approval gates) — they never self-resolve
     PENDING=$(echo "$CI_JSON" | jq '[.[] | select(
       .bucket != "pass" and .bucket != "fail" and
-      .bucket != "skipping" and .bucket != "cancel"
+      .bucket != "skipping" and .bucket != "cancel" and
+      .state != "WAITING"
     )] | length')
+    WAITING=$(echo "$CI_JSON" | jq '[.[] | select(.state == "WAITING")] | length')
 
     if [[ "$FAILED" -gt 0 ]]; then
       SUMMARY+=("## CI Failing — ${FAILED} of ${TOTAL} checks failed")
@@ -146,7 +149,11 @@ while true; do
       ACTIONABLE=true
     elif [[ "$PENDING" -eq 0 ]]; then
       PASSED=$(echo "$CI_JSON" | jq '[.[] | select(.bucket == "pass")] | length')
-      SUMMARY+=("## CI Passed — ${PASSED} of ${TOTAL} checks ✅")
+      if [[ "$WAITING" -gt 0 ]]; then
+        SUMMARY+=("## CI Passed — ${PASSED} of ${TOTAL} checks ✅ (${WAITING} manual gate(s) awaiting approval)")
+      else
+        SUMMARY+=("## CI Passed — ${PASSED} of ${TOTAL} checks ✅")
+      fi
       SUMMARY+=("")
       ACTIONABLE=true
     fi
