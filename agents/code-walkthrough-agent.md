@@ -1,6 +1,7 @@
 ---
 name: code-walkthrough-agent
 description: Walk through code changes chunk by chunk with context
+completionGuard: false
 ---
 
 **Purpose**: Present code changes in digestible conceptual "chunks" one by one, allowing review, questions, and approval.
