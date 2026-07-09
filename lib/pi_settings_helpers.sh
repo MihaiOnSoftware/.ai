@@ -7,12 +7,21 @@ source "$SCRIPT_DIR/symlink_helpers.sh"
 # ~/.pi/agent/settings.json. Only the top-level keys declared in pi.jsonc are
 # managed: install deep-merges them (declared values win), uninstall removes
 # them entirely. Everything else in settings.json is left untouched.
+#
+# Write safety: the result is written to a temp file first and validated as
+# JSON; only then is the original moved to settings.json.bak and the temp file
+# moved into place. A corrupt existing settings file aborts before any change.
 
 PI_SETTINGS_FILE="${PI_SETTINGS_FILE:-$HOME/.pi/agent/settings.json}"
+
+_pi_settings_validate_json() {
+    node -e "JSON.parse(require('fs').readFileSync('$1', 'utf8'))" 2>/dev/null
+}
 
 _pi_settings_node() {
     local source_file="$1"
     local mode="$2"
+    local out_file="$3"
     node -e "
 const fs = require('fs');
 const text = fs.readFileSync('$source_file', 'utf8')
@@ -22,9 +31,8 @@ const declared = (JSON.parse(text).settings) || {};
 const keys = Object.keys(declared);
 if (keys.length === 0) { console.log('none'); process.exit(0); }
 
-const settingsPath = '$PI_SETTINGS_FILE';
 let settings = {};
-try { settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')); } catch (e) {}
+try { settings = JSON.parse(fs.readFileSync('$PI_SETTINGS_FILE', 'utf8')); } catch (e) {}
 
 const isObj = (v) => v && typeof v === 'object' && !Array.isArray(v);
 const deepMerge = (base, over) => {
@@ -42,19 +50,46 @@ if ('$mode' === 'install') {
 } else {
   for (const k of keys) delete settings[k];
 }
-fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + '\n');
+fs.writeFileSync('$out_file', JSON.stringify(settings, null, 2) + '\n');
 console.log(keys.join(', '));
 "
 }
 
-install_pi_settings() {
+_pi_settings_apply() {
     local source_file="$1"
+    local mode="$2"
+
     validate_source_file "$source_file" "pi settings file"
-    PI_SETTINGS_APPLIED="$(_pi_settings_node "$source_file" install)"
+
+    if [ -f "$PI_SETTINGS_FILE" ] && ! _pi_settings_validate_json "$PI_SETTINGS_FILE"; then
+        log_error "Existing $PI_SETTINGS_FILE is not valid JSON — aborting without changes"
+        return 1
+    fi
+
+    local tmp_file="$PI_SETTINGS_FILE.tmp.$$"
+    PI_SETTINGS_APPLIED="$(_pi_settings_node "$source_file" "$mode" "$tmp_file")" || { rm -f "$tmp_file"; return 1; }
+
+    if [ "$PI_SETTINGS_APPLIED" = "none" ]; then
+        rm -f "$tmp_file"
+        return 0
+    fi
+
+    if ! _pi_settings_validate_json "$tmp_file"; then
+        log_error "Merged settings failed JSON validation — aborting, $PI_SETTINGS_FILE unchanged"
+        rm -f "$tmp_file"
+        return 1
+    fi
+
+    if [ -f "$PI_SETTINGS_FILE" ]; then
+        mv "$PI_SETTINGS_FILE" "$PI_SETTINGS_FILE.bak"
+    fi
+    mv "$tmp_file" "$PI_SETTINGS_FILE"
+}
+
+install_pi_settings() {
+    _pi_settings_apply "$1" install
 }
 
 uninstall_pi_settings() {
-    local source_file="$1"
-    validate_source_file "$source_file" "pi settings file"
-    PI_SETTINGS_APPLIED="$(_pi_settings_node "$source_file" uninstall)"
+    _pi_settings_apply "$1" uninstall
 }
