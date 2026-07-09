@@ -17,6 +17,13 @@
   // Settings merged into ~/.pi/agent/settings.json by lib/install_pi_settings.sh.
   // Only the top-level keys declared here are managed (uninstall removes them).
   "settings": {
+    // Make git non-interactive for the agent's bash tool only (not Mihai's
+    // shell): GIT_EDITOR=true silences `rebase --continue` / `merge --continue`
+    // commit-message prompts; GIT_SEQUENCE_EDITOR=: makes `rebase -i` accept the
+    // todo without opening an editor. Prepended to every pi bash command via
+    // the bash tool's commandPrefix, so it never touches interactive terminals.
+    "shellCommandPrefix": "export GIT_EDITOR=true GIT_SEQUENCE_EDITOR=:",
+
     // pi-condense: prune once per task batch (cache-friendly), summarize with
     // cheap haiku, force a flush at 80% of the context window so long-lived
     // sessions stay under the 200K long-context premium.
