@@ -14,6 +14,16 @@ parent=$(get-parent-branch.sh)
 git diff "$parent"...HEAD
 ```
 
+### prune-efficacy.sh
+
+Measures pi-condense context-pruning effectiveness over a local-day date range: $/turn and cacheRead tokens/turn for MAIN sessions vs subagents, prune summaries injected, and `context_tree_query` recovery count (high recoveries = over-pruning). Run once for a baseline range and once for a trial range, then compare.
+
+**Usage:**
+```bash
+prune-efficacy.sh 2026-07-02 2026-07-09   # baseline (pre-pruning)
+prune-efficacy.sh 2026-07-10 2026-07-17   # trial week
+```
+
 ## Skill-Local Scripts
 
 Scripts that are only used by a single skill live with that skill, not here. Examples:

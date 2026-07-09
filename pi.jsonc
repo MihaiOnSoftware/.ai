@@ -7,6 +7,25 @@
     "npm:pi-intercom",
     "npm:@latentminds/pi-quotas",
     "npm:pi-web-access",
-    "npm:@trevonistrevon/pi-loop"
-  ]
+    "npm:@trevonistrevon/pi-loop",
+    // Context-pruning trial (token cost reduction, see wip/2026-07-09-token-cost-investigation.md)
+    "npm:pi-condense",
+    "npm:pi-context-usage",
+    "npm:pi-cache-graph"
+  ],
+
+  // Settings merged into ~/.pi/agent/settings.json by lib/install_pi_settings.sh.
+  // Only the top-level keys declared here are managed (uninstall removes them).
+  "settings": {
+    // pi-condense: prune once per task batch (cache-friendly), summarize with
+    // cheap haiku, force a flush at 80% of the context window so long-lived
+    // sessions stay under the 200K long-context premium.
+    "contextPrune": {
+      "enabled": true,
+      "pruneOn": "agent-message",
+      "summarizerModel": "anthropic/claude-haiku-4-5",
+      "summarizerThinking": "low",
+      "autoBudgetThreshold": 0.8
+    }
+  }
 }

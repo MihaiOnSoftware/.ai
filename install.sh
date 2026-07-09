@@ -27,6 +27,7 @@ echo ""
 "$HOME/.ai/lib/install_skills.sh" "$SCRIPT_DIR/skills"
 "$HOME/.ai/lib/install_agents.sh" "$SCRIPT_DIR/agents"
 "$HOME/.ai/lib/install_pi_packages.sh" "$SCRIPT_DIR/pi.jsonc"
+"$HOME/.ai/lib/install_pi_settings.sh" "$SCRIPT_DIR/pi.jsonc"
 "$HOME/.ai/lib/install_mcp.sh" "$SCRIPT_DIR/mcp.json"
 
 # These aren't converted yet, stay as relative paths
