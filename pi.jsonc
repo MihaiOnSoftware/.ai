@@ -24,7 +24,7 @@
       "enabled": true,
       "pruneOn": "agent-message",
       "summarizerModel": "anthropic/claude-haiku-4-5",
-      "summarizerThinking": "low",
+      "summarizerThinking": "off",
       "autoBudgetThreshold": 0.8
     }
   }
