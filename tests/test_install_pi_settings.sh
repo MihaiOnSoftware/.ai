@@ -30,7 +30,7 @@ trap 'rm -rf "$TEST_DIR"' EXIT
 
 SOURCE="$TEST_DIR/pi.jsonc"
 SETTINGS="$TEST_DIR/settings.json"
-BACKUP="$SETTINGS.bak"
+BACKUP="$SETTINGS.install-$(date +%Y%m%d).bak"
 
 cat > "$SOURCE" <<'EOF'
 {
@@ -79,6 +79,8 @@ assert "unmanaged key survives uninstall" grep -q defaultProvider "$SETTINGS"
 assert "settings file is valid JSON after uninstall" node -e "JSON.parse(require('fs').readFileSync('$SETTINGS','utf8'))"
 
 # ── Missing settings file ────────────────────────────────────────────────────
+
+assert "uninstall writes its own backup" [ -f "$SETTINGS.uninstall-$(date +%Y%m%d).bak" ]
 
 rm -f "$SETTINGS" "$BACKUP"
 run_install

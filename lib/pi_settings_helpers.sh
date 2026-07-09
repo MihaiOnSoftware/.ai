@@ -9,8 +9,9 @@ source "$SCRIPT_DIR/symlink_helpers.sh"
 # them entirely. Everything else in settings.json is left untouched.
 #
 # Write safety: the result is written to a temp file first and validated as
-# JSON; only then is the original moved to settings.json.bak and the temp file
-# moved into place. A corrupt existing settings file aborts before any change.
+# JSON; only then is the original moved to settings.json.<mode>-<date>.bak
+# (e.g. settings.json.install-20260709.bak) and the temp file moved into
+# place. A corrupt existing settings file aborts before any change.
 
 PI_SETTINGS_FILE="${PI_SETTINGS_FILE:-$HOME/.pi/agent/settings.json}"
 
@@ -81,7 +82,7 @@ _pi_settings_apply() {
     fi
 
     if [ -f "$PI_SETTINGS_FILE" ]; then
-        mv "$PI_SETTINGS_FILE" "$PI_SETTINGS_FILE.bak"
+        mv "$PI_SETTINGS_FILE" "$PI_SETTINGS_FILE.$mode-$(date +%Y%m%d).bak"
     fi
     mv "$tmp_file" "$PI_SETTINGS_FILE"
 }
