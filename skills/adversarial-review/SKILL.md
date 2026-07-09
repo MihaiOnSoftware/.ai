@@ -66,6 +66,8 @@ When this happens, tell the user the adversarial review was **not run**, name th
 
 Spawn a subagent **in a fresh context** — no inherited session history, only the prompt you provide. Use whichever subagent / Task mechanism your harness offers (Claude Code's Task tool, OpenCode's subagent invocation, pi's `subagent` tool, etc.). The fresh context is required: it prevents the subagent from anchoring on the original reasoning.
 
+If your harness provides a **purpose-built adversarial-review subagent**, use it rather than a generic fresh-context subagent. A dedicated reviewer typically carries a different model family and tighter toolset; grabbing a generic subagent silently drops that.
+
 For the prompt template (use verbatim, substituting only the bracketed sections), see [references/subagent-prompt.md](references/subagent-prompt.md).
 
 ### Step 3: Surface the Result
