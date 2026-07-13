@@ -98,6 +98,7 @@ EOF
 **DO NOT**:
 - Make commits without examining the actual changes
 - Write vague messages like "update files" or "fix issues"
+- Bypass pre-commit hooks with `--no-verify`. If a hook fails, fix the cause (run the formatter/linter, e.g. `yarn purtyhere`) and commit again. See `~/.ai/rules/10_commit_standards.md`.
 
 For message-style rules (active voice, no buzzwords, focus on final state, etc.) trust the commit message rules and `~/.ai/rules/6_writing_style.md` — already covered in Step 1 — instead of restating them here.
 
