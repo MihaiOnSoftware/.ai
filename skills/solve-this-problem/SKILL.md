@@ -1,6 +1,6 @@
 ---
 name: solve-this-problem
-description: "End-to-end: problem → committed design → plan → TDD slices. Chains explore-and-design + adversarial-review-loop → create-implementation-plan → tdd-slice. Supports mid-pipeline entry."
+description: "End-to-end: problem → design → plan → TDD slices. Chains explore-and-design + adversarial-review-loop → create-implementation-plan → tdd-slice. Supports mid-pipeline entry."
 license: MIT
 metadata:
   category: orchestration
@@ -14,7 +14,7 @@ End-to-end orchestration of the **design → plan → ship** pipeline, from prob
 
 This skill is loaded by `solve-this-problem-agent` only. It is not self-selected — if this skill is running, the user has already decided to run the full pipeline.
 
-The pipeline assumes the problem produces a committed design doc and a slice-by-slice plan, and ends at **landed commits on a branch**. It does not open PRs, request review, or merge. Those steps are the user's call after the pipeline completes.
+The pipeline assumes the problem produces a design doc and a slice-by-slice plan (both in `~/.ai/wip/`, never committed), and ends at **landed commits on a branch**. It does not open PRs, request review, or merge. Those steps are the user's call after the pipeline completes.
 
 ## Pipeline
 
@@ -85,7 +85,7 @@ Each phase agent wraps its skill, pins its model, and has the `subagent` tool �
 
 Input: a problem statement from the user, OR a `~/.ai/wip/<topic>-<date>.md` scratchpad.
 
-Dispatch `explore-and-design-agent`. Pass the problem statement. The agent investigates, scopes, talks to the user as needed, and commits a design doc (`design/<topic>.md` in the project repo, or `~/.ai/wip/<topic>-<date>.md` for scratch).
+Dispatch `explore-and-design-agent`. Pass the problem statement. The agent investigates, scopes, talks to the user as needed, and writes a design doc to `~/.ai/wip/<topic>-<date>.md` (never committed to a project repo).
 
 After it returns:
 1. Read the design doc path from the subagent's summary.
@@ -113,7 +113,7 @@ After it returns:
 
 Dispatch `create-implementation-plan-agent`. Pass: design doc path, wip file path.
 
-**Important — batch mode:** Tell the agent to produce the *full plan in this run* (committed as a single doc), not iterate slice-by-slice with the user. The user will review the whole plan at the next checkpoint. Iterative-per-slice presentation is for direct user invocations of `create-implementation-plan`; from here, the agent's only "user" is the wip file.
+**Important — batch mode:** Tell the agent to produce the *full plan in this run* as a single doc written to `~/.ai/wip/` (never committed), not iterate slice-by-slice with the user. The user will review the whole plan at the next checkpoint. Iterative-per-slice presentation is for direct user invocations of `create-implementation-plan`; from here, the agent's only "user" is the wip file.
 
 After it returns:
 1. Read plan doc path.

@@ -56,7 +56,7 @@ Design-specific triggers for reaching for them:
 
 The signature move when an agent reports a clean refutation: *"what have I asked the last 2 times regarding double checking?"* — a single clean round is not enough.
 
-**Scope**: Rule 4 fires during investigation (Phases 1–3). Do not run an adversarial pass on the committed design artifact at the end of Phase 4 — that review is a separate phase handled by `adversarial-review-loop` after e-a-d completes (see Handoff below).
+**Scope**: Rule 4 fires during investigation (Phases 1–3). Do not run an adversarial pass on the design artifact at the end of Phase 4 — that review is a separate phase handled by `adversarial-review-loop` after e-a-d completes (see Handoff below).
 
 ### 4a. If the user already has a draft, attack it before extending it
 
@@ -113,7 +113,7 @@ Read the existing artifacts. Map what exists today. Inventory the data shapes, t
 
 Now that you understand, name what makes this hard. Are there two superficially-similar artifacts you have to distinguish? Are there competing approaches from other engineers? Is there a known risk you should probe (a BigQuery query against real data, an Observe check, a real-shop dump)?
 
-**Sometimes: prior-art scan.** If the design surface starts to feel like you're reinventing scaffolding, OR the user asks *"is there a tool that does this?"*, do a real prior-art scan: headline verdict, fit-% table per candidate, what overlaps, what doesn't fit, save to `research/<date>-prior-art.md`. Interrogate concretely — *"will it run my manager? will I interact with it the same way?"*. This is rare — only do it when the signal is there, not as a routine step.
+**Sometimes: prior-art scan.** If the design surface starts to feel like you're reinventing scaffolding, OR the user asks *"is there a tool that does this?"*, do a real prior-art scan: headline verdict, fit-% table per candidate, what overlaps, what doesn't fit, save to `~/.ai/wip/<topic>-prior-art-<date>.md`. Interrogate concretely — *"will it run my manager? will I interact with it the same way?"*. This is rare — only do it when the signal is there, not as a routine step.
 
 ### Phase 3 — Iterate on shape
 
@@ -121,15 +121,15 @@ Propose a shape. Get pushback. Refine. Walk findings one at a time, not batched.
 
 ### Phase 4 — Capture the artifact
 
-Capture the design as a durable artifact. Which artifact, and where it lives, depends on context:
+Capture the design as a durable artifact. **It always lives at `~/.ai/wip/<topic>-<date>.md` — never commit it and never write it into a project repo.** Design docs, specs, and plans are working artifacts, not shipped code; they stay in `~/.ai/wip/`. Use the structure in `references/design-doc-shape.md`. This wip doc is the input to `create-implementation-plan`.
 
-- **New project / SDK / system / feature** → commit `design/<topic>.md` or `spec.md` in the repo, using the structure in `references/design-doc-shape.md`. This is the input to `create-implementation-plan`.
-- **Production investigation** → the investigation itself usually serves as the thinking; the public outputs are a GitHub issue comment (risk + evidence) and a PR description (WHAT / WHY / Testing / Review-tip). A `~/.ai/wip/<topic>-<date>.md` may exist as scratchpad but typically isn't shipped as a `design/<topic>.md`. See `examples/investigation-distillation-excerpt.md`.
+- **New project / SDK / system / feature** → `~/.ai/wip/<topic>-<date>.md` using the design-doc shape. This is the input to `create-implementation-plan`.
+- **Production investigation** → the investigation itself usually serves as the thinking; the public outputs are a GitHub issue comment (risk + evidence) and a PR description (WHAT / WHY / Testing / Review-tip). The `~/.ai/wip/<topic>-<date>.md` is the scratchpad behind them. See `examples/investigation-distillation-excerpt.md`.
 - **Personal / scratch** → `~/.ai/wip/<topic>-<date>.md` using the same shape.
 
-(Prior-art scans, when triggered in Phase 2, land at `research/<date>-prior-art.md` alongside the design doc.)
+(Prior-art scans, when triggered in Phase 2, land at `~/.ai/wip/<topic>-prior-art-<date>.md`.)
 
-Exit state: the committed artifact is **not yet adversarially reviewed**. Add the following line at the bottom of the committed doc before pushing:
+Exit state: the artifact is **not yet adversarially reviewed**. Add the following line at the bottom of the wip doc:
 ```
 <!-- not yet adversarially reviewed as a complete artifact -->
 ```
@@ -149,7 +149,7 @@ See `references/anti-patterns.md` for the long list with quotes. Highlights:
 
 ## Handoff to create-implementation-plan
 
-When the design is settled — committed design doc, open questions resolved, scope locked — say so explicitly. The committed artifact is marked "not yet adversarially reviewed"; the next step is to run `adversarial-review-loop` against it as a standalone phase before planning. Then load `create-implementation-plan` against the reviewed artifact. The three phases are deliberately separated: e-a-d authors the design, the adversarial loop stress-tests it, the slicer breaks it into work. `create-implementation-plan` is itself a planner skill, not the implementer (that's `tdd-slice`).
+When the design is settled — design doc in `~/.ai/wip/`, open questions resolved, scope locked — say so explicitly. The wip artifact is marked "not yet adversarially reviewed"; the next step is to run `adversarial-review-loop` against it as a standalone phase before planning. Then load `create-implementation-plan` against the reviewed artifact. The three phases are deliberately separated: e-a-d authors the design, the adversarial loop stress-tests it, the slicer breaks it into work. `create-implementation-plan` is itself a planner skill, not the implementer (that's `tdd-slice`).
 
 ## Examples
 

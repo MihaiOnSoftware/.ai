@@ -38,7 +38,7 @@ subagent({
 
 Pipeline state file: <wip-path>
 
-Investigate, scope, and produce a committed design doc at design/<topic>.md (or ~/.ai/wip/<topic>-<date>.md for scratch). Talk to the user when the skill says to.
+Investigate, scope, and produce a design doc at ~/.ai/wip/<topic>-<date>.md (never committed to a project repo). Talk to the user when the skill says to.
 
 When done, write a summary to <wip-summary-path> with:
 - design_doc_path: <path>
@@ -91,11 +91,11 @@ subagent({
   task: `Design doc to plan against: <design-doc-path>
 Pipeline state file: <wip-path>
 
-IMPORTANT — BATCH MODE: produce the FULL plan in this run as a single committed doc. Do NOT iterate slice-by-slice with the user. The user will review the whole plan at the next pipeline checkpoint. The iterative-presentation pattern in the create-implementation-plan skill (its Critical Rule 2) is suspended for this batch invocation; commit all slices at once.
+IMPORTANT — BATCH MODE: produce the FULL plan in this run as a single doc written to ~/.ai/wip/ (never committed, never written into a project repo). Do NOT iterate slice-by-slice with the user. The user will review the whole plan at the next pipeline checkpoint. The iterative-presentation pattern in the create-implementation-plan skill (its Critical Rule 2) is suspended for this batch invocation; write all slices at once.
 
 If you would have asked the user for ack between slices, instead: write the slice, move on. If a slice depends on a real decision the user must make (e.g. "which API style?"), surface that as an open question at the bottom of the plan doc rather than blocking.
 
-Output the plan to plans/01-<topic>.md (or wherever the project convention says).
+Output the plan to ~/.ai/wip/<topic>-plan-<date>.md.
 
 When done, write a summary to <wip-summary-path> with:
 - plan_doc_path: <path>

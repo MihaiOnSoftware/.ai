@@ -49,12 +49,22 @@ Post "✅ Changes examined"
 
 ### Step 3: Determine What to Stage
 
+**Guard first — never commit agent scratch artifacts (see `11_agent_artifacts.md`).** Plans, design docs, specs, agent reports, prior-art/research scans, and investigation scratchpads belong in `~/.ai/wip/`, never in a project repo. Before staging anything, scan `git status --short` for files that look like scratch that leaked into the repo:
+
+```bash
+git status --short | grep -iE '(^|/)(wip|plans?|design|research)/|\.report\.md$|-(plan|prior-art)-[0-9]{4}' || echo "no scratch artifacts detected"
+```
+
+If any match, **STOP and surface it** — do not commit. The file was written to a repo-relative path by mistake; it should be moved to `~/.ai/wip/` (absolute path) and left untracked. Only proceed once the working tree is free of scratch artifacts (or the user confirms a match is a legitimate repo file, e.g. product source under a directory that happens to match).
+
 **If files are already staged**:
+- Confirm none of the staged files are scratch artifacts (run the guard above against `git diff --cached --name-only`)
 - Use staged files as-is
 - Post "✅ Using staged files"
 
 **If no files are staged**:
 - Stage all modified/new files: `git add -A`
+- Re-run the guard against `git diff --cached --name-only`; if a scratch artifact slipped in, `git reset` it and move it to `~/.ai/wip/`
 - Post "✅ All changes staged"
 
 ### Step 4: Draft Commit Message
@@ -179,7 +189,7 @@ Replace manual color selection with random preset
 2. Runs `git status` → sees 2 modified files
 3. Runs `git diff HEAD` → sees schema hash code added
 4. Runs `git log -3 --oneline` → sees recent commit style
-5. Stages all changes: `git add -A`
+5. Runs the scratch-artifact guard (no wip/plan/design/report files leaked), then stages all changes: `git add -A`
 6. Drafts message: "Add schema hash to cache keys"
 7. Creates commit with proper format
 8. Returns commit hash and message
