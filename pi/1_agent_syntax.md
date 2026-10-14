@@ -6,7 +6,7 @@ When spawning agents, use `provider/model` format. Map from tier to model string
 |------|-------------|
 | Haiku | `anthropic/claude-haiku-4-5` |
 | Sonnet | `anthropic/claude-sonnet-4-6` |
-| GPT-5.5 | `openai-codex/gpt-5.5` |
+| GPT-5.6 | `openai-codex/gpt-5.6-sol` |
 | Opus | `anthropic/claude-opus-4-8` |
 | Fable | `anthropic/claude-fable-5` |
 
