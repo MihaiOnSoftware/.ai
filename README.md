@@ -104,7 +104,7 @@ OPENCODE_SKILLS_DIR=~/custom/.config/opencode/skills \
 OPENCODE_AGENTS_DIR=~/custom/.config/opencode/agents \
 PI_SKILLS_DIR=~/custom/.pi/agent/skills \
 PI_AGENTS_DIR=~/custom/.pi/agent/agents \
-PI_MCP_CONFIG_PATH=~/custom/.pi/agent/mcp.json \
+PI_MCP_CONFIG_PATH=~/custom/.pi/agent/mcp-adapter.json \
 ./install.sh
 ```
 

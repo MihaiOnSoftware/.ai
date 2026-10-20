@@ -46,7 +46,11 @@ CLAUDE_AGENTS_MD_PATH="$CLAUDE_CONFIG_DIR/CLAUDE.md"
 # schema, no secrets) and *generated* into each host's native MCP config by
 # lib/mcp_helpers.sh (pi + OpenCode). Claude is intentionally not a target for
 # now; the per-host emitter layout leaves a seam to add it back later.
-PI_MCP_CONFIG_PATH="${PI_MCP_CONFIG_PATH:-$PI_CODING_AGENT_DIR/mcp.json}"
+# pi target is the adapter-owned mcp-adapter.json: on Pi 0.99+ pi-mcp-adapter
+# reads Pi's own mcp.json with Pi's stricter native schema (no adapter fields
+# like auth: "oauth"/"bearer", excludeTools, or top-level settings), so the
+# generated adapter-schema config must live in mcp-adapter.json.
+PI_MCP_CONFIG_PATH="${PI_MCP_CONFIG_PATH:-$PI_CODING_AGENT_DIR/mcp-adapter.json}"
 OPENCODE_MCP_CONFIG_PATH="${OPENCODE_MCP_CONFIG_PATH:-$OPENCODE_CONFIG_DIR/opencode.json}"
 
 

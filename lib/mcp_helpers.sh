@@ -7,9 +7,14 @@ source "$SCRIPT_DIR/paths.sh"
 # MCP servers are declared once in a canonical mcpServers JSON file (pi-mcp-adapter
 # schema, no secrets) and *generated* into each host's native MCP config:
 #
-#   - pi:       $PI_MCP_CONFIG_PATH        — pi-mcp-adapter, "mcpServers" map,
-#                                            carries pi-only fields verbatim
-#                                            (e.g. excludeTools, oauth).
+#   - pi:       $PI_MCP_CONFIG_PATH        — pi-mcp-adapter's own config
+#                                            (mcp-adapter.json), "mcpServers"
+#                                            map, carries adapter-only fields
+#                                            verbatim (e.g. excludeTools,
+#                                            auth, oauth, settings). NOT Pi's
+#                                            mcp.json: on Pi 0.99+ the adapter
+#                                            reads that file with Pi's native
+#                                            schema and rejects these fields.
 #   - OpenCode: $OPENCODE_MCP_CONFIG_PATH  — opencode.json "mcp" block, each
 #                                            server translated to {type:"remote",
 #                                            url, enabled, headers?, oauth?}.
