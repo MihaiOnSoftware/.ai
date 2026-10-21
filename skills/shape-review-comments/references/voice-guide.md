@@ -12,9 +12,6 @@ If the finding is on `Map.get(externalIdValue)` and the issue is obvious from th
 **State the observation, not the fix.**
 You're pointing at something. The author decides what to do with it. Never say "you should" or "you must". Prefer "I think...", "it looks like...", "should this be...?".
 
-**One sentence of consequence, maximum.**
-If the finding needs a consequence to be clear, one sentence is enough. If the reader already knows the consequence from the observation, drop it.
-
 **Trust the reader to look at the code.**
 No quoting the code back at them. No "on line X, the function does Y" — they're reading the diff.
 

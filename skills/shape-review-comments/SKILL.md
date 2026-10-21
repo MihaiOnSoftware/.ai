@@ -35,8 +35,8 @@ For each surviving finding, write the comment following the voice guide (anchor 
 
 Two hard rules apply to every comment before you move on:
 
-1. **No em-dashes.** Do not write them. If one appears, replace it with a comma or split the sentence. Do not scan after — just don't write them.
-2. **Maximum 2 sentences.** If the comment needs a third sentence to land, cut the third sentence. If cutting it loses the finding, the first two sentences weren't saying the right thing — rewrite from the observation, not the explanation.
+1. **No em-dashes.** Do not write them. A comma or a new sentence always works.
+2. **Maximum 2 sentences.** If a third sentence feels necessary, cut it. If that loses the finding, rewrite from the observation, not the explanation.
 
 Output format:
 
