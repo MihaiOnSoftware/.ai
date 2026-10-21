@@ -14,11 +14,13 @@ If the finding needs a consequence to be clear, one sentence is enough. If the r
 **Trust the reader to look at the code.**
 No quoting the code back at them. No "on line X, the function does Y" — they're reading the diff.
 
+**No em-dashes.** Replace every em-dash with a comma or split into two sentences. Check every comment before finalising — this is the single most common failure.
+
 ---
 
 ## Sentence structure
 
-Short. 1–3 sentences per comment. Never a bullet list inside a comment.
+Short. 1–3 sentences per comment, and lean toward 1–2. Never a bullet list inside a comment. When in doubt, cut the last sentence.
 
 Good:
 > minor: I think the `?? {}` is untested
@@ -28,6 +30,12 @@ Good:
 
 Too long:
 > minor: lookUpLiveIds builds a result Map keyed by the external ID the DB returns (r.externalId). Resolution at line 392 then does Map.get(externalIdValue) using the caller's original spelling. Since all five external_id columns use utf8mb4_general_ci (case-insensitive, accent-insensitive — confirmed at migration line 1054), if the stored value is "ABC" and the caller sends "abc", SQL finds the row and returns { externalId: "ABC" }, but Map.get("abc") returns undefined → false 400. The tests always mock the returned spelling to match the input, so this defect is invisible in the suite.
+
+Also wrong — uses an em-dash, which is banned:
+> nit: this was quietly changed from resetAllMocks to clearAllMocks — clearAllMocks doesn't reset return values. externalIdRemapping.unit.spec.ts uses resetAllMocks. Up to you.
+
+Right — comma, shorter:
+> nit: this was quietly changed from resetAllMocks to clearAllMocks inside the rename commit, externalIdRemapping.unit.spec.ts still uses resetAllMocks. up to you
 
 ---
 
@@ -69,10 +77,20 @@ If it's truly unlikely, add acknowledgment at the end:
 
 ## Questions
 
-Use a genuine question form. Not "consider whether this..." but:
-> question: the new properties have maxLength 255 which matches the varchar columns. The existing ones (e.g. asset.ts) didn't get this, should we align them at some point or not really important?
+`question:` is for when you genuinely need the author to tell you something you cannot determine from the code — whether something is intentional, whether a ticket covers it, whether a simplification is safe. It is not for observations dressed up as questions.
 
-The question should be something the author can actually answer. If it's rhetorical, it's not a question — rephrase as an observation.
+**Use `minor:` not `question:` when** you've spotted something that looks wrong or missing and you're just hedging the claim. "I think X is untested" is a `minor:`. "Is this intentional?" is a `question:`.
+
+**`question:` comments should be the shortest, not the longest.** Just the question, no setup sentence. The author knows their code.
+
+Bad — too much mechanism before the question, should be shorter or a `minor:`:
+> question: with `workflowSlug` not threaded through to `saveWorkflowConfigValues`, I think a request scoped to workflow A can write config for any recipe in the installation's project, while the read path also filters by slug (WorkflowService.ts:137). Is the asymmetry deliberate pending API-378, or should the save scope match?
+
+Good — just the question:
+> question: should `saveWorkflowConfigValues` scope by slug the way the read path does, or is that API-378's job?
+
+Another good example:
+> question: the new properties have maxLength 255 which matches the varchar columns. The existing ones (e.g. asset.ts) didn't get this, should we align them at some point or not really important?
 
 ---
 
