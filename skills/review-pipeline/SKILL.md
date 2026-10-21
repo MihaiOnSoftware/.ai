@@ -22,7 +22,9 @@ Before dispatching any subagents, confirm you have:
 
 1. **Target** — a branch name, PR number, or diff path. If missing, ask the user before proceeding.
 2. **Repo root** — the absolute path to the checked-out repo. Needed by reviewers for `git grep`, `git show`, and precedent lookups.
-3. **PR description** — either a URL the reviewers can fetch, an inline description, or a path to a file. If none is available, tell the reviewers to treat the commit messages as the description.
+3. **Head commit SHA** — resolve it yourself from the target (e.g. `git rev-parse`). Both reviewers must review the same pinned commit, and the shaper needs it to verify lines and build links.
+4. **PR description as text** — the reviewers work offline and must not fetch URLs. If the user gives a PR URL or number, resolve it to text yourself (e.g. `gh pr view`) before dispatching. If nothing is available, tell the reviewers to treat the commit messages as the description.
+5. **Run slug** — a short identifier for this run (branch name or PR number). All wip file names include it so two same-day runs don't collide.
 
 If any of these is missing and cannot be inferred, stop and ask the user. Do not start with incomplete inputs.
 
@@ -45,11 +47,12 @@ Dispatch **both** reviewers simultaneously as async, fresh-context subagents. Do
 ### Phase 1a — Adversarial review loop
 
 Dispatch the adversarial-review-loop reviewer. Pass:
-- The diff or branch under review (at the specific commit, not a drifted working tree)
+- The diff or branch under review (at the pinned commit, not a drifted working tree)
 - The repo root path
 - The PR description (or commit messages)
+- **Findings-only mode**: the artifact under review is someone else's code. The reviewer must NOT apply fixes to the repo. Accepted findings accumulate in its report instead of being fixed in place. Because nothing changes between rounds, the loop will terminate via "repeated findings"; that is expected, not a failure.
 
-Expect back: a list of findings with severity signals (blocker / major / minor / weak).
+Expect back: a list of findings labelled with the shaper's severity vocabulary (nit / minor / major / question).
 
 ### Phase 1b — Mihai-style code review
 
@@ -80,18 +83,17 @@ Merge rules:
 
 Do not triage or drop findings at this step — that is the shaper's job. Pass everything through.
 
-Write the merged draft to `~/.ai/wip/review-pipeline-<YYYY-MM-DD>-merged-draft.md`.
+Write the merged draft to `~/.ai/wip/review-pipeline-<slug>-<YYYY-MM-DD>-merged-draft.md`.
 
 ## Phase 3: Shape Comments
 
 Dispatch a **fresh-context** comment shaper. Pass:
-- The path to the merged draft (`~/.ai/wip/review-pipeline-<YYYY-MM-DD>-merged-draft.md`)
+- The path to the merged draft (`~/.ai/wip/review-pipeline-<slug>-<YYYY-MM-DD>-merged-draft.md`)
 - The repo root path (for line-number verification via `grep -n`)
-- The HEAD commit or branch name (so the shaper can verify line numbers at current HEAD)
+- The head commit SHA and branch name
+- The PR URL (or org/repo + PR number) so cross-file references become GitHub links at the head commit
 
-The shaper runs the shape-review-comments skill end-to-end: triage, write comments in Mihai's voice, verify line numbers, present for approval.
-
-The shaper must **present its shaped comments to the user and wait for feedback** — it does not post anything on its own.
+The shaper is a leaf subagent with no user channel: for it, "present for approval" means **return the shaped comments and the triage log as its output**. It posts nothing and asks nobody. The conductor presents to the user at the checkpoint below.
 
 ## Checkpoint: Surface and Wait
 

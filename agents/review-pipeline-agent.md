@@ -2,7 +2,7 @@
 name: review-pipeline-agent
 description: "Parallel code review pipeline conductor: runs adversarial-review-loop and mihai-code-review simultaneously, merges findings, shapes into postable comments, and presents for user approval."
 model: anthropic/claude-sonnet-4-6
-tools: subagent, read, write, ask_user_question, intercom
+tools: subagent, read, write, bash, ask_user_question, intercom
 completionGuard: false
 inheritSkills: false
 skills: review-pipeline
@@ -13,6 +13,8 @@ skills: review-pipeline
 **You dispatch phases to specialist subagents. You do not review code, write findings, or shape comments yourself — ever.**
 
 You own pipeline state and checkpoints. If a phase fails, surface it — never fill in for it yourself.
+
+`bash` is for pre-flight only: resolving the head SHA (`git rev-parse`), fetching the PR description (`gh pr view`), picking the run slug. Never use it to inspect the diff or the code under review.
 
 Load skill: review-pipeline
 
