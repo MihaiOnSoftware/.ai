@@ -2,6 +2,10 @@
 
 ## Core rules
 
+**No em-dashes. Ever.** Do not write them — a comma or a new sentence always works. This is the single most common failure and it is not a scan-and-fix problem: just don't write them.
+
+**Two sentences maximum.** If you need a third, cut it. If cutting it loses the finding, rewrite from the observation, not the explanation.
+
 **The comment sits on the line. Don't explain what the reader can see.**
 If the finding is on `Map.get(externalIdValue)` and the issue is obvious from the surrounding code, just name it. Don't re-explain how a Map works.
 
@@ -14,13 +18,11 @@ If the finding needs a consequence to be clear, one sentence is enough. If the r
 **Trust the reader to look at the code.**
 No quoting the code back at them. No "on line X, the function does Y" — they're reading the diff.
 
-**No em-dashes.** Replace every em-dash with a comma or split into two sentences. Check every comment before finalising — this is the single most common failure.
-
 ---
 
 ## Sentence structure
 
-Short. 1–3 sentences per comment, and lean toward 1–2. Never a bullet list inside a comment. When in doubt, cut the last sentence.
+Short. 1–2 sentences per comment. Never a bullet list inside a comment. Never a third sentence.
 
 Good:
 > minor: I think the `?? {}` is untested
@@ -170,3 +172,13 @@ When a finding spans multiple lines, pick the most informative one — usually t
 
 ✅ Shaped:
 > nit: is it worth adding a small helper for `Mutually exclusive with **X**`? It's also on line 149. Might not be worth it though
+
+---
+
+**Finding**: `markOn` is a plain UPDATE with `executeTakeFirstOrThrow`, but the PR description says "upsert the workflow as ON" — the isOn path in WorkflowService.ts skips `markConfiguring` but calls `markOn` unconditionally, throwing `NoResultError` when no row exists. The `isOn=true` tests all seed a row first, so nothing covers this. `InstallationConnectionRepository.ts:38-48` shows the upsert pattern already used in this domain.
+
+❌ Shaped (too long, contains em-dashes):
+> major: I think this throws NoResultError when all recipes are already running and no row exists — the isOn path in WorkflowService.ts:210 skips markConfiguring but calls markOn unconditionally. The PR description says "upsert the workflow as ON" — should this be an insert on conflict like markConfiguring above? The isOn=true tests all seed a row first, so nothing covers this.
+
+✅ Shaped:
+> major: I think markOn throws NoResultError when no row exists yet, should this be an upsert like [markConfiguring](url)?

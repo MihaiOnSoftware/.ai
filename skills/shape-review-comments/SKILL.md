@@ -33,7 +33,10 @@ Produce a visible triage log (one line per finding: decision + brief reason) bef
 
 For each surviving finding, write the comment following the voice guide (anchor line selection, hedges, closers, severity labeling are covered there).
 
-After writing each comment, scan it for em-dashes within the text and replace them with commas or sentence breaks before moving on.
+Two hard rules apply to every comment before you move on:
+
+1. **No em-dashes.** Do not write them. If one appears, replace it with a comma or split the sentence. Do not scan after — just don't write them.
+2. **Maximum 2 sentences.** If the comment needs a third sentence to land, cut the third sentence. If cutting it loses the finding, the first two sentences weren't saying the right thing — rewrite from the observation, not the explanation.
 
 Output format:
 
