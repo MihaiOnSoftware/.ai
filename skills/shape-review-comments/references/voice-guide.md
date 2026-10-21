@@ -79,6 +79,8 @@ If it's truly unlikely, add acknowledgment at the end:
 
 `question:` is for when you genuinely need the author to tell you something you cannot determine from the code — whether something is intentional, whether a ticket covers it, whether a simplification is safe. It is not for observations dressed up as questions.
 
+**Before proposing any `question:`, try to answer it yourself.** Check the PR description, the commit messages, linked tickets, code comments near the finding, and sibling code. If the answer is there, the question is either resolved (drop it) or becomes an observation (relabel as `minor:`/`nit:` citing what you found). Only post a `question:` you actually could not answer.
+
 **Use `minor:` not `question:` when** you've spotted something that looks wrong or missing and you're just hedging the claim. "I think X is untested" is a `minor:`. "Is this intentional?" is a `question:`.
 
 **`question:` comments should be the shortest, not the longest.** Just the question, no setup sentence. The author knows their code.
