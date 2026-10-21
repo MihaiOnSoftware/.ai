@@ -1,7 +1,7 @@
 ---
 name: adversarial-review-agent
 description: Fresh-context adversarial reviewer — investigates a supplied conclusion and approach to find mistakes.
-model: anthropic/claude-opus-4-8
+model: openai-codex/gpt-6-sol
 tools: read, grep, find, ls, bash
 completionGuard: false
 inheritSkills: false
