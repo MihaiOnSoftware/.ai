@@ -103,6 +103,13 @@ When pointing at a pattern mismatch, name the file and note where the pattern li
 
 Don't just say "the codebase does X". Show where.
 
+**File:line references to other files should be GitHub links.** A bare `mapWorkatoMapperToConfigFields.ts:199` forces the reader to go find it; a link doesn't. Build the URL from, in order of preference:
+1. A file in the PR diff: `https://github.com/<org>/<repo>/pull/<number>/files#diff-<sha256 of file path>R<line>` 
+ or simpler, link to the file at the PR's head commit: `https://github.com/<org>/<repo>/blob/<head-sha>/<path>#L<line>`
+2. A file not in the PR: link at the PR's head commit or the repo's default branch HEAD
+
+Use the markdown form `[mapWorkatoMapperToConfigFields.ts:199](url)` so the comment stays readable. The anchor file:line of the comment itself doesn't need a link, only references to *other* locations.
+
 If the codebase is inconsistent, say so:
 > "we're inconsistent throughout the codebase on this though..."
 

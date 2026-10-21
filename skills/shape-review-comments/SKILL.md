@@ -45,6 +45,8 @@ Output format:
 
 Before presenting to the user, confirm each line number at current HEAD. Run `grep -n` for the anchoring expression in the file. If the file has changed since the review and a finding was already fixed, drop that comment and note it.
 
+While here, verify any cross-file references inside comment bodies too, and convert them to GitHub links at the PR's head commit (see the voice guide's Precedent links section for the URL format).
+
 If a line number cannot be confirmed (file deleted, path changed), drop the comment and tell the user.
 
 ## Step 5 — Present for approval
