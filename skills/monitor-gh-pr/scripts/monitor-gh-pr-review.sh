@@ -99,7 +99,9 @@ fetch_pr_meta() {
 
 meta_state()     { echo "$1" | jq -r '.state // empty'; }
 meta_head()      { echo "$1" | jq -r '.headRefOid // empty'; }
-meta_requested() { echo "$1" | jq -r '[.reviewRequests[]? | .login // .name] | sort | join(",")'; }
+# One reviewer per line, sorted. Line-based (not CSV) so team display names
+# containing commas cannot corrupt comparison or membership checks.
+meta_requested() { echo "$1" | jq -r '.reviewRequests[]? | .login // .name' | sort; }
 
 fetch_regular_ids() {
   gh api "/repos/${REPO}/issues/${PR_NUMBER}/comments" --paginate \
@@ -145,7 +147,13 @@ count_lines() {
   echo "$s" | wc -l | tr -d ' '
 }
 
-csv_contains() { [[ ",$1," == *",$2,"* ]]; }
+# Exact-line membership in a newline-separated list.
+list_contains() { grep -Fxq "$2" <<< "$1"; }
+
+# Comma-joined display form of a newline-separated list; "none" when empty.
+list_display() {
+  if [[ -z "$1" ]]; then echo "none"; else printf '%s' "$1" | paste -sd, -; fi
+}
 
 # ── Baseline (first run) ───────────────────────────────────────────────────────
 if [[ ! -f "$INITIALIZED_FILE" ]]; then
@@ -160,7 +168,7 @@ if [[ ! -f "$INITIALIZED_FILE" ]]; then
   R=$(wc -l < "$REGULAR_IDS_FILE"    | tr -d ' ')
   V=$(wc -l < "$REVIEW_IDS_FILE"     | tr -d ' ')
   P=$(wc -l < "$PR_REVIEWS_IDS_FILE" | tr -d ' ')
-  echo "[$(now)] Baseline: head $(cut -c1-11 "$HEAD_SHA_FILE"), requested [$(cat "$REQUESTED_FILE")], ${R} regular comment(s), ${V} inline review comment(s), ${P} PR review(s)." >&2
+  echo "[$(now)] Baseline: head $(cut -c1-11 "$HEAD_SHA_FILE"), requested [$(list_display "$(cat "$REQUESTED_FILE")")], ${R} regular comment(s), ${V} inline review comment(s), ${P} PR review(s)." >&2
 fi
 
 echo "[$(now)] Watching ${REPO}#${PR_NUMBER} every ${INTERVAL}s (reviewer: ${REVIEWER:-none}). Ctrl+C to stop." >&2
@@ -199,8 +207,8 @@ while true; do
   NEW_REQUESTED=$(meta_requested "$META")
   OLD_REQUESTED=$(cat "$REQUESTED_FILE" 2>/dev/null || true)
   if [[ "$NEW_REQUESTED" != "$OLD_REQUESTED" ]]; then
-    SUMMARY+=("## Review requests changed — was [${OLD_REQUESTED:-none}], now [${NEW_REQUESTED:-none}]")
-    if [[ -n "$REVIEWER" ]] && csv_contains "$NEW_REQUESTED" "$REVIEWER" && ! csv_contains "$OLD_REQUESTED" "$REVIEWER"; then
+    SUMMARY+=("## Review requests changed — was [$(list_display "$OLD_REQUESTED")], now [$(list_display "$NEW_REQUESTED")]")
+    if [[ -n "$REVIEWER" ]] && list_contains "$NEW_REQUESTED" "$REVIEWER" && ! list_contains "$OLD_REQUESTED" "$REVIEWER"; then
       SUMMARY+=("  🔔  Re-review requested from ${REVIEWER}")
     fi
     SUMMARY+=("")

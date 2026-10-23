@@ -146,6 +146,15 @@ run_monitor
 assert "reviewer removal is reported without the re-review flag" reported "now \[other-person\]"
 assert_not "reviewer removal does not flag re-review" reported "Re-review requested from mihai"
 
+# ── Comma-containing team names must not fool membership checks ─────────────
+
+reset_state
+run_monitor
+printf '{"state":"OPEN","headRefOid":"sha-1","reviewRequests":[{"name":"Gates: x,mihai"}]}\n' > "$FIX/pr_meta"
+run_monitor
+assert "comma-containing team name is reported as a set change" reported "Review requests changed"
+assert_not "comma-containing team name does not fake a re-review flag" reported "Re-review requested from mihai"
+
 # ── Comments and reviews ──────────────────────────────────────────────────────
 
 reset_state

@@ -69,4 +69,5 @@ Tell the user:
 - **CI results are reported once per head commit** (author mode). Restarting the monitor on the same commit won't re-report an unchanged CI pass or failure; a new push resets this, so the next CI result is reported even if it matches the last one.
 - **Poll interval guidance:** author — `--interval 30` for fast pipelines, `--interval 120` to reduce API calls on long ones; reviewer — the 300 default suits human turnaround, `--interval 1800` for a low-urgency background watch.
 - **No checks yet?** (author mode) If the PR has no CI checks, the monitor watches only for comments until checks appear.
-- **Tests:** `tests/test_monitor_gh_pr.sh` and `tests/test_monitor_gh_pr_review.sh` in the repo root cover both scripts with a stubbed `gh`.
+- **Re-review flags fire on the transition into the requested set.** GitHub drops a reviewer from pending requests once they submit a review, so a request already pending at baseline never fires "re-review requested"; only a fresh re-request after the watch starts does.
+- **Tests:** `tests/test_monitor_gh_pr.sh` and `tests/test_monitor_gh_pr_review.sh` live in the source repo (`MihaiOnSoftware/.ai`), not in the installed skill directory; they cover both scripts with a stubbed `gh`.
