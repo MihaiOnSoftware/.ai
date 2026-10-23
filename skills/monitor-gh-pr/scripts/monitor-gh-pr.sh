@@ -24,8 +24,10 @@ Exits 0 with a human-readable summary when something actionable occurs:
   • New PR comments appear
   • New inline review comments appear
 
-State is stored in /tmp/monitor-gh-pr-<slug>-<pr>/. Delete that directory to
-reset the comment baseline (so existing comments are re-reported on next run).
+State is stored in $MONITOR_GH_PR_STATE_ROOT/monitor-gh-pr-<slug>-<pr>/ (default
+root: /tmp). Delete that directory to reset the comment baseline (so existing
+comments are re-reported on next run). CI pass/fail results are reported once per
+PR head commit; a new push resets them.
 EOF
   exit 1
 }
@@ -61,13 +63,16 @@ done
 
 # ── State directory ────────────────────────────────────────────────────────────
 SLUG=$(printf '%s' "$REPO" | tr '/' '-')
-STATE_DIR="/tmp/monitor-gh-pr-${SLUG}-${PR_NUMBER}"
+STATE_DIR="${MONITOR_GH_PR_STATE_ROOT:-/tmp}/monitor-gh-pr-${SLUG}-${PR_NUMBER}"
 mkdir -p "$STATE_DIR"
 
 REGULAR_IDS_FILE="$STATE_DIR/regular_ids"
 REVIEW_IDS_FILE="$STATE_DIR/review_ids"
 PR_REVIEWS_IDS_FILE="$STATE_DIR/pr_review_ids"
 INITIALIZED_FILE="$STATE_DIR/initialized"
+HEAD_SHA_FILE="$STATE_DIR/head_sha"
+CI_PASS_REPORTED_FILE="$STATE_DIR/ci_pass_reported"
+CI_FAIL_REPORTED_FILE="$STATE_DIR/ci_fail_reported"
 
 CURRENT_REGULAR_TMP=$(mktemp)
 CURRENT_REVIEW_TMP=$(mktemp)
@@ -92,9 +97,35 @@ fetch_pr_review_ids() {
     --jq '[.[] | select(.body != "")] | .[].id' 2>/dev/null || true
 }
 
+fetch_head_sha() {
+  gh pr view "$PR_NUMBER" --repo "$REPO" --json headRefOid --jq '.headRefOid' 2>/dev/null || true
+}
+
+# CI pass/fail is reported once per head commit. A new push starts a new CI run,
+# so its result must be reported even if it matches the previous head's.
+reset_ci_reports_on_new_head() {
+  local head prev
+  head=$(fetch_head_sha)
+  [[ -z "$head" ]] && return
+  prev=$(cat "$HEAD_SHA_FILE" 2>/dev/null || true)
+  if [[ "$head" != "$prev" ]]; then
+    rm -f "$CI_PASS_REPORTED_FILE" "$CI_FAIL_REPORTED_FILE"
+    echo "$head" > "$HEAD_SHA_FILE"
+  fi
+}
+
+failure_signature() {
+  echo "$1" | jq -c '[.[] | select(.bucket == "fail") | .name] | sort'
+}
+
+failure_already_reported() {
+  [[ "$1" == "$(cat "$CI_FAIL_REPORTED_FILE" 2>/dev/null || true)" ]]
+}
+
 # IDs present in $2 but absent from $1 (both are file paths).
+# FILENAME==ARGV[1] (not NR==FNR) so an empty baseline file still reports new IDs.
 new_ids() {
-  awk 'NR==FNR { seen[$1]=1; next } !seen[$1] { print }' "$1" "$2"
+  awk 'FILENAME==ARGV[1] { seen[$1]=1; next } !seen[$1] { print }' "$1" "$2"
 }
 
 # Count non-empty lines in a variable; returns 0 for empty string.
@@ -126,6 +157,8 @@ while true; do
   ACTIONABLE=false
   SUMMARY=()
 
+  reset_ci_reports_on_new_head
+
   # CI checks
   CI_JSON=$(gh pr checks "$PR_NUMBER" --repo "$REPO" --json name,state,bucket 2>/dev/null || echo "[]")
   TOTAL=$(echo "$CI_JSON" | jq 'length')
@@ -141,21 +174,30 @@ while true; do
     WAITING=$(echo "$CI_JSON" | jq '[.[] | select(.state == "WAITING")] | length')
 
     if [[ "$FAILED" -gt 0 ]]; then
-      SUMMARY+=("## CI Failing — ${FAILED} of ${TOTAL} checks failed")
-      while IFS= read -r name; do
-        SUMMARY+=("  ❌  ${name}")
-      done < <(echo "$CI_JSON" | jq -r '.[] | select(.bucket == "fail") | .name')
-      SUMMARY+=("")
-      ACTIONABLE=true
-    elif [[ "$PENDING" -eq 0 ]]; then
-      PASSED=$(echo "$CI_JSON" | jq '[.[] | select(.bucket == "pass")] | length')
-      if [[ "$WAITING" -gt 0 ]]; then
-        SUMMARY+=("## CI Passed — ${PASSED} of ${TOTAL} checks ✅ (${WAITING} manual gate(s) awaiting approval)")
-      else
-        SUMMARY+=("## CI Passed — ${PASSED} of ${TOTAL} checks ✅")
+      FAIL_SIG=$(failure_signature "$CI_JSON")
+      if ! failure_already_reported "$FAIL_SIG"; then
+        SUMMARY+=("## CI Failing — ${FAILED} of ${TOTAL} checks failed")
+        while IFS= read -r name; do
+          SUMMARY+=("  ❌  ${name}")
+        done < <(echo "$CI_JSON" | jq -r '.[] | select(.bucket == "fail") | .name')
+        SUMMARY+=("")
+        echo "$FAIL_SIG" > "$CI_FAIL_REPORTED_FILE"
+        rm -f "$CI_PASS_REPORTED_FILE"
+        ACTIONABLE=true
       fi
-      SUMMARY+=("")
-      ACTIONABLE=true
+    elif [[ "$PENDING" -eq 0 ]]; then
+      if [[ ! -f "$CI_PASS_REPORTED_FILE" ]]; then
+        PASSED=$(echo "$CI_JSON" | jq '[.[] | select(.bucket == "pass")] | length')
+        if [[ "$WAITING" -gt 0 ]]; then
+          SUMMARY+=("## CI Passed — ${PASSED} of ${TOTAL} checks ✅ (${WAITING} manual gate(s) awaiting approval)")
+        else
+          SUMMARY+=("## CI Passed — ${PASSED} of ${TOTAL} checks ✅")
+        fi
+        SUMMARY+=("")
+        touch "$CI_PASS_REPORTED_FILE"
+        rm -f "$CI_FAIL_REPORTED_FILE"
+        ACTIONABLE=true
+      fi
     fi
   fi
 

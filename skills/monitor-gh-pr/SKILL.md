@@ -51,7 +51,8 @@ Tell the user:
 
 ## Notes
 
-- **State is stored** in `/tmp/monitor-gh-pr-<slug>-<pr>/`. Delete this directory to reset the comment baseline so the next run re-reports existing comments.
+- **State is stored** in `/tmp/monitor-gh-pr-<slug>-<pr>/` (override the root with `MONITOR_GH_PR_STATE_ROOT`). Delete this directory to reset the comment baseline so the next run re-reports existing comments.
 - **Exits on first event.** Start a new monitor after handling an event to keep watching.
+- **CI results are reported once per head commit.** Restarting the monitor on the same commit won't re-report an unchanged CI pass or failure; a new push resets this, so the next CI result is reported even if it matches the last one.
 - **Poll interval guidance:** `--interval 30` for fast pipelines, `--interval 120` to reduce API calls on long ones.
 - **No checks yet?** If the PR has no CI checks, the monitor watches only for comments until checks appear.
