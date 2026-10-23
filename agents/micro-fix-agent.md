@@ -1,7 +1,7 @@
 ---
 name: micro-fix-agent
 description: Fixes trivial validation issues without reverting implementation
-model: anthropic/claude-haiku-4-5
+model: anthropic/claude-haiku-5-5
 inheritSkills: false
 skills: load-rules, write-agent-report
 ---

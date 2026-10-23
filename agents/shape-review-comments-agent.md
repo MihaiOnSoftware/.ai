@@ -1,7 +1,7 @@
 ---
 name: shape-review-comments-agent
 description: Fresh-context comment shaper — triages raw review findings, writes postable file:line comments in Mihai's voice, verifies line numbers, and returns the shaped list.
-model: anthropic/claude-fable-5
+model: anthropic/claude-fable-5-1
 tools: read, grep, find, ls, bash
 completionGuard: false
 inheritSkills: false

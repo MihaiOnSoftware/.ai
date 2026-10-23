@@ -1,7 +1,7 @@
 ---
 name: explore-and-design-agent
 description: Investigate, scope, and shape a solution before breaking it into implementation slices.
-model: anthropic/claude-fable-5
+model: anthropic/claude-fable-5-1
 completionGuard: false
 ---
 

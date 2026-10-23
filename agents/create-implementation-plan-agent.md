@@ -1,7 +1,7 @@
 ---
 name: create-implementation-plan-agent
 description: Create an implementation plan with incremental slices using story splitting patterns
-model: anthropic/claude-opus-4-8
+model: anthropic/claude-opus-5-5
 completionGuard: false
 ---
 

@@ -1,7 +1,7 @@
 ---
 name: mihai-code-review-agent
 description: Fresh-context Mihai-style code reviewer — runs three ordered passes (mechanical sweeps, precedent diff, adversarial hunt) and produces a severity-labelled verdict.
-model: openai-codex/gpt-6-sol
+model: openai-codex/gpt-6.1-sol
 tools: read, grep, find, ls, bash
 completionGuard: false
 inheritSkills: false

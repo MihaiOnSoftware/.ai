@@ -1,7 +1,7 @@
 ---
 name: micro-tdd-agent
 description: Implements ONE test and minimal code to make it pass, following strict TDD discipline
-model: anthropic/claude-sonnet-4-6
+model: anthropic/claude-sonnet-5-5
 inheritSkills: false
 skills: load-rules, write-agent-report
 ---

@@ -1,7 +1,7 @@
 ---
 name: micro-refactor-agent
 description: Performs ONE refactoring with strict quality standards and test verification
-model: anthropic/claude-sonnet-4-6
+model: anthropic/claude-sonnet-5-5
 inheritSkills: false
 skills: load-rules, write-agent-report
 ---

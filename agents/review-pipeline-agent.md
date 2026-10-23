@@ -1,7 +1,7 @@
 ---
 name: review-pipeline-agent
 description: "Parallel code review pipeline conductor: runs adversarial-review-loop and mihai-code-review simultaneously, merges findings, shapes into postable comments, and presents for user approval."
-model: anthropic/claude-sonnet-4-6
+model: anthropic/claude-sonnet-5-5
 tools: subagent, read, write, bash, ask_user_question, intercom
 completionGuard: false
 inheritSkills: false

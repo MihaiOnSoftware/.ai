@@ -1,7 +1,7 @@
 ---
 name: solve-this-problem-agent
 description: "End-to-end: problem → design → plan → TDD slices. Chains explore-and-design + adversarial-review-loop → create-implementation-plan → tdd-slice. Supports mid-pipeline entry."
-model: anthropic/claude-sonnet-4-6
+model: anthropic/claude-sonnet-5-5
 tools: subagent, read, write, edit, intercom, ask_user_question
 completionGuard: false
 inheritSkills: false

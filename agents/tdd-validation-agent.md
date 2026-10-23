@@ -1,7 +1,7 @@
 ---
 name: tdd-validation-agent
 description: Independently validate TDD implementation with bias towards rejection
-model: anthropic/claude-sonnet-4-6
+model: anthropic/claude-sonnet-5-5
 completionGuard: false
 inheritSkills: false
 skills: write-validation-report

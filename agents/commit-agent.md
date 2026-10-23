@@ -1,7 +1,7 @@
 ---
 name: commit-agent
 description: Creates commits following commit rules and writing style guidelines
-model: anthropic/claude-haiku-4-5
+model: anthropic/claude-haiku-5-5
 completionGuard: false
 inheritSkills: false
 skills: load-rules

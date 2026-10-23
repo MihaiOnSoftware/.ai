@@ -1,7 +1,7 @@
 ---
 name: investigator-agent
 description: Investigates validation failures to determine root cause and recommended approach
-model: anthropic/claude-opus-4-8
+model: anthropic/claude-opus-5-5
 completionGuard: false
 ---
 
