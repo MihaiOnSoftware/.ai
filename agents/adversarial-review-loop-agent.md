@@ -7,6 +7,7 @@ extensions: ~/.pi/agent/npm/node_modules/pi-intercom
 completionGuard: false
 inheritSkills: false
 skills: adversarial-review, adversarial-review-loop
+timeoutMs: 3600000
 ---
 
 ## Role: LOOP CONDUCTOR — not a reviewer
