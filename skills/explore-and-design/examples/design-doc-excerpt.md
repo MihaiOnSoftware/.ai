@@ -1,145 +1,97 @@
 # Example: design doc excerpt
 
-Excerpt from `design/admin-api-types.md` in `shopify-playground/flow-js-playground`. Shows the structure: problem → what exists today (with verdicts) → why we can't just reuse the obvious thing → architecture diagram → accepted simplification → SDK side.
-
-The full doc is ~270 lines. This excerpt shows the load-bearing sections.
+Trimmed from a real design: a redesign of a workflow-status read model after a reviewer pushed back on the shipped-on-branch version. It shows the anchors header, the problem quoting the person who raised it, a verified inventory, a truth table, resolved questions as answer-stating headings, the testing split, scope, and notable decisions. Elided parts are marked `…`.
 
 ---
 
-# Admin API types for user scripts
+# API-856 redesign: remove `FAILED` from the workflow-status read model
 
-Design for providing TypeScript types covering the Shopify Admin GraphQL API
-(inputs and outputs) to devs and LLMs writing/maintaining user scripts in
-flow-js-playground.
+**Date**: 2026-10-23
+**Supersedes**: `~/.ai/wip/api-856-design-2026-10-21.md` wherever they conflict (Kysely types, repository, and codegen inventory carry over unchanged).
+**Branch**: `MihaiOnSoftware/api-856-enrich-workflow-status-from-installation-workflows` @ `9b7cf8ca` (PR #55441, open)
+**Trigger**: Jamal's review on PR #55441 (he owns the writer side, API-378).
 
 ## Problem
 
-A user script in this playground needs to call the Shopify Admin GraphQL API
-through a `step('adminQuery', ...)` / `step('adminMutation', ...)` library
-function (interface owned elsewhere). For the script to be typesafe and for
-LLMs to maintain it over a long lifespan, we need typed `Variables` and typed
-response shapes — both pulled from the Admin API's GraphQL schema.
+The current read model derives a GraphQL `FAILED` status (recipes stopped + non-null `error_detail` → `FAILED`), and masks stored `error_detail` whenever any recipe runs. Jamal, on the PR:
 
-## What Flow already has
+> "I think we should avoid exposing FAILED. It puts the responsibility on the UI to infer what state to show by parsing errorDetails … it was really a pain for installations which is why I removed the FAILED status entirely."
 
-| Artifact | Path | Notes |
-|---|---|---|
-| Versioned Admin API schema (Flow-internal format) | `schema/graphql/<v>.json` | Heavily processed; **not** suitable as an SDK source — see below |
-| Raw Admin API SDL (used by Cusco for typed Ruby calls) | `lib/flow_core/infrastructure/admin/admin_api/schema.graphql` | 7.4MB SDL, not version-pinned |
-| Static per-version patches | `schema/flow/<v>/{fields,objects}/*.json` | Back-compat for renamed/replaced fields |
-| Mutation/query denylist | `lib/flow_runtime/graph_q_l/schema/ingestion/allowlist.rb` (`ADMIN_API_DENYLIST`) | ~55 mutations Flow blocks from workflows |
-| Frontend codegen pattern | `app/ui/tooling/refreshGraphql.ts` | `graphql-typescript-definitions` reading per-project `graphql.config.ts` |
+The installations model is the precedent (verified in source: `InstallationRepository.markError` sets `errorCode`/`errorMessage` without touching `status`; the installation status enum has no `FAILED`). This redesign adopts it: status and error fields become independent dimensions.
 
-### Why Flow's processed `schema/graphql/<v>.json` is not usable
+Removing `FAILED` is non-breaking: master's enum is `NOT_ADDED`/`ON` only (verified against `origin/master`).
 
-Flow's ingest pipeline applies transforms that are lossy from an Admin API
-client's perspective:
+## What exists today (verified on branch @ 9b7cf8ca)
 
-- `transform_paginated_types` strips all `*Connection`/`*Edge` types and
-  rewrites paginated fields to plain lists. The real Admin API still returns
-  connections — a script generated against Flow's schema would write invalid
-  queries.
-- `prune_unreachable_from` keeps only types reachable from a 20-name root
-  set — drops ~2000 types that a user script may legitimately want.
-- `prune_denylisted_fields` and `prune_denylisted_interfaces` remove
-  workflow-specific fields.
-- `add_auxiliary_types` adds Flow-only types like `HttpResponse` that aren't
-  part of the real API.
+| Artifact | State |
+|---|---|
+| `mergeWorkflowStatus` in `WorkflowService.ts` | Pure fn: running → `ON` + null detail (masks stored error); stopped + non-null `error_detail` → `FAILED`; stopped + `CONFIGURING` row → `CONFIGURING`; else `NOT_ADDED`. |
+| `WorkflowSummary` | Nested `errorDetail: {code, message} \| null`; the resolver flattens it. |
+| Tests | `mergeWorkflowStatus.unit.spec.ts`: 13 cases, mostly FAILED/masking. `WorkflowService.integration.spec.ts`: 7 enrichment cases re-proving the same matrix. |
+| Writer side | API-378 not landed; `startRecipes`/`stopRecipes` throw "not implemented". |
+| Helper-module precedents | `modules/installations/utils/`: `evaluateConnectionAuthorization.ts`, `classifyConnections.ts`. Pure computation extracted from services, each with its own unit spec. |
 
-These transforms are correct for Flow's workflow engine. They're wrong for an
-SDK whose consumers query the real Admin API.
+## Design
 
-### Why we don't need dynamic per-shop types
-
-The Admin API GraphQL **schema** is shop-agnostic at the wire level. What
-varies per shop is **data**, not schema:
-
-- Metafield/metaobject definitions vary per shop, but they're exposed through
-  the generic `metafield(namespace, key): Metafield` field. The value is
-  always typed `Metafield.value: String!` — regardless of whether the
-  underlying definition is boolean, number, reference, etc.
-- OAuth scope gating (`requiredAccess` on 602 fields) is **app-scope** gating,
-  not shop gating. Same schema for everyone.
-
-**Accepted simplification**: a script reading `metafield.value` for a
-custom-typed metafield gets `string`, not the actual type. Parsing the value
-is the script's concern. A typed-value helper is out of scope for v1.
-
-## Architecture
+**Status rule**:
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│ Flow (Rails app)                                             │
-│                                                              │
-│  rake schema:export_sdl                                      │
-│   ├─ Raw introspection (existing — same as schema:ingest)    │
-│   ├─ Ingestion::Allowlist (existing — denied mutations out)  │
-│   └─ Introspection JSON → SDL (new converter)                │
-│         │                                                    │
-│         ▼                                                    │
-│  schema/sdk-exports/<api_version>.graphql  (committed)       │
-│                                                              │
-│  GET /admin-graphql-schema/latest.graphql  →  serves file    │
-└──────────────────────────────────────────────────────────────┘
-                            │
-                            ▼ (at SDK release time, NOT user runtime)
-┌──────────────────────────────────────────────────────────────┐
-│ SDK build pipeline                                           │
-│  curl …/admin-graphql-schema/latest.graphql                  │
-│        > package/schema/admin.graphql                        │
-└──────────────────────────────────────────────────────────────┘
-                            │
-                            ▼
-┌──────────────────────────────────────────────────────────────┐
-│ User project                                                 │
-│  src/queries/getProduct.graphql       (hand-written)         │
-│              │                                               │
-│              ▼ pnpm refresh-graphql                          │
-│  src/queries/getProduct.graphql.d.ts  (auto-generated)       │
-└──────────────────────────────────────────────────────────────┘
+resolveWorkflowStatus = anyRecipeRunning ? ON
+                      : rowStatus === CONFIGURING ? CONFIGURING
+                      : NOT_ADDED
 ```
 
-## Flow side — Reuse / Do NOT reuse / New
+**Error rule**: `extractWorkflowError(row.errorDetail)` → `{errorCode, errorMessage}`, per field, whenever a row exists. Neither function consults the other.
 
-### Reuse
+| Any recipe running? | Row | status | errorCode/errorMessage |
+|---|---|---|---|
+| yes | absent | `ON` | null/null |
+| yes | any, with `error_detail` | `ON` | pass-through (was: masked) |
+| no | `CONFIGURING`, with `error_detail` | `CONFIGURING` | pass-through: failed activation |
+| no | `ON`, with `error_detail` | `NOT_ADDED` | pass-through |
+| … | | | |
 
-- `FlowRuntime::GraphQL::Shopify::Flow#request(GraphqlSchemaParser.query)` — introspection.
-- `FlowRuntime::GraphQL::Schema::Ingestion::Allowlist#generate` — verbatim Flow denylist.
+### Error extraction: per-field, and zod goes away
 
-### Do NOT reuse
+Jamal asked whether a valid `message` should survive an invalid `code`. Per field: a writer bug on one field must not destroy the other. With two optional string fields, zod's all-or-nothing default is what caused the question, so plain `typeof` checks replace it. …
 
-- `Patches.merge` (Flow legacy back-compat)
-- `transform_paginated_types`
-- `prune_unreachable_from`
-- `prune_denylisted_fields` / `prune_denylisted_interfaces`
-- `add_auxiliary_types`
+### `errorCode` stays `String` (confirmed with Mihai)
 
-### New
+The writer has no codes yet; an enum now would be `{UNKNOWN}`-only and would erase every real stored code. Revisit once API-378 fixes the vocabulary. …
 
-- **`rake schema:export_sdl`** in `lib/tasks/schema.rake`. …
-- **Route** `GET /admin-graphql-schema/latest.graphql`. …
+## Testing
 
-### Auth
+- **Unit** (`utils/workflowStatus.unit.spec.ts`, replaces the merge spec): the `resolveWorkflowStatus` matrix (~6 cases) and the `extractWorkflowError` matrix (~8 cases).
+- **Integration** (`WorkflowService.integration.spec.ts`): trimmed to ~4 wiring proofs through the real stack; the matrix lives in unit.
 
-**Public for now.** The output is the Admin API schema minus already-curated
-denied ops — no shop data, no secrets. Flagged as a follow-up before shipping
-to production: at minimum require an authenticated Shopify session or
-service-app token. This becomes urgent once the SDK leaves internal use.
+## Scope
 
-## Open questions / follow-ups
+**Non-goals**: writer-side changes (API-378); the `errorCode` enum migration; exposing per-recipe errors.
 
-1. Whether to bundle the SDL in the SDK package or fetch at install time. Proposed: bundle (deterministic, offline). Alternative: fetch (smaller package). Need user call.
-2. Where the build-time `curl` lives — `prepublishOnly` script or a separate CI step. Proposed: `prepublishOnly`. Need user call.
-3. Metafield-typed-value helper deferred to v2.
+**Accepted simplifications**: stale stored errors stay visible until the writer clears them, deliberately, per Jamal. `NOT_ADDED` + error fields is representable; no status is invented to prevent it.
 
----
+## Known risks
 
-## What this excerpt demonstrates
+- Writer contract: API-378's success paths must clear `error_detail`, or stale errors show next to `ON` indefinitely. Flag to Jamal; not this ticket's code.
+- PR #55255 (API-380) touches `WorkflowService.ts`; textual rebase risk.
 
-- **Problem statement** in one paragraph.
-- **"What exists today"** is an inventory table with `Notes` doubling as the verdict column.
-- **Why we can't just reuse the obvious thing** gets a dedicated sub-section per artifact. Concrete reasons, not "doesn't fit."
-- **Architecture diagram** crosses system boundaries (Flow Rails app / SDK build / user project), with the labels on the arrows telling you *what* crosses and *when*.
-- **Accepted simplification** is named explicitly so the reader knows it's deliberate.
-- **Reuse / Do NOT reuse / New** trio forces a decision per existing artifact.
-- **Open questions** are numbered with `Proposed: / Alternative: / Need user call.`
+## Notable decisions
+
+1. `FAILED` removed from the GraphQL enum; status and error fields are independent.
+2. Error pass-through is unconditional; the masking rule is deleted.
+3. Per-field extraction, zod deleted; the warning on wrong-typed fields stays as the writer-bug signal.
+4. `errorCode: String` kept until the writer's vocabulary exists.
+5. Helper module `utils/workflowStatus.ts` with two functions; `mergeWorkflowStatus` deleted as a name.
+
+## Open questions (deferred)
+
+1. `errorCode` enum migration timing. Revisit with Jamal when API-378 defines values.
+2. Exact `error_detail` key names. Confirm when the writer lands; `extractWorkflowError` is the single update point.
+
+## Suggested slice boundaries
+
+1. Helper module and its unit spec, no consumers yet.
+2. `WorkflowService` switch-over, old spec deleted, integration spec trimmed.
+3. GraphQL: SDL deletion, docstrings, codegen, resolver and spec updates.
+
+<!-- not yet adversarially reviewed as a complete artifact -->

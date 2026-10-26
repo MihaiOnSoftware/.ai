@@ -1,73 +1,46 @@
-# Example: investigation → issue comment + PR description
+# Example: wip findings → ticket comment
 
-Investigation work doesn't always produce a `design/` doc. Often the output is a GitHub **issue comment** (the risk + evidence summary) plus a **PR description** (the change being made).
+A spike's wip doc is written for the next session that has to re-run or extend it: IDs, endpoints, run numbers, verbatim probe output. The ticket comment is written for teammates who know the systems but didn't do the spike. Same findings, different reader.
 
-This example shows the shape, distilled from a real investigation (`flow-29306-upgrade-shopify_security_base-4`). The investigation phase ran across Observe, BigQuery, gem source via `gh api`, and three rounds of adversarial-subagent refutation. The output below is the distillation.
+This pair comes from a spike on how Workato's dynamic field mapping behaves at runtime.
 
----
+## The wip doc (excerpt)
 
-## Issue comment shape
+`~/.ai/wip/api-828-spike-2026-10-09.md`:
 
-Posted on `shop/issues#29306` (paraphrased structure, judgement calls stripped):
-
-> **Risk assessment: path-traversal enforcement in `shopify_security_base` 4.0.0**
+> **Method**: live runs against a purpose-built test recipe in the Workato dev partner workspace (`8499350`), same Mapper + data-model carrier as the decided design. 10 jobs fired, step outputs observed via an instrumented stop step whose reason interpolates datapill formulas.
 >
-> ### What changes
-> Version 4.0.0 of `shopify_security_base` raises `PathTraversalException` on any `Net::HTTP` request whose path contains `../` (or URL-encoded variants). Version 3.x logged-only.
+> | # | Check | Verdict |
+> |---|---|---|
+> | 1 | Boolean coercion | **No coercion. Value stays the string `"false"`/`"true"`.** Scope reframed by Mihai mid-spike: the data model encodes booleans as string selects (no `boolean`-typed field exists in model 144073). Runtime proof: `== 'false'` → true, `== false` → false, `.present?` on `"false"` → **true**. |
+> | 3 | Builder-input vs field-map precedence | **Field-map static wins, per-field, with builder fallback.** Builder value `builder-value` + static `fieldmap-value` → step outputs `fieldmap-value`. Removing the field's entry → `builder-value` resurfaces. Empty-string static → empty wins. |
 >
-> ### Production signal
-> - **Observe** (`flow-production` dataset, 7-day window): 0 occurrences of the v3.x observe-mode log line `shopify_security_base.path_traversal.detected`.
-> - **BigQuery** (`apps_and_developers.flow_config_field_values_v1` JOIN `shopify_flow.workflows_v1 WHERE is_active`): 24 workflows had URL config-field values containing `%2f` literals, all in query-parameter position. 0 workflows contained adjacent `..%2f` or `../` patterns.
-> - The 24 false positives were surfaced by an adversarial-subagent pass on the initial query, which had used `LIKE '%..%2f%'` without requiring adjacency.
->
-> ### Residual risk
-> - **Liquid template variables**: a workflow author could template a `../` into the URL at runtime. We cannot enumerate Liquid template outputs exhaustively. Mitigation: ship observe-only first (PR 1, below), monitor for 7 days, enforce in PR 2.
-> - The Rails 8.1.2 monkey-patch removal (deployed 2026-04-06) broke `Rails.event.notify` ingestion for ~2 weeks. Observe data older than that window may be incomplete.
->
-> ### Recommendation
-> Ship in two PRs:
-> 1. Bump to 4.0.0 + register the gem's `http_request_allow_path_traversal_callback` to **log only** (no raise).
-> 2. After 7 days of clean Observe data, flip the callback to raise.
->
-> ### How this was investigated
-> - Read the gem source for v3.1.7 (deployed) and v4.0.0 (target) via `gh api repos/Shopify/shopify_security_base/contents/...`.
-> - Verified the callback API in v4.0.0 ships via `Net::HTTPGenericRequest#exec` monkey-patch (not `Net::HTTP#request`).
-> - 3 rounds of adversarial-subagent refutation on the "0 active workflows affected" claim.
-
----
-
-## PR description shape (PR 1, the observe-only ship)
-
-Following the Flow team's WHAT / WHY / Testing / Review-tip template:
-
-> ### What
-> Bump `shopify_security_base` from 3.1.7 to 4.0.0. Register a callback that **logs** path-traversal detections without raising.
->
-> ### Why
-> v4.0.0 raises `PathTraversalException` by default. We want one week of observe-only signal in production before enabling enforcement — see [issue #29306](https://github.com/shop/issues/issues/29306) for the risk assessment.
->
-> ### Testing
-> - Unit: new spec asserts the registered callback gets called on a `../` path and does **not** raise.
-> - Manual: `bin/rails runner` with a crafted `Net::HTTP.get(URI('http://example.com/../etc/passwd'))` → confirmed log line in `log/development.log`, no exception.
->
-> ### Review tip
-> The single load-bearing change is `config/initializers/shopify_security_base.rb`:
-> ```ruby
-> config.http_request_allow_path_traversal_callback = ->(path) do
->   Rails.event.notify("shopify_security_base.path_traversal.detected", path: path)
->   true # allow — observe only
-> end
 > ```
-> All other changes are version-bump churn (Gemfile.lock, sorbet/rbi).
+> eq_str_false=true    # value == 'false'  → it is the STRING "false"
+> eq_bool_false=false  # value == false    → NOT a real boolean
+> present=true         # "false".present?  → truthy
+> ```
+>
+> Privileges: recipe start/stop returned 401 `missing_privilege` at spike start; granted mid-session. …
 
----
+## The Linear comment (as posted, trimmed)
 
-## What this excerpt demonstrates
+> **Spike done. All 4 checks answered against a live test recipe (82950892 in the dev partner workspace, left in place for future testing).**
+>
+> **1. Boolean coercion — values stay strings, so truthiness checks are unsafe.**
+> The Mapper step outputs exactly the string we stored, with no type conversion. A stored `"false"` comes out as the string `"false"`, and any truthiness-style check treats it as true. A customer picking "off" would silently get "on". Rule for recipe authors: boolean config must always be consumed with an explicit string comparison (`== "true"`), never a presence or truthy check. …
+>
+> **3. Builder value vs field map — the field map wins.**
+> When a field has both a builder value and a field-map entry, the job uses the field-map entry. Fields without an entry fall back to their builder value, so builder values act as author defaults. An empty-string entry beats the builder value too, so a customer can clear a field. The flip side: if we skip writing an entry for a field we meant to control, the author's leftover value goes out with the job.
+>
+> …
+>
+> Full details and reproduction steps are in my spike notes. One minor loose end: if the data model later drops a field that still has a field-map entry, the stale entry persists in the map. We didn't test what a job does with it, so our config writer should prune entries for removed fields.
 
-- **Investigation outputs land in PR/issue threads**, not a separate design doc.
-- **The issue comment is structured like a design doc** — "what changes", "production signal", "residual risk", "recommendation", "how this was investigated" — same skeleton as a design's "what exists today / non-goals / open questions / accepted simplifications."
-- **Judgement calls are stripped.** "Risk + evidence it won't materialize" is the framing, not "this is fine."
-- **The methodology itself goes in the comment.** "3 rounds of adversarial-subagent refutation" tells future readers how much skepticism the conclusion survived.
-- **Known gaps are surfaced**, not buried. The Rails event-ingestion gap and the Liquid template gap both get explicit mention.
-- **Two-PR staged delivery** when the investigation surfaces residual risk. Don't try to ship one big change when observe-mode-first → enforce-later is available.
-- **The PR description includes "Review tip"** — the load-bearing change is one stanza of code; the rest is churn. Tell the reviewer where to look.
+## What changed between the two
+
+- **Headings state the answer**, not the question: "values stay strings, so truthiness checks are unsafe".
+- **Consequences replace probe output.** `present=true` becomes "a customer picking 'off' would silently get 'on'".
+- **Each finding ends in a rule or implication** for the people building on it.
+- **Process details are gone**: run numbers, the mid-spike privilege grant, who reframed which check, the instrumentation trick. The one artifact a teammate can reuse (the test recipe ID) stays.
+- **The untested edge is named** as a loose end with a concrete mitigation, not buried.

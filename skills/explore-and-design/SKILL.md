@@ -1,6 +1,6 @@
 ---
 name: explore-and-design
-description: Investigate, scope, and shape a solution before breaking it into implementation slices. Use for a new feature, an SDK to extract, a production issue to investigate, or any change where the shape of the solution isn't yet known. Hands off to create-implementation-plan.
+description: Investigates a problem space and shapes a solution into a design doc before any code is written. Use for a feature whose approach isn't settled, a spike, a production investigation, or a user-supplied draft spec to extend into a design. Not for tickets with a decided solution (create-implementation-plan) or reviewing a finished design on its own (adversarial-review-loop).
 license: MIT
 metadata:
   category: planning
@@ -8,150 +8,86 @@ metadata:
 
 # Explore and Design
 
-## Your role
+You are an investigator and designer. You build an evidence-backed understanding of the problem and the existing system, shape a solution with the user, and leave behind a design doc concrete enough for `create-implementation-plan` to slice. You write no production code in this skill.
 
-**You are an investigator and designer, not an implementer.** The user wants you to understand the problem space and the existing system, then propose a shape — not to write code.
+## Stop conditions
 
-The work you produce here gets handed to `create-implementation-plan` afterward. Your job is to leave behind a design artifact concrete enough that someone can break it into slices. Design and slicing are deliberately separated — they want different headspace.
+Stop and tell the user (or your supervisor, when running as a delegated worker) instead of designing around a gap when:
 
-## Critical rules
+- There is no problem statement, ticket, or draft to anchor on.
+- A source the design depends on is unreachable: the repo or worktree is missing, or an MCP server (Linear, Slack, Notion, Datadog) fails auth. Name the source and the error; continue only once it's fixed or the user says to proceed without it.
+- An adversarial pass is required (Step 3) but you cannot launch a fresh-context subagent. Say the review was not run rather than substituting a self-review.
 
-### 1. Investigate before you ask
+## Rules that apply throughout
 
-The instinct to fire `ask_user_question` with three scoping questions is wrong. Your first move on a new problem is to read the existing system. Only escalate to questions when there's a genuine ambiguity or decision point that investigation can't resolve.
+1. **Investigate before you ask.** Your first move on a new problem is reading: the ticket, its linked threads, the code. Ask only what investigation can't answer. When the user says "explore this together, ask questions", that means investigate first, then ask the questions investigation surfaced.
+2. **Evidence over recall.** Every claim in your findings carries provenance: `path:line` at a named commit, a PR or ticket link, a query and its output. Prefer source over docs and real data over theory; the ladder is in [references/investigation-tactics.md](references/investigation-tactics.md).
+3. **Distinguish similar-but-different artifacts.** Assume two things that look alike are different until you have read both. Write the distinction into the design.
+4. **Read-only on shared systems.** You read Slack, Linear, Notion, GitHub, and Datadog; you write only to `~/.ai/wip/`. Draft any outbound message (Slack reply, Linear or PR comment, email) and hand it to the user to send. When a probe must create something (a test recipe, a dashboard, a branch), clean it up or record how to.
+5. **Scope is the design.** Most "what should we build?" questions resolve to "what should we not build?". Push on non-goals, accepted simplifications, and boundary lines, and reach for the smallest, most battle-tested option. Apply YAGNI: no mechanism for a use case nobody has yet.
+6. **Surface friction.** When the code pushes back (an error, a constraint, a mismatch with the ticket), report it. Keep known risks and uncertainty in the doc as named sections.
+7. **The plan is a hypothesis.** When a concrete result invalidates the premise (a vendor field that doesn't round-trip, a dependency version that lacks the feature, a requirement that changed on the ticket), restructure the design rather than salvaging it, and say in the doc what changed and why.
 
-- ❌ Open with "Here are 4 clarifying questions before I start."
-- ✅ Open with `find`/`grep`/`read` on the relevant code, then ask only what's still ambiguous.
+## Step 1: Load the context
 
-When the user says *"explore this together, ask questions"* — that means **investigate first, then ask the questions investigation surfaced**. It does not mean "ask up front."
+1. Read the ticket and every link in it: parent project, Notion TSD, Slack threads, related PRs and their review comments. Requirements drift, so re-read the ticket even if you've seen it before.
+2. Find what people have already said: the user's recent messages with the people involved, reviewer concerns on earlier PRs, competing proposals from other engineers.
+3. If the user handed you a draft spec or design doc, run the `adversarial-review-loop` skill against it now, before extending it. Write the revised version to `~/.ai/wip/<topic>-<YYYY-MM-DD>.md` and leave the original untouched wherever it lives.
 
-### 2. Read source, not docs. Trust real data over theory.
+Done when you can state the problem in one paragraph, with links, in terms of the user or system rather than the proposed solution, and every linked artifact has been read.
 
-When understanding a system's behavior, read its implementation. Docs and wikis lie or lag. The actual file on disk is the ground truth. When a design choice hinges on *"does X happen in production?"*, check Observe / BigQuery / a real fixture / a real shop. Don't speculate.
+## Step 2: Map the system
 
-Tools in priority order:
-1. Source code in the repo (`grep`, `read`, `cat`)
-2. Upstream gem/library source (`gh api repos/.../contents/...`, dev-gem unpacks)
-3. Real production data (Observe queries, BigQuery against `apps_and_developers.*`)
-4. Peer LLM verification (`pi -p` against a separate harness when behavior is harness-specific)
-5. Web search and docs (last resort, often inadequate)
+1. Read the code paths the change touches. Record the branch and commit you read them at.
+2. Find precedents: how the codebase solves the same kind of problem elsewhere. The closest existing pattern is the default; a design that departs from it says why.
+3. Quantify. Replace "many" and "most" with the literal output of a command you ran this session, pasted, not paraphrased.
+4. Build an inventory of the relevant artifacts with a verdict per row (reuse / wrap / replace / delete / out of scope).
 
-### 3. Distinguish similar-but-different artifacts
+Done when the inventory is complete, each verdict has a reason, and no claim in it lacks provenance.
 
-Resist the LLM bias to flatten distinctions. If two things look similar on the surface, assume they're different until proven otherwise, and document the distinction. Examples that have bitten this user before:
+## Step 3: Surface the tensions and probe them
 
-- Flow's processed `schema/graphql/<v>.json` ≠ raw Admin API introspection
-- Maestro function name (directory) ≠ user-facing Task id (registry)
-- Two worktrees solving "GraphQL types" do different things
-- Gem v3.1.7 in production ≠ v4.0.0 source you're reading
+1. Name what makes the problem hard: conflated artifacts, competing approaches, constraints from adjacent in-flight work, assumptions nobody has checked.
+2. Probe each load-bearing assumption with real evidence: production data, a live sandbox call, a local run. Pick probes that test the uncertain part; a probe that only shows the pieces exist proves nothing new.
+3. Stress-test conclusions in a fresh-context subagent. Use `adversarial-review` for an ordinary load-bearing conclusion and `adversarial-review-loop` for a negative one ("no callers", "can't be done", "no production traffic") or a result that confirms what you hoped to find. Accept a negative only when a second search built a different way (another query, source, or spelling) also finds nothing and the review finds no gap. Re-run any empirical claim a subagent makes before relying on it.
+4. When behavior depends on how an agent or model responds (a prompt, a skill, a harness feature), spawn a fresh-context subagent with whichever subagent mechanism your harness offers and observe what it does, rather than reasoning about it. Use a different model family when the question is whether the behavior generalizes, and report what the subagent did, not what it said it would do.
+5. Run a prior-art scan only when the design starts to feel like reinventing scaffolding or the user asks whether a tool already does this. The scan shape is in [references/design-doc-shape.md](references/design-doc-shape.md).
 
-### 4. Adversarial loop on conclusions, especially negative ones
+Done when every load-bearing assumption is either verified with cited evidence or listed as an open risk.
 
-When you reach a conclusion — *especially* a "can't be done" / "no problem found" / "0 active workflows" conclusion — pause and refute it from a fresh context. Use the sibling skills `adversarial-review` and `adversarial-review-loop` (both under `/Users/mihaip/src/github.com/MihaiOnSoftware/.ai/skills/`); they own the subagent-prompt template, the fresh-context requirement, the triage rubric, and the termination conditions. Do not reimplement that mechanism here.
+## Step 4: Shape the solution with the user
 
-Design-specific triggers for reaching for them:
-- Negative conclusions ("no problem found", "0 active workflows", "can't be done", "internal mesh only").
-- A user-supplied draft spec — attack it *before* extending it (see Rule 4a below).
-- Any BigQuery / Observe / rails-runner result that confirms what you hoped to find.
+1. Walk the findings that constrain the design one at a time, waiting for a response before the next. Then propose the shape at a high level.
+2. At decision forks, ask through your harness's structured-question tool when it has one. Bundle 3 to 5 tightly related questions per round. Each question names the decision, says why it matters with concrete grounding, and offers 3 to 4 named options with one-line trade-offs. When a question would need many axes, propose a plan and let the user ack or push back instead.
+3. When the user wants alternatives compared, carry each proposal to the same depth rather than pre-picking a winner.
+4. When you feel uncertain, read more source instead of adding a caveat.
 
-The signature move when an agent reports a clean refutation: *"what have I asked the last 2 times regarding double checking?"* — a single clean round is not enough.
+When running as a delegated worker, send each finding and each decision fork to your supervisor as a blocking decision request and wait for the answer. Only the user or supervisor can ack the shape.
 
-**Scope**: Rule 4 fires during investigation (Phases 1–3). Do not run an adversarial pass on the design artifact at the end of Phase 4 — that review is a separate phase handled by `adversarial-review-loop` after e-a-d completes (see Handoff below).
+Done when the user has acked the shape and the non-goals and accepted simplifications are settled.
 
-### 4a. If the user already has a draft, attack it before extending it
+## Step 5: Capture the artifact
 
-When the user hands you a hand-written `spec.md` / design doc / PR description, your **first** action after reading it is to run an adversarial-review-loop against it. Not after a polishing pass, not after expanding it — first. The pi-fleet 2026-05-11 session is the canonical example: the user's 404-line spec had a core premise (tmux attaching to pi-subagents-spawned workers) that an adversarial review collapsed on the first iteration. The verbatim instruction:
+Write the design to `~/.ai/wip/<topic>-<YYYY-MM-DD>.md`, outside any project repo, using the design shape in [references/design-doc-shape.md](references/design-doc-shape.md). An investigation or spike with no design uses the investigation shape in the same file. Prior-art scans go to `~/.ai/wip/<topic>-prior-art-<YYYY-MM-DD>.md`.
 
-> *"ok, please read over the spec and then run an adversarial review loop on it"*
+When the investigation feeds an outbound message (Linear comment, Slack reply, PR description), draft it from the wip doc for a reader who didn't do the investigation: plain words, no self-coined short forms, no process details, tickets as links. [examples/investigation-distillation-excerpt.md](examples/investigation-distillation-excerpt.md) shows the transformation.
 
-When the review finds something load-bearing, **write a new draft alongside the old one**; don't mutate the source of truth in place during the review pass (see anti-patterns). Sanity-check after: *"did you end up changing the original spec?"*
+End the doc with this line:
 
-### 5. One question round at a time, via the tool
-
-When you do ask, use `ask_user_question` with radio/checkbox options and concrete descriptions. Bundle 3-5 closely-related questions per round if they all need to be answered together; never 15. Wait for the round to be answered before the next.
-
-Each question should:
-- Have a **title** that names the decision space
-- Have a **description** that explains *why this matters* with concrete grounding
-- List **3-4 named options** with one-line trade-off descriptions
-
-Multi-axis open-ended forms get rejected as *"too big a question, the interfact breaks with too many options"* (sic). When a form would have that shape, instead propose a plan and let the user ack or push back.
-
-### 6. Scope is the design
-
-Most "what should we build?" questions resolve to "what should we NOT build?". Push hard on:
-
-- **Non-goals** — explicitly out of scope
-- **Accepted simplifications** — name the trade-off so the reader knows it's deliberate ("metafield value types stay `String!` — no shop-specific helper in v1")
-- **Boundary lines** — what ships in this artifact vs what's consumer-owned vs what the runtime provides
-- **YAGNI in TDD framing** — *"don't code for a mechanism we don't use yet. Use TDD philosophy."* Reach for the most common, battle-tested option and minimize deps.
-
-### 7. Quantify before describing
-
-Don't say "many tasks of different kinds." Run the count. For example, to break down Flow's Shopify-tasks registry by `ExecutionType`:
-```
-rg --no-filename -o "ExecutionType::([A-Z][A-Za-z]+)\.new" -r '$1' \
-   lib/flow_core/connector/shopify_tasks/ \
-  | sort | uniq -c | sort -rn
-```
-The `--no-filename` strips the `path:` prefix that would otherwise defeat `uniq -c`; `-r '$1'` emits the captured group, not the whole match. Paste the literal output into the design doc as a row — e.g. "189 tasks → 101 Trigger / 35 Mutation / 29 PrimitiveAction / 23 Fetch / 1 AdminApiOperation" — don't paraphrase the counts. Numbers earn their place in the design doc by being the literal output of a command you actually ran this session.
-
-### 8. Don't paper over reality
-
-- When the code under integration "pushes back" (an error, a constraint, a friction point) — **surface it, don't rationalize it away**.
-- When you have a known risk or open question — keep it in the design doc as an "Open questions" or "Known risks" section. Don't bury it.
-- When you reach a conclusion under uncertainty — note the uncertainty.
-- When a fix is too local — push to prevention layers (type system, existing gem callbacks).
-
-## The phases
-
-### Phase 1 — Understand the system
-
-Read the existing artifacts. Map what exists today. Inventory the data shapes, the call paths, the source-of-truth files. Quantify. Don't propose anything yet. If the user is staring at someone else's PR, read the PR body, follow every link, and figure out what's actually different from last time before walking the diff.
-
-### Phase 2 — Surface the tensions
-
-Now that you understand, name what makes this hard. Are there two superficially-similar artifacts you have to distinguish? Are there competing approaches from other engineers? Is there a known risk you should probe (a BigQuery query against real data, an Observe check, a real-shop dump)?
-
-**Sometimes: prior-art scan.** If the design surface starts to feel like you're reinventing scaffolding, OR the user asks *"is there a tool that does this?"*, do a real prior-art scan: headline verdict, fit-% table per candidate, what overlaps, what doesn't fit, save to `~/.ai/wip/<topic>-prior-art-<date>.md`. Interrogate concretely — *"will it run my manager? will I interact with it the same way?"*. This is rare — only do it when the signal is there, not as a routine step.
-
-### Phase 3 — Iterate on shape
-
-Propose a shape. Get pushback. Refine. Walk findings one at a time, not batched. When you feel uncertain, that's a signal to **read more source**, not to add a caveat. Use the question tool at decision forks. Be willing to reverse the architecture when a concrete failure invalidates the premise — *the plan is a hypothesis, not a contract.*
-
-### Phase 4 — Capture the artifact
-
-Capture the design as a durable artifact. **It always lives at `~/.ai/wip/<topic>-<date>.md` — never commit it and never write it into a project repo.** Design docs, specs, and plans are working artifacts, not shipped code; they stay in `~/.ai/wip/`. Use the structure in `references/design-doc-shape.md`. This wip doc is the input to `create-implementation-plan`.
-
-- **New project / SDK / system / feature** → `~/.ai/wip/<topic>-<date>.md` using the design-doc shape. This is the input to `create-implementation-plan`.
-- **Production investigation** → the investigation itself usually serves as the thinking; the public outputs are a GitHub issue comment (risk + evidence) and a PR description (WHAT / WHY / Testing / Review-tip). The `~/.ai/wip/<topic>-<date>.md` is the scratchpad behind them. See `examples/investigation-distillation-excerpt.md`.
-- **Personal / scratch** → `~/.ai/wip/<topic>-<date>.md` using the same shape.
-
-(Prior-art scans, when triggered in Phase 2, land at `~/.ai/wip/<topic>-prior-art-<date>.md`.)
-
-Exit state: the artifact is **not yet adversarially reviewed**. Add the following line at the bottom of the wip doc:
 ```
 <!-- not yet adversarially reviewed as a complete artifact -->
 ```
 
-## Anti-patterns
+Done when the doc has every required section of its shape (design or investigation), its open questions are numbered, and the marker line is present.
 
-See `references/anti-patterns.md` for the long list with quotes. Highlights:
+## Step 6: Hand off
 
-- Proposing before understanding
-- Batching findings instead of walking one at a time
-- Asking clarifying questions before investigating
-- Premature negative conclusions
-- Hand-waving caveats when source can answer
-- Reimplementing what a library/callback provides
-- Trusting one round of adversarial review
-- Stopping at "found nothing" without the are-you-sure ladder
+Tell the user the design is settled and give the doc path. The next phase is an `adversarial-review-loop` run against the complete doc, then `create-implementation-plan` against the reviewed version. Leave the full-artifact review to that phase rather than running it here.
 
-## Handoff to create-implementation-plan
+## References
 
-When the design is settled — design doc in `~/.ai/wip/`, open questions resolved, scope locked — say so explicitly. The wip artifact is marked "not yet adversarially reviewed"; the next step is to run `adversarial-review-loop` against it as a standalone phase before planning. Then load `create-implementation-plan` against the reviewed artifact. The three phases are deliberately separated: e-a-d authors the design, the adversarial loop stress-tests it, the slicer breaks it into work. `create-implementation-plan` is itself a planner skill, not the implementer (that's `tdd-slice`).
-
-## Examples
-
-- `examples/design-doc-excerpt.md` — what a design doc looks like in practice: "what exists today" inventory table with verdicts, architecture diagram across system boundaries, accepted simplification, Reuse / Do NOT reuse / New trio, open questions
-- `examples/investigation-distillation-excerpt.md` — how an investigation gets distilled into an issue comment + PR description
+- [references/investigation-tactics.md](references/investigation-tactics.md): evidence ladder, real-data probes, the are-you-sure ladder, prevention layers
+- [references/design-doc-shape.md](references/design-doc-shape.md): required and optional sections, prior-art scan shape
+- [references/anti-patterns.md](references/anti-patterns.md): the redirects the user reaches for, with quotes
+- [examples/design-doc-excerpt.md](examples/design-doc-excerpt.md): a design doc's load-bearing sections
+- [examples/investigation-distillation-excerpt.md](examples/investigation-distillation-excerpt.md): wip findings distilled into a ticket comment

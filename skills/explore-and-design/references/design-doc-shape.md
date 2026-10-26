@@ -1,107 +1,97 @@
 # Design Doc Shape
 
-The structure that recurs across `design/admin-api-types.md`, `design/task-registry.md`, `design/flow-tasks-sdk.md`, `design/sdk-overview.md`, `pi-fleet/spec.md`, and several `~/.ai/wip/*.md` investigations.
+The structure for `~/.ai/wip/<topic>-<YYYY-MM-DD>.md`. A design uses the anchors header plus the required sections below; an investigation or spike with no design uses the anchors header plus the [investigation shape](#investigation-shape). Lead with substance. The only header above the first section is a short block of anchors the reader needs to locate the work.
 
-The common opener is `# <Title>` → one-paragraph intent (what the doc is for) → optional sister-design link → a first `##` section that names what the doc anchors on. **No "Status / Audience / Scope" preamble.** What that first section is named varies with the doc's framing:
+## Anchors header
 
-- **`## Problem`** — greenfield work where the problem isn't obvious (`admin-api-types.md`, `task-registry.md`).
-- **`## What we ARE typing` / `## The runtime contract`** — sister-design or layered-overview docs where the framing is what the design *covers*, not the problem (`flow-tasks-sdk.md`, `sdk-overview.md`).
-- **`## Status` then `## Background` then `## Goals` / `## Non-Goals`** — spec docs that **replace an earlier draft**. The `## Status` paragraph says "Second draft, ..." and links the prior version (`pi-fleet/spec.md`).
+A few `**Label**: value` lines under the title, only the ones that apply:
 
-Pick the framing that fits. The one rule is no "audience / scope" preamble pretending to be metadata — just lead with the substance.
+- **Date**
+- **Ticket**: Linear link
+- **Branch**: name and the commit the design was verified at; note stacking ("stacked on API-856, don't rebase onto master")
+- **Repo**: absolute worktree path
+- **Supersedes**: path of the earlier design, and what carries over
+- **Blocked on**: prerequisite ticket, when there is one
 
-## Problem (or equivalent first section)
+## Required sections
 
-One paragraph. What is the problem we're solving — or, if the doc is framed differently, what is the design's anchor? Frame it in terms of the user / system, not the proposed solution.
+### Problem
 
-## What exists today (or "Background")
+One paragraph framed in terms of the user or system, not the proposed solution. Quote the person who raised it when their words carry the requirement.
 
-An **inventory table** of relevant existing artifacts. One row per artifact, columns roughly:
+### What exists today
 
-| Artifact | Path | Notes / Verdict |
+An inventory table, verified at the commit in the header:
 
-The "Verdict" column is load-bearing — it forces a decision per artifact (Drop / Wrap / Adopt / Out of scope / etc.). For each artifact that's NOT usable as-is, write a sub-section explaining why. This is where similar-but-different artifacts get disambiguated.
+| Artifact | Path | State / verdict |
 
-Quantify when you can: paste the actual count-table output (e.g. "189 tasks → 101 Trigger / 35 Mutation / 29 PrimitiveAction / 23 Fetch / 1 AdminApiOperation") instead of "lots of tasks of different kinds." Numbers in a design doc must be the literal output of a command you ran in this session — don't paraphrase or round.
+The verdict column forces a decision per row (reuse / wrap / replace / delete / out of scope). Each artifact that isn't reusable as-is gets a short sub-section saying why, with concrete reasons. Counts are the literal output of a command run this session.
 
-## Architecture / data flow
+### Design
 
-ASCII box-and-arrow diagram across the system boundaries. Label each box with what it owns (Flow Rails app / SDK build pipeline / user project / etc.) and each arrow with what crosses it (rake task / API endpoint / pnpm script / file).
+The shape: components, data flow, and the rules they follow. Use whatever fits the problem:
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│ Flow (Rails app)                                             │
-│   rake schema:export_sdl                                     │
-│         │                                                    │
-│         ▼                                                    │
-│  schema/sdk-exports/<api_version>.graphql  (committed)       │
-└──────────────────────────────────────────────────────────────┘
-                            │
-                            ▼ (at SDK release time, NOT user runtime)
-┌──────────────────────────────────────────────────────────────┐
-│ SDK build pipeline                                           │
-│   curl …/admin-graphql-schema/latest.graphql                 │
-└──────────────────────────────────────────────────────────────┘
-```
+- An ASCII box-and-arrow diagram across system boundaries, boxes labeled with what they own and arrows with what crosses them.
+- A truth table when behavior is a function of a few inputs.
+- Small code snippets only to pin down an interface or signature. Algorithms go in prose.
+- A Reuse / Do not reuse / New breakdown when the design builds on existing machinery.
 
-## What we are NOT doing (non-goals)
+When a design question was resolved with the user or a reviewer, give it a sub-heading that states the answer ("Error extraction: per-field") and cite who decided it.
 
-Explicit, bulleted. Examples:
+### Testing
 
-- *"No automated worktree / branch creation. Manager LLM owns cwd choice."*
-- *"No persisted manager-LLM context. The registry stores facts about workers, not the manager's reasoning."*
-- *"First-party Flow connector tasks are not typed; users hit them via the admin-api codegen instead."*
+Which level owns each behavior: unit tests own the case matrix, integration tests prove the wiring with a few cases. Name the spec files that change.
 
-If a non-goal punts to a sister design, link it: *"See task-registry.md for the third-party-extensions case."*
+### Scope
 
-## Accepted simplifications
+- **Non-goals**: bulleted and explicit. Link the sister design or ticket when a non-goal is punted there.
+- **Accepted simplifications**: each trade-off named so the reader knows it's deliberate.
 
-Name the trade-offs you've deliberately made. The reader should know this is not an oversight.
+### Known risks
 
-- *"Metafield value types stay `String!` — no shop-specific helper in v1. Parsing the value is the script's concern."*
-- *"Workers are TUI mode only — no `--mode json -p` workers."*
+Each with the evidence for and against it materializing, and any coordination it needs (another team's writer contract, an in-flight PR touching the same files).
 
-## Open questions / known risks
+### Notable decisions
 
-Numbered. For each: **Proposed: X. Alternative: Y. Need user call.** OR **Risk: Z. Evidence it won't materialize: ….**
+Numbered, one line each with the reason. This is the summary a pipeline conductor or reviewer reads first.
 
-```
-1. fleet_send sync vs async. Proposed: fire-and-forget, return
-   {delivered:true} once intercom accepts the message; manager can poll
-   fleet_status for ack. Alternative: tool blocks up to N seconds for an
-   ack. Sync feels nicer for the LLM but couples the tool call to worker
-   turn latency. Need user call.
+### Open questions
 
-2. Windows naming collisions. ...
-```
+Numbered. Each is either **Proposed: X. Alternative: Y. Needs user call.** or deferred with the trigger for revisiting it.
 
-Don't bury these. They are an active part of the design.
+## Investigation shape
 
-## Sister-design references
+For an investigation or spike that answers questions rather than proposing a build:
 
-If this is one of several related designs, link them explicitly: *"Sister design to admin-api-types.md (typed Admin API client) and flow-tasks-sdk.md (first-party tasks). Together these cover…"*. The pattern of *"running the same design rhythm twice on parallel-but-non-identical problems"* is deliberate; cross-linking is how it stays coherent.
+1. **Problem**: the question being answered, and why it matters.
+2. **TL;DR**: one verdict per question, a table when there are several.
+3. **What exists today** or **How it works**: source-verified, as above.
+4. **Findings**: one sub-heading per question that states the answer, with the evidence under it.
+5. **Known risks** and **Open questions**: as above.
+6. **Reproduction notes**: setup, commands, and IDs of anything created, so a later session can re-run the probes.
 
-## Prototype status (when applicable)
+Add **Recommendations** when the findings point to a next action.
 
-What landed in which commits, what's still stubbed, what's verified. Specifically: which guards have been demonstrated (e.g. "verified: bad field → tsc error; denied mutation → schema-level error; missing required var → tsc error"). Investigation-style docs use a similar section for "what we checked and what we found."
+## Optional sections
 
-## Prior-art scan shape (when one is included)
+- **Suggested slice boundaries**: a short ordered list when the natural seams are obvious. Input to `create-implementation-plan`, not a plan.
+- **Interactions with in-flight work**: stacked branches, parallel PRs, rebase risk.
+- **Prototype or spike status**: what was run, what it proved, what's still stubbed.
+- **Reproduction notes** (designs): as in the investigation shape.
+- **What gets deleted**: an inventory of removals when simplification is a goal.
 
-Rare, only when triggered. Structure:
+## Prior-art scan shape
 
-- **Headline verdict** in bold up top: *"Yes — Batty is a remarkably close match"* or *"No off-the-shelf option fits all four properties simultaneously."*
-- **Closest matches** — one entry per candidate. Each with:
-  - GitHub / homepage link
-  - 2-3 bullets on what overlaps
-  - 2-3 bullets on what doesn't fit
-  - **Fit score** (rough %) — forces a quantitative comparison
-- **Adjacent patterns worth knowing** — things that aren't a direct fit but inform the design
-- **Search notes** — what queries you ran, what you ruled out. Makes the search reproducible and surfaces gaps.
-- **Action recommendation** — *"Mihai should read the dev.to posts and `batty init` it into a throwaway dir for an hour before writing more pi-fleet code."*
+Rare. Write it to `~/.ai/wip/<topic>-prior-art-<YYYY-MM-DD>.md`:
+
+- **Headline verdict** up top: whether anything off-the-shelf fits.
+- **Closest matches**: one entry per candidate with a link, 2 to 3 bullets on overlap, 2 to 3 on what doesn't fit, and a rough fit percentage.
+- **Adjacent patterns**: not direct fits, but they inform the design.
+- **Search notes**: the queries run and what was ruled out.
+- **Recommendation**: one concrete next action.
 
 ## Style
 
-- No code in the doc except small snippets that illustrate a shape. Algorithms in prose.
-- Specific real names, not greek-letter placeholders.
+- Real names, never placeholders like foo/bar or alpha/beta.
 - "Why" before "what" when describing a decision.
-- Strip judgement calls from investigation reports before they ship to issues — observations + evidence, not opinions.
+- Observations and evidence, not judgement calls.
