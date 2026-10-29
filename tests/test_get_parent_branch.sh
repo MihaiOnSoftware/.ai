@@ -33,6 +33,7 @@ mkdir -p "$HOME"
 BIN="$TEST_DIR/bin"
 ORIGIN="$TEST_DIR/origin.git"
 CLONE="$TEST_DIR/clone"
+NO_ORIGIN="$TEST_DIR/no-origin"
 mkdir -p "$BIN"
 
 cat > "$BIN/gh" <<'SHIM'
@@ -70,12 +71,26 @@ build_fixture() {
     cd "$TEST_DIR"
 }
 
-run_script() {
+run_script_in() {
+    local dir="$1"; shift
     : > "$GH_LOG"
     STATUS=0
-    (cd "$CLONE" && PATH="$BIN:$PATH" bash "$SCRIPT" "$@") > "$TEST_DIR/stdout" 2> "$TEST_DIR/stderr" || STATUS=$?
+    (cd "$dir" && PATH="$BIN:$PATH" bash "$SCRIPT" "$@") > "$TEST_DIR/stdout" 2> "$TEST_DIR/stderr" || STATUS=$?
     STDOUT="$(cat "$TEST_DIR/stdout")"
     STDERR="$(cat "$TEST_DIR/stderr")"
+}
+
+run_script() { run_script_in "$CLONE" "$@"; }
+
+build_no_origin_fixture() {
+    git init --quiet -b main "$NO_ORIGIN"
+    cd "$NO_ORIGIN"
+    git config user.name "Test"
+    git config user.email "test@example.com"
+    commit C1
+    git checkout --quiet -b feat-x
+    commit X1
+    cd "$TEST_DIR"
 }
 
 sha_of() { git -C "$CLONE" rev-parse "$1"; }
@@ -83,8 +98,12 @@ sha_of() { git -C "$CLONE" rev-parse "$1"; }
 stdout_is() { [ "$STDOUT" = "$1" ]; }
 run_was() { [ "$STATUS|$STDOUT|$STDERR" = "$1" ]; }
 gh_was_called_with() { grep -qx "$1" "$GH_LOG"; }
+status_is() { [ "$STATUS" -eq "$1" ]; }
+stderr_contains() { printf '%s' "$STDERR" | grep -qF "$1"; }
+stdout_is_empty() { [ -z "$STDOUT" ]; }
 
 build_fixture
+build_no_origin_fixture
 
 # ── Argument: user-specified branch ───────────────────────────────────────────
 
@@ -97,6 +116,13 @@ assert "branch argument is passed to gh pr view" gh_was_called_with "pr view fea
 run_script
 assert "no argument exits 0 with only the merge-base SHA on stdout and nothing on stderr" run_was "0|$(sha_of main)|"
 assert "no argument lets gh resolve the current branch's PR" gh_was_called_with "pr view --json baseRefName --jq .baseRefName"
+
+# ── No origin remote ──────────────────────────────────────────────────────────
+
+run_script_in "$NO_ORIGIN"
+assert "no origin remote exits 2" status_is 2
+assert "no origin remote explains the problem on stderr" stderr_contains "no origin remote"
+assert "no origin remote leaves stdout empty" stdout_is_empty
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 
