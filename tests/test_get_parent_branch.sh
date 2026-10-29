@@ -16,11 +16,6 @@ assert() {
     if "$@" 2>/dev/null; then pass "$desc"; else fail "$desc"; fi
 }
 
-assert_not() {
-    local desc="$1"; shift
-    if ! "$@" 2>/dev/null; then pass "$desc"; else fail "$desc"; fi
-}
-
 # ── Setup ─────────────────────────────────────────────────────────────────────
 # Fixture: bare `origin` + clone. origin/main = C2.
 #   feat-a branches off C1, feat-b branches off C2 and is checked out.
@@ -77,13 +72,16 @@ build_fixture() {
 
 run_script() {
     : > "$GH_LOG"
-    (cd "$CLONE" && PATH="$BIN:$PATH" bash "$SCRIPT" "$@") > "$TEST_DIR/stdout" 2> "$TEST_DIR/stderr" || true
+    STATUS=0
+    (cd "$CLONE" && PATH="$BIN:$PATH" bash "$SCRIPT" "$@") > "$TEST_DIR/stdout" 2> "$TEST_DIR/stderr" || STATUS=$?
     STDOUT="$(cat "$TEST_DIR/stdout")"
+    STDERR="$(cat "$TEST_DIR/stderr")"
 }
 
 sha_of() { git -C "$CLONE" rev-parse "$1"; }
 
 stdout_is() { [ "$STDOUT" = "$1" ]; }
+run_was() { [ "$STATUS|$STDOUT|$STDERR" = "$1" ]; }
 gh_was_called_with() { grep -qx "$1" "$GH_LOG"; }
 
 build_fixture
@@ -93,6 +91,12 @@ build_fixture
 run_script feat-a
 assert "branch argument selects merge-base of that branch with origin/main" stdout_is "$(sha_of main~1)"
 assert "branch argument is passed to gh pr view" gh_was_called_with "pr view feat-a --json baseRefName --jq .baseRefName"
+
+# ── Default: no argument ──────────────────────────────────────────────────────
+
+run_script
+assert "no argument exits 0 with only the merge-base SHA on stdout and nothing on stderr" run_was "0|$(sha_of main)|"
+assert "no argument lets gh resolve the current branch's PR" gh_was_called_with "pr view --json baseRefName --jq .baseRefName"
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 
