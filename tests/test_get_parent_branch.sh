@@ -36,6 +36,12 @@ CLONE="$TEST_DIR/clone"
 NO_ORIGIN="$TEST_DIR/no-origin"
 mkdir -p "$BIN"
 
+GH_FAILS_BIN="$TEST_DIR/bin-gh-fails"
+NO_GH_BIN="$TEST_DIR/bin-no-gh"
+DEV_ORIGIN="$TEST_DIR/dev-origin.git"
+DEV_CLONE="$TEST_DIR/dev-clone"
+mkdir -p "$GH_FAILS_BIN" "$NO_GH_BIN"
+
 cat > "$BIN/gh" <<'SHIM'
 #!/usr/bin/env bash
 echo "$*" >> "$GH_LOG"
@@ -45,6 +51,11 @@ case "$*" in
 esac
 SHIM
 chmod +x "$BIN/gh"
+
+printf '#!/usr/bin/env bash\nexit 1\n' > "$GH_FAILS_BIN/gh"
+chmod +x "$GH_FAILS_BIN/gh"
+
+for tool in git sed bash; do ln -s "$(command -v "$tool")" "$NO_GH_BIN/$tool"; done
 
 commit() {
     echo "$1" > "$1.txt"
@@ -75,7 +86,7 @@ run_script_in() {
     local dir="$1"; shift
     : > "$GH_LOG"
     STATUS=0
-    (cd "$dir" && PATH="$BIN:$PATH" bash "$SCRIPT" "$@") > "$TEST_DIR/stdout" 2> "$TEST_DIR/stderr" || STATUS=$?
+    (cd "$dir" && PATH="${RUN_PATH:-$BIN:$PATH}" bash "$SCRIPT" "$@") > "$TEST_DIR/stdout" 2> "$TEST_DIR/stderr" || STATUS=$?
     STDOUT="$(cat "$TEST_DIR/stdout")"
     STDERR="$(cat "$TEST_DIR/stderr")"
 }
@@ -93,6 +104,30 @@ build_no_origin_fixture() {
     cd "$TEST_DIR"
 }
 
+build_develop_fixture() {
+    git init --quiet --bare -b main "$DEV_ORIGIN"
+    git clone --quiet "$DEV_ORIGIN" "$DEV_CLONE" 2>/dev/null
+    cd "$DEV_CLONE"
+    git config user.name "Test"
+    git config user.email "test@example.com"
+    git checkout --quiet -b main
+    commit C1
+    git checkout --quiet -b develop
+    commit D1
+    git checkout --quiet main
+    commit C2
+    git push --quiet origin main develop
+    git checkout --quiet -b feat-d develop
+    commit F1
+    cd "$TEST_DIR"
+}
+
+run_script_with_path() {
+    RUN_PATH="$1"
+    run_script_in "$DEV_CLONE"
+    unset RUN_PATH
+}
+
 sha_of() { git -C "$CLONE" rev-parse "$1"; }
 
 stdout_is() { [ "$STDOUT" = "$1" ]; }
@@ -105,6 +140,7 @@ run_succeeded_with() { [ "$STATUS|$STDOUT" = "0|$1" ]; }
 
 build_fixture
 build_no_origin_fixture
+build_develop_fixture
 
 # ── Argument: user-specified branch ───────────────────────────────────────────
 
@@ -141,6 +177,23 @@ git -C "$CLONE" remote set-url origin "$TEST_DIR/does-not-exist.git"
 run_script
 assert "unreachable origin exits 0 with the merge-base from local refs on stdout" run_succeeded_with "$EXPECTED_FROM_LOCAL_REFS"
 assert "unreachable origin warns that the fetch failed on stderr" stderr_contains "fetch failed"
+
+# ── gh absent or unauthenticated ─────────────────────────────────────────────
+
+DEVELOP_BASE="$(git -C "$DEV_CLONE" rev-parse origin/develop)"
+MAIN_BASE="$(git -C "$DEV_CLONE" rev-parse origin/main~1)"
+
+git -C "$DEV_CLONE" remote set-head origin develop >/dev/null
+run_script_with_path "$NO_GH_BIN"
+assert "gh absent uses origin/HEAD as the base" run_succeeded_with "$DEVELOP_BASE"
+run_script_with_path "$GH_FAILS_BIN:$NO_GH_BIN"
+assert "gh failing uses origin/HEAD as the base" run_succeeded_with "$DEVELOP_BASE"
+
+git -C "$DEV_CLONE" remote set-head origin -d >/dev/null
+run_script_with_path "$NO_GH_BIN"
+assert "gh absent and origin/HEAD unset falls back to main" run_succeeded_with "$MAIN_BASE"
+run_script_with_path "$GH_FAILS_BIN:$NO_GH_BIN"
+assert "gh failing and origin/HEAD unset falls back to main" run_succeeded_with "$MAIN_BASE"
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 
