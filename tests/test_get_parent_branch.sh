@@ -101,6 +101,7 @@ gh_was_called_with() { grep -qx "$1" "$GH_LOG"; }
 status_is() { [ "$STATUS" -eq "$1" ]; }
 stderr_contains() { printf '%s' "$STDERR" | grep -qF "$1"; }
 stdout_is_empty() { [ -z "$STDOUT" ]; }
+run_succeeded_with() { [ "$STATUS|$STDOUT" = "0|$1" ]; }
 
 build_fixture
 build_no_origin_fixture
@@ -131,6 +132,15 @@ run_script
 assert "on the base branch exits 3" status_is 3
 assert "on the base branch says there is nothing to diff on stderr" stderr_contains "nothing to diff"
 assert "on the base branch leaves stdout empty" stdout_is_empty
+
+# ── Unreachable origin ───────────────────────────────────────────────────────
+
+git -C "$CLONE" checkout --quiet feat-b
+EXPECTED_FROM_LOCAL_REFS="$(sha_of main)"
+git -C "$CLONE" remote set-url origin "$TEST_DIR/does-not-exist.git"
+run_script
+assert "unreachable origin exits 0 with the merge-base from local refs on stdout" run_succeeded_with "$EXPECTED_FROM_LOCAL_REFS"
+assert "unreachable origin warns that the fetch failed on stderr" stderr_contains "fetch failed"
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 

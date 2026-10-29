@@ -13,7 +13,7 @@ base=$(gh pr view ${1:+"$1"} --json baseRefName --jq '.baseRefName' 2>/dev/null)
   base=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|refs/remotes/origin/||') || \
   base="main"
 
-git fetch origin "$base" --quiet
+git fetch origin "$base" --quiet 2>/dev/null || echo "get-parent-branch: warning: fetch failed for origin/$base; using local refs" >&2
 merge_base=$(git merge-base "$target" "origin/$base")
 
 if [ "$merge_base" = "$(git rev-parse "$target")" ]; then
