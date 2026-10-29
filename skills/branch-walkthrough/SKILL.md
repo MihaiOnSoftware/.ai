@@ -53,7 +53,16 @@ git status
 git diff HEAD
 ```
 
-For branch changes, run the bundled `get-parent-branch.sh` script (in the `scripts/` directory alongside this SKILL.md file) from inside the repo. It accepts an optional branch argument: pass the branch the user named, or omit it to default to HEAD. It returns a merge-base SHA — use that directly in `git diff` and `git log` with three-dot range syntax, no branch name resolution needed. If it exits non-zero (exit 2: no `origin` remote; exit 3: the branch is already on its base branch, so there is nothing to diff), stop and ask the user which branch to compare against instead of guessing.
+For branch changes:
+
+1. From inside the repo, run the bundled `get-parent-branch.sh` script (in the `scripts/` directory alongside this SKILL.md file). Pass the branch the user named as its argument, or omit it to default to HEAD. Call that branch `<target>` (HEAD when omitted).
+2. If the script exits non-zero, stop and ask the user which branch to compare against instead of guessing. Exit 2: no `origin` remote. Exit 3: the branch is already on its base branch, so there is nothing to diff.
+3. On success it prints a merge-base SHA. Diff and log that SHA against `<target>`, not against your current checkout:
+
+   ```bash
+   git diff <sha> <target>
+   git log <sha>..<target>
+   ```
 
 ### Step 3: Ask for Context
 
