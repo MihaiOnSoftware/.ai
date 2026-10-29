@@ -53,7 +53,7 @@ git status
 git diff HEAD
 ```
 
-For branch changes, run the bundled `get-parent-branch.sh` script (in the `scripts/` directory alongside this SKILL.md file) from inside the repo. It returns a merge-base SHA — use that directly in `git diff` and `git log` with three-dot range syntax, no branch name resolution needed.
+For branch changes, run the bundled `get-parent-branch.sh` script (in the `scripts/` directory alongside this SKILL.md file) from inside the repo. It accepts an optional branch argument: pass the branch the user named, or omit it to default to HEAD. It returns a merge-base SHA — use that directly in `git diff` and `git log` with three-dot range syntax, no branch name resolution needed. If it exits non-zero (exit 2: no `origin` remote; exit 3: the branch is already on its base branch, so there is nothing to diff), stop and ask the user which branch to compare against instead of guessing.
 
 ### Step 3: Ask for Context
 
@@ -146,7 +146,7 @@ After all chunks are reviewed, summarize:
 
 ## Anti-Patterns
 
-- Assuming `main` is the parent branch. Always run the bundled `get-parent-branch.sh` script (in the skill's `scripts/` directory) to find the real parent.
+- Assuming `main` is the parent branch. Always run the bundled `get-parent-branch.sh` script (in the skill's `scripts/` directory) to find the real parent, passing the user's branch as its optional argument. If it exits non-zero, ask the user rather than falling back to `main`.
 - Paraphrasing code changes instead of showing actual diffs.
 - Letting chunks exceed 50 lines.
 - Announcing a total number of chunks before you have worked through them.
