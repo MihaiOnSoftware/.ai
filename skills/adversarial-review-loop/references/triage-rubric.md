@@ -4,7 +4,7 @@ Every finding from each iteration's subagent must land in exactly one bucket. Be
 
 ## Accept
 
-Apply the fix. Use this bucket only when **all** of:
+Apply the fix (see SKILL.md Step 2 for the iteration-5 hold). Use this bucket only when **all** of:
 
 - The finding identifies a concrete defect (wrong logic, wrong fact, missing case, broken reference, contradicted assumption).
 - The defect materially affects correctness, the conclusion, or downstream decisions.

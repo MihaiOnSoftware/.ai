@@ -77,13 +77,13 @@ For each iteration `N` (starting at 1):
    Do **not** mention prior subagents or prior findings. Each subagent starts blind.
 
 2. **Triage the findings** using [references/triage-rubric.md](references/triage-rubric.md). For each finding, classify it as:
-   - **Accept** — valid, materially affects the conclusion or correctness. Apply the fix.
+   - **Accept** — valid, materially affects the conclusion or correctness. Apply the fix. In iteration 5 (the hard-cap round), record the fix but hold it until Step 3: apply it only if the loop stops without escalating.
    - **Reject (invalid)** — based on a misreading, a hallucinated file/line, a wrong assumption, or contradicted by evidence. Note the contradicting evidence.
    - **Reject (weak)** — technically possible but speculative, low-impact, or stylistic. Note the reason.
    - **Repeat** — substantively the same as a finding from a prior iteration (whether previously accepted *or* rejected). Note which prior finding it repeats.
    - **Defer** — valid but out of scope for this work. Note explicitly so the user sees it.
 
-3. **Append a log entry** with: iteration number, finding-by-finding triage, fixes applied (file paths + summary), and updated end state.
+3. **Append a log entry** with: iteration number, finding-by-finding triage, fixes applied (file paths + summary; in iteration 5, the held fixes), and updated end state.
 
 4. **Update the previous-findings list** with this iteration's findings (so the next round can detect repeats).
 
@@ -95,7 +95,7 @@ Stop the loop when **any** of these holds (see [references/termination-criteria.
 - **Repeated**: Two consecutive iterations produced no new accepted findings (covers the case where iteration N had one weak Accept but iteration N+1 had nothing).
 - **Invalid**: Every finding this iteration was Reject (invalid) — the subagent is now fabricating problems.
 - **Hard cap — converged**: You have completed **5 iterations** and the final iteration produced no new Accepts (all findings were Weak, Repeat, or Invalid). Stop and flag to the user that the cap was hit but the loop converged.
-- **Hard cap — escalate**: You have completed **5 iterations** and the final iteration *still produced substantive new Accepts* (new issues, not repeats, not nitpicks). **Do not continue the loop.** This signals a deep design flaw or a hard tradeoff that needs human judgment — continuing to loop is wasteful and masks the real problem. Escalate:
+- **Hard cap — escalate**: You have completed **5 iterations** and the final iteration *still produced substantive new Accepts* (new issues, not repeats, not nitpicks). **Do not continue the loop.** This signals a deep design flaw or a hard tradeoff that needs human judgment — continuing to loop is wasteful and masks the real problem. Leave the held iteration-5 fixes unapplied; they are the unresolved findings. Escalate:
   - **Running as a subagent** (invoked by `solve-this-problem` or another parent agent): emit a `NEED_HUMAN:` message to the parent listing the unresolved findings after 5 rounds. The parent must pause and wait for human intervention before continuing.
   - **Running interactively** (direct user conversation): surface the unresolved findings directly to the user and ask for explicit guidance before doing anything else.
 
@@ -105,7 +105,7 @@ If none of these holds, go to Step 2 for iteration `N+1`.
 
 Return to the user:
 
-1. **Final end state** — the conclusion / artifact after all accepted fixes.
+1. **Final end state** — the conclusion / artifact after all applied fixes. On a hard-cap escalation, this excludes iteration 5's held fixes.
 2. **Termination reason** — which condition above tripped, with the evidence (e.g. "iteration 3 had 2 Reject (weak) and 1 Repeat, no Accepts").
 3. **Iteration log** — full per-round triage and fixes. Faithful summary if very long, with full text available on request.
 4. **Deferred items** — anything classified Defer, surfaced explicitly so the user can decide follow-up.

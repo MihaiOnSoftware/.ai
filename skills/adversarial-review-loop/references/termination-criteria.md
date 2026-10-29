@@ -46,7 +46,7 @@ The outcome depends on what the **final (5th) iteration** produced:
 
 **Why this is different**: Five rounds without convergence indicates a deep design flaw or a genuinely hard tradeoff requiring human judgment. Continuing to loop is wasteful and masks the real problem.
 
-**Action**: Stop the loop immediately. Do **not** apply the 5th iteration's fixes and do not start a 6th round. Instead, escalate:
+**Action**: Stop the loop immediately. Do **not** apply the 5th iteration's fixes (SKILL.md Step 2 held them for this check) and do not start a 6th round. Instead, escalate:
 
 - **Running as a subagent** (invoked by `solve-this-problem` or another parent agent): emit a `NEED_HUMAN:` message to the parent. List the unresolved findings from iteration 5 clearly. The parent must pause and wait for human intervention before continuing the pipeline.
 - **Running interactively** (direct user conversation): surface the unresolved findings directly to the user. Ask for explicit guidance — do not proceed until the user responds.
