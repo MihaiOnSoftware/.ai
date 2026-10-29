@@ -14,4 +14,11 @@ base=$(gh pr view ${1:+"$1"} --json baseRefName --jq '.baseRefName' 2>/dev/null)
   base="main"
 
 git fetch origin "$base" --quiet
-git merge-base "$target" "origin/$base"
+merge_base=$(git merge-base "$target" "origin/$base")
+
+if [ "$merge_base" = "$(git rev-parse "$target")" ]; then
+  echo "get-parent-branch: merge-base equals the tip of $target (on the base branch, nothing to diff); ask the user which branch to compare against" >&2
+  exit 3
+fi
+
+echo "$merge_base"

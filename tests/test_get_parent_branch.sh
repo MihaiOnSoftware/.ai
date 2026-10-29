@@ -124,6 +124,14 @@ assert "no origin remote exits 2" status_is 2
 assert "no origin remote explains the problem on stderr" stderr_contains "no origin remote"
 assert "no origin remote leaves stdout empty" stdout_is_empty
 
+# ── On the base branch ───────────────────────────────────────────────────────
+
+git -C "$CLONE" checkout --quiet main
+run_script
+assert "on the base branch exits 3" status_is 3
+assert "on the base branch says there is nothing to diff on stderr" stderr_contains "nothing to diff"
+assert "on the base branch leaves stdout empty" stdout_is_empty
+
 # ── Summary ───────────────────────────────────────────────────────────────────
 
 echo ""
