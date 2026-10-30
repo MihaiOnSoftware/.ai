@@ -29,7 +29,7 @@ If a single `adversarial-review` would suffice, use that instead. The loop costs
 **Output**: A final summary to the user containing:
 - The final conclusion / end state after all incorporated fixes
 - A per-iteration log: what the subagent found, what you accepted, what you rejected and why, what changed
-- The termination reason (weak / repeated / invalid feedback) with evidence
+- The termination reason (weak / invalid feedback / hard cap) with evidence
 
 **Does**:
 - Run `adversarial-review` repeatedly, each time against the **current** state of the work
@@ -91,10 +91,8 @@ For each iteration `N` (starting at 1):
 
 Stop the loop when **any** of these holds (see [references/termination-criteria.md](references/termination-criteria.md) for details and examples):
 
-- **Weak**: Every finding this iteration was Reject (weak), Reject (invalid), or Repeat. No Accepts.
-- **Repeated**: Two consecutive iterations produced no new accepted findings (covers the case where iteration N had one weak Accept but iteration N+1 had nothing).
+- **Weak**: Every finding this iteration was Reject (weak), Reject (invalid), or Repeat. No Accepts. If this is iteration 5 (the hard cap), also flag to the user that the cap was hit but the loop converged.
 - **Invalid**: Every finding this iteration was Reject (invalid) — the subagent is now fabricating problems.
-- **Hard cap — converged**: You have completed **5 iterations** and the final iteration produced no new Accepts (all findings were Weak, Repeat, or Invalid). Stop and flag to the user that the cap was hit but the loop converged.
 - **Hard cap — escalate**: You have completed **5 iterations** and the final iteration *still produced substantive new Accepts* (new issues, not repeats, not nitpicks). **Do not continue the loop.** This signals a deep design flaw or a hard tradeoff that needs human judgment — continuing to loop is wasteful and masks the real problem. Leave the held iteration-5 fixes unapplied; they are the unresolved findings. Escalate:
   - **Running as a subagent** (invoked by `solve-this-problem` or another parent agent): emit a `NEED_HUMAN:` message to the parent listing the unresolved findings after 5 rounds. The parent must pause and wait for human intervention before continuing.
   - **Running interactively** (direct user conversation): surface the unresolved findings directly to the user and ask for explicit guidance before doing anything else.

@@ -10,15 +10,11 @@ The loop stops when the next round of feedback stops adding signal. Pick the fir
 
 **Example**: Iteration 3 produces three findings: one Reject (weak) about variable naming, one Reject (invalid) citing a function that doesn't exist, one Repeat of iteration 2's already-fixed issue. → Stop.
 
-## 2. Repeated
+**Hard cap (iteration 5)**: If this iteration is the 5th, also flag to the user that the cap (5 iterations) was hit but the loop converged. Surface the final state and iteration log as normal. Nothing is held, because a zero-Accept round produces no iteration-5 fixes.
 
-**Condition**: Two consecutive iterations produced no **new** accepted findings. ("New" = not a repeat of a prior accepted finding.)
+**Example**: Iteration 5 produces one Reject (weak) and two Repeats. → Stop, flag cap, report converged.
 
-**Why it terminates**: One round of weak findings could be a fluke; two in a row means the well is dry. This catches the case where a single iteration squeezes out one minor Accept and you'd otherwise loop forever waiting for another zero-Accept round.
-
-**Example**: Iteration 4 accepts one minor fix (rename a confusing variable). Iteration 5 produces only Rejects and Repeats. → Stop. Even though iteration 4 had an Accept, iteration 5 confirms the loop has converged.
-
-## 3. Invalid
+## 2. Invalid
 
 **Condition**: Every finding this iteration was Reject (invalid) — the subagent is fabricating problems (citing nonexistent code, contradicted by the artifact, etc.).
 
@@ -26,23 +22,9 @@ The loop stops when the next round of feedback stops adding signal. Pick the fir
 
 **Example**: Iteration 2 produces two findings, both citing functions that don't exist in the codebase. → Stop.
 
-## 4. Hard Cap (5 iterations)
+## 3. Hard cap — escalate (5 iterations)
 
-**Condition**: You have completed 5 iterations without any of conditions 1–3 firing.
-
-The outcome depends on what the **final (5th) iteration** produced:
-
-### 4a. Hard Cap — converged
-
-**Final iteration had no new Accepts** (all findings were Weak, Repeat, or Invalid). The loop happened to hit the cap at the same time natural termination would have fired.
-
-**Action**: Stop. Flag the cap was hit, note the loop converged on the final round. Surface the final state and iteration log as normal.
-
-**Example**: Iteration 5 produces one Reject (weak) and two Repeats. → Stop, flag cap, report converged.
-
-### 4b. Hard Cap — escalate (substantive issues still open)
-
-**Final iteration still produced substantive new Accepts** — new issues, not repeats of already-addressed points, not style nitpicks.
+**Condition**: You have completed 5 iterations without conditions 1–2 firing. Because condition 1 fires on any zero-Accept iteration, the **final (5th) iteration still produced substantive new Accepts** — new issues, not repeats of already-addressed points, not style nitpicks.
 
 **Why this is different**: Five rounds without convergence indicates a deep design flaw or a genuinely hard tradeoff requiring human judgment. Continuing to loop is wasteful and masks the real problem.
 
@@ -57,7 +39,7 @@ The outcome depends on what the **final (5th) iteration** produced:
 
 ## What Does NOT Terminate the Loop
 
-- **A single iteration with only one Accept**. One small fix is still signal. Keep going (subject to condition 2).
+- **A single iteration with only one Accept**. One small fix is still signal. Keep going; if the next iteration produces zero Accepts, condition 1 fires.
 - **Subjective fatigue**. "I'm tired of this" is not a termination criterion. Use the rules.
 - **The subagent saying "I cannot find a mistake"**. That's a strong signal but treat it as one input to condition 1 (weak). If the subagent finds nothing, that iteration has zero Accepts → condition 1 fires → terminate. (Same outcome, but reach it through the rule, not the subagent's self-report.)
 
