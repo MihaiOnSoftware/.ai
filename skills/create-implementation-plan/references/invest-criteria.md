@@ -16,7 +16,7 @@ Each slice should satisfy INVEST (from the story splitting framework):
 
 ## Applied Example
 
-**Applying INVEST to this project's Slice 1**:
+**Applying INVEST to Slice 1 of the schema-hash example**:
 - ✅ Independent: Can be done first, no dependencies
 - ✅ Negotiable: Could use different hashing algorithms, different cache key formats
 - ✅ Valuable: Proves Sorbet introspection works (biggest risk)

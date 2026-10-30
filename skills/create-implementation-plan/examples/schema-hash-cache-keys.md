@@ -1,6 +1,6 @@
 # Example: Automatic Schema Hash for Cache Keys
 
-Simplified plan for adding automatic schema hash to Rails cache keys (this project):
+Simplified plan for adding automatic schema hash to Rails cache keys (a past Rails project, used here only as a worked example):
 
 **Context**: Rails cache doesn't invalidate when Ruby class schemas change (new fields added). Need automatic detection.
 

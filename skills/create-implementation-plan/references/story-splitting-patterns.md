@@ -35,7 +35,7 @@ Handle one kind of data first, add other data types later.
 ## SIMPLE/COMPLEX Pattern
 Build simple core that provides most value/learning, then enhance with complexity.
 
-**Example (this project)**: Slice 1 hashes one class with no recursion. This proves Sorbet introspection works. Slices 3-6 progressively add complexity (children, arrays, recursion, sealed classes).
+**Example schema-hash plan**: Slice 1 hashes one class with no recursion. This proves Sorbet introspection works. Slices 3-6 progressively add complexity (children, arrays, recursion, sealed classes).
 
 **Example iTerm plan**: Slice 1 is "create basic profile" (no colors, no auto-switch). This proves profile creation works. Slices 2-9 layer on sophistication.
 
