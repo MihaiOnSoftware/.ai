@@ -1,6 +1,6 @@
 # Termination Criteria
 
-The loop stops when the next round of feedback stops adding signal. Pick the first condition that fires. Do **not** keep looping hoping for one more useful finding — diminishing returns are the signal to stop.
+The loop stops when the next round of feedback stops adding signal. Pick the first condition that fires. One rule applies to every stop: if the loop stops at iteration 5, always flag to the user that the 5-iteration hard cap was reached, whichever condition fired (see section 3). Do **not** keep looping hoping for one more useful finding — diminishing returns are the signal to stop.
 
 ## 1. Weak
 
@@ -20,22 +20,23 @@ The loop stops when the next round of feedback stops adding signal. Pick the fir
 
 ## 3. Hard cap — iteration 5 always stops (converged or escalate)
 
-**Condition**: Iteration 5 is an absolute ceiling. After its triage it stops unconditionally, regardless of conditions 1–2 (Weak, Invalid), and a 6th iteration is never started. The outcome is decided from round 5 alone. Every round-5 outcome maps to exactly one of the two outcomes below; the split turns on whether round 5 produced a substantive new Accept (see "What substantive means" below).
+**Condition**: Iteration 5 is an absolute ceiling. After its triage it stops unconditionally, regardless of conditions 1–2 (Weak, Invalid), and a 6th iteration is never started. The outcome is decided from round 5 alone. Every round-5 outcome maps to exactly one of the two outcomes below; the split turns on whether round 5 produced at least one Accept (a verified, material defect, per the Accept definition in triage-rubric.md).
 
-**Why the cap is absolute**: Five rounds is the budget. Without an unconditional stop, a round that matches no other condition (for example, Defer-only or minor-Accept-only) would roll into a 6th iteration.
+**Why the cap is absolute**: Five rounds is the budget. Without an unconditional stop, a round that matches no other condition (for example, a Defer-only round) would roll into a 6th iteration.
 
-### Converged — round 5 produced no substantive new Accepts
+### Converged — round 5 produced zero Accepts
 
-Covers: zero Accepts; only Reject / Repeat / Defer findings in any mix; or only non-substantive Accepts (minor, stylistic).
+Covers: zero Accepts; only Reject (weak) / Reject (invalid) / Repeat / Defer findings in any mix.
 
-**Action**: Apply the held iteration-5 fixes (the non-substantive ones). Flag to the user that the cap (5 iterations) was hit but the loop converged. Surface any Deferred items. Report normally.
+**Action**: Nothing is held, because the round produced no Accepts. Flag to the user that the cap (5 iterations) was hit but the loop converged. Surface any Deferred items. Report normally.
 
 **Examples**:
 - Iteration 5 produces one Reject (weak) and two Repeats. → Stop, flag cap, report converged. Nothing is held, because the round produced no Accepts.
 - Iteration 5 produces one Defer only (valid, out of scope). → Stop, flag cap, report converged, surface the Defer.
-- Iteration 5 produces one minor Accept (stylistic wording in a heading). → Apply the held fix, flag cap, report converged.
 
-### Escalate — round 5 produced at least one substantive new Accept
+### Escalate — round 5 produced at least one Accept
+
+Covers: at least one Accept. Every Accept is already a verified, material defect per triage-rubric.md, so any round-5 Accept escalates.
 
 **Why this is different**: Five rounds without convergence indicates a deep design flaw or a genuinely hard tradeoff requiring human judgment. Continuing to loop is wasteful and masks the real problem.
 
@@ -46,7 +47,7 @@ Covers: zero Accepts; only Reject / Repeat / Defer findings in any mix; or only 
 
 **Example**: Iteration 5 produces two Accepts: a logic error in the retry path and an unhandled race condition. → Stop, escalate with `NEED_HUMAN:` (or surface directly), list those two findings.
 
-**What “substantive” means**: A finding is substantive if it is (a) new — not a repeat of an already-addressed point, (b) non-trivial — not a style preference or speculative edge case, and (c) affects correctness, safety, or the conclusion.
+**Accept definition**: [triage-rubric.md](triage-rubric.md) is the single authoritative definition of Accept. Style and taste points are Reject (weak), so they never reach this check.
 
 ## What Does NOT Terminate the Loop
 
@@ -61,3 +62,7 @@ In the final summary, state which condition fired and the evidence:
 > **Terminated**: Condition 1 (weak). Iteration 4 produced 2 findings, both Reject (weak) — speculative concerns about edge cases with no evidence the scenarios apply. Zero Accepts.
 
 This lets the user audit whether you stopped too early or too late.
+
+If the loop stopped at iteration 5, also record that the 5-iteration hard cap was reached, for example:
+
+> **Terminated**: Condition 1 (weak) at the iteration-5 hard cap. Iteration 5 produced 2 findings, both Reject (weak) or Repeat, with zero Accepts. Hard cap (5 iterations) reached.

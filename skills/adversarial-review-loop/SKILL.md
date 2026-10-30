@@ -77,13 +77,13 @@ For each iteration `N` (starting at 1):
    Do **not** mention prior subagents or prior findings. Each subagent starts blind.
 
 2. **Triage the findings** using [references/triage-rubric.md](references/triage-rubric.md). For each finding, classify it as:
-   - **Accept** — valid, materially affects the conclusion or correctness. Apply the fix. In iteration 5 (the hard-cap round), record the fix but hold it until Step 3: apply it only if the loop stops without escalating.
+   - **Accept** — valid, materially affects the conclusion or correctness. Apply the fix. In iteration 5 (the hard-cap round), record the fix but hold it unapplied until Step 3 decides. Any iteration-5 Accept escalates, so held fixes stay unapplied and are reported as unresolved findings.
    - **Reject (invalid)** — based on a misreading, a hallucinated file/line, a wrong assumption, or contradicted by evidence. Note the contradicting evidence.
    - **Reject (weak)** — technically possible but speculative, low-impact, or stylistic. Note the reason.
    - **Repeat** — substantively the same as a finding from a prior iteration (whether previously accepted *or* rejected). Note which prior finding it repeats.
    - **Defer** — valid but out of scope for this work. Note explicitly so the user sees it.
 
-3. **Append a log entry** with: iteration number, finding-by-finding triage, fixes applied (file paths + summary; in iteration 5, the held fixes), and updated end state.
+3. **Append a log entry** with: iteration number, finding-by-finding triage, fixes applied (file paths + summary; in iteration 5, the held, unapplied fixes), and updated end state.
 
 4. **Update the previous-findings list** with this iteration's findings (so the next round can detect repeats).
 
@@ -94,12 +94,14 @@ Stop the loop when **any** of these holds (see [references/termination-criteria.
 - **Weak**: Every finding this iteration was Reject (weak), Reject (invalid), or Repeat. No Accepts.
 - **Invalid**: Every finding this iteration was Reject (invalid) — the subagent is now fabricating problems.
 - **Hard cap — iteration 5 is always the last**: Iteration 5 is an absolute ceiling. After its triage, stop unconditionally and never start a 6th iteration, whether or not Weak or Invalid also fired. Decide the outcome from round 5 alone; every round-5 outcome maps to exactly one of:
-  - **Converged**: round 5 produced no substantive new Accepts (zero Accepts; or only Reject/Repeat/Defer findings in any mix; or only non-substantive Accepts such as minor/stylistic points). Apply the held iteration-5 fixes (the non-substantive ones), flag to the user that the cap was hit but the loop converged, surface any Deferred items, and report normally.
-  - **Escalate**: round 5 produced at least one substantive new Accept (new issues, not repeats, not nitpicks; affects correctness, safety, or the conclusion). Leave ALL held iteration-5 fixes unapplied; they are the unresolved findings. This signals a deep design flaw or a hard tradeoff that needs human judgment — continuing to loop is wasteful and masks the real problem. Escalate:
+  - **Converged**: round 5 produced zero Accepts (only Reject (weak), Reject (invalid), Repeat, and/or Defer findings in any mix). Nothing is held, since no Accepts were recorded. Flag to the user that the cap was hit but the loop converged, surface any Deferred items, and report normally.
+  - **Escalate**: round 5 produced at least one Accept. Every Accept is already a verified, material defect (see triage-rubric.md). Leave ALL held iteration-5 fixes unapplied; they are the unresolved findings. This signals a deep design flaw or a hard tradeoff that needs human judgment — continuing to loop is wasteful and masks the real problem. Escalate:
     - **Running as a subagent** (invoked by `solve-this-problem` or another parent agent): emit a `NEED_HUMAN:` message to the parent listing the unresolved findings after 5 rounds. The parent must pause and wait for human intervention before continuing.
     - **Running interactively** (direct user conversation): surface the unresolved findings directly to the user and ask for explicit guidance before doing anything else.
 
 If none of these holds, go to Step 2 for iteration `N+1`.
+
+Whenever the loop stops at iteration 5, always flag to the user that the 5-iteration hard cap was reached, whichever condition fired.
 
 ### Step 4: Surface the Result
 
