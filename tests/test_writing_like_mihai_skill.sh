@@ -422,6 +422,139 @@ plant_hidden_modification() {
 GOOD_EXAMPLES_LINE='Load references/examples.md when you need before and after pairs.'
 GOOD_SURFACES_LINE='Load references/surfaces.md when choosing structure for a surface.'
 
+# ── Install isolation helpers ─────────────────────────────────────────────────
+
+INSTALLER="$REPO_ROOT/lib/install_skills.sh"
+ISOLATION_ENV=()
+
+physical_path() { (cd -P "$1" 2>/dev/null && pwd); }
+
+prepare_isolation() {
+    local root="$1" entry
+    ISOLATION_ENV=(
+        "HOME=$root/home"
+        "CLAUDE_CONFIG_DIR=$root/claude"
+        "CLAUDE_SKILLS_DIR=$root/claude/skills"
+        "OPENCODE_CONFIG_DIR=$root/opencode"
+        "OPENCODE_SKILLS_DIR=$root/opencode/skills"
+        "PI_CODING_AGENT_DIR=$root/pi"
+        "PI_SKILLS_DIR=$root/pi/skills"
+    )
+    for entry in "${ISOLATION_ENV[@]}"; do mkdir -p "${entry#*=}"; done
+}
+
+isolated_value() {
+    local entry
+    for entry in "${ISOLATION_ENV[@]}"; do
+        if [ "${entry%%=*}" = "$1" ]; then echo "${entry#*=}"; return 0; fi
+    done
+    return 1
+}
+
+env_paths_are_inside() {
+    local root="$1" entry resolved
+    shift
+    [ "$#" -gt 0 ] || return 1
+    root="$(physical_path "$root")" || return 1
+    for entry in "$@"; do
+        resolved="$(physical_path "${entry#*=}")" || return 1
+        [[ "$resolved" == "$root"/* ]] || return 1
+    done
+}
+
+run_isolated_install() {
+    env_paths_are_inside "$1" "${ISOLATION_ENV[@]}" || return 1
+    env -i PATH="$PATH" "${ISOLATION_ENV[@]}" bash "$INSTALLER" "$REPO_ROOT/skills"
+}
+
+link_resolves_to() {
+    local actual expected
+    [ -L "$1" ] || return 1
+    actual="$(physical_path "$1")" || return 1
+    expected="$(physical_path "$2")" || return 1
+    [ "$actual" = "$expected" ]
+}
+
+dirs_state() {
+    local dir
+    for dir in "$@"; do
+        ls -ldA "$dir" 2>&1 || true
+        ls -lA "$dir" 2>&1 || true
+    done
+}
+
+live_skills_dirs() {
+    echo "${CLAUDE_SKILLS_DIR:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills}"
+    echo "${OPENCODE_SKILLS_DIR:-${OPENCODE_CONFIG_DIR:-$HOME/.config/opencode}/skills}"
+    echo "${PI_SKILLS_DIR:-${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}/skills}"
+}
+
+live_state() {
+    local dirs=() dir
+    while IFS= read -r dir; do dirs+=("$dir"); done < <(live_skills_dirs)
+    dirs_state "${dirs[@]}"
+}
+
+planted_guard_check() {
+    local entries=() arg
+    SANDBOX="${SANDBOX:-$(mktemp -d)}"
+    rm -rf "$SANDBOX/guard"
+    mkdir -p "$SANDBOX/guard/root/inside" "$SANDBOX/guard/root-evil" "$SANDBOX/guard/outside"
+    ln -s "$SANDBOX/guard/outside" "$SANDBOX/guard/root/escape"
+    for arg in "$@"; do entries+=("${arg%%=*}=$SANDBOX/guard/${arg#*=}"); done
+    env_paths_are_inside "$SANDBOX/guard/root" "${entries[@]}"
+}
+
+planted_guard_accepts() { planted_guard_check "$@"; }
+planted_guard_rejects() { ! planted_guard_check "$@"; }
+
+planted_empty_guard_is_rejected() {
+    SANDBOX="${SANDBOX:-$(mktemp -d)}"
+    mkdir -p "$SANDBOX/guard/root"
+    ! env_paths_are_inside "$SANDBOX/guard/root"
+}
+
+planted_link_check() {
+    SANDBOX="${SANDBOX:-$(mktemp -d)}"
+    rm -rf "$SANDBOX/links"
+    mkdir -p "$SANDBOX/links/expected" "$SANDBOX/links/other"
+    "$1" "$SANDBOX/links"
+    link_resolves_to "$SANDBOX/links/link" "$SANDBOX/links/expected"
+}
+
+plant_link_to_expected() { ln -s "$1/expected" "$1/link"; }
+plant_link_to_other() { ln -s "$1/other" "$1/link"; }
+plant_copied_directory() { mkdir "$1/link"; }
+plant_dangling_link() { ln -s "$1/missing" "$1/link"; }
+
+planted_link_is_accepted() { planted_link_check "$@"; }
+planted_link_is_rejected() { ! planted_link_check "$@"; }
+
+planted_missing_expected_is_rejected() {
+    SANDBOX="${SANDBOX:-$(mktemp -d)}"
+    rm -rf "$SANDBOX/links"
+    mkdir -p "$SANDBOX/links/other"
+    ln -s "$SANDBOX/links/other" "$SANDBOX/links/link"
+    ! link_resolves_to "$SANDBOX/links/link" "$SANDBOX/links/expected"
+}
+
+planted_state_check() {
+    local before after
+    SANDBOX="${SANDBOX:-$(mktemp -d)}"
+    rm -rf "$SANDBOX/live"
+    mkdir -p "$SANDBOX/live/present"
+    before="$(dirs_state "$SANDBOX/live/present" "$SANDBOX/live/absent")"
+    "$1" "$SANDBOX/live"
+    after="$(dirs_state "$SANDBOX/live/present" "$SANDBOX/live/absent")"
+    [ "$before" = "$after" ]
+}
+
+plant_added_entry() { ln -s target "$1/present/new"; }
+plant_created_directory() { mkdir "$1/absent"; }
+
+planted_state_is_stable() { planted_state_check leave_untouched; }
+planted_state_change_is_detected() { ! planted_state_check "$1"; }
+
 echo "writing-like-mihai skill"
 echo ""
 
@@ -546,6 +679,35 @@ assert "hash check accepts a planted ignored symlink" planted_shaper_is_accepted
 assert "hash check rejects a planted hidden modification" planted_shaper_is_rejected shaper_file_hashes_match_base plant_hidden_modification
 assert "hash check rejects a planted deleted file" planted_shaper_is_rejected shaper_file_hashes_match_base plant_deleted_file
 assert "hash check rejects an empty base listing" planted_shaper_is_rejected shaper_file_hashes_match_base leave_untouched "$EMPTY_TREE_SHA"
+
+# ── Test 8: install isolation ────────────────────────────────────────────────
+
+SANDBOX="${SANDBOX:-$(mktemp -d)}"
+ISOLATION_ROOT="$(mktemp -d "$SANDBOX/isolation.XXXXXX")"
+prepare_isolation "$ISOLATION_ROOT"
+LIVE_STATE_BEFORE="$(live_state)"
+
+assert "every install destination resolves inside the temp dir" env_paths_are_inside "$ISOLATION_ROOT" "${ISOLATION_ENV[@]}"
+assert "planted destinations inside the root are accepted" planted_guard_accepts A=root/inside B=root/inside
+assert "planted destination outside the root is rejected" planted_guard_rejects A=root/inside B=outside
+assert "planted destination in a sibling with the root as name prefix is rejected" planted_guard_rejects A=root/inside B=root-evil
+assert "planted destination escaping through a symlink is rejected" planted_guard_rejects A=root/inside B=root/escape
+assert "planted destination missing on disk is rejected" planted_guard_rejects A=root/inside B=root/missing
+assert "planted destination equal to the root is rejected" planted_guard_rejects A=root/inside B=root
+assert "planted empty destination list is rejected" planted_empty_guard_is_rejected
+assert "installer runs against the worktree skills inside the temp dir" run_isolated_install "$ISOLATION_ROOT"
+assert "installer links writing-like-mihai in the Claude skills dir" link_resolves_to "$(isolated_value CLAUDE_SKILLS_DIR)/$SKILL_NAME" "$SKILL_DIR"
+assert "installer links writing-like-mihai in the OpenCode skills dir" link_resolves_to "$(isolated_value OPENCODE_SKILLS_DIR)/$SKILL_NAME" "$SKILL_DIR"
+assert "installer links writing-like-mihai in the pi skills dir" link_resolves_to "$(isolated_value PI_SKILLS_DIR)/$SKILL_NAME" "$SKILL_DIR"
+assert "planted symlink to the expected directory is accepted" planted_link_is_accepted plant_link_to_expected
+assert "planted symlink to another directory is rejected" planted_link_is_rejected plant_link_to_other
+assert "planted copied directory instead of a symlink is rejected" planted_link_is_rejected plant_copied_directory
+assert "planted dangling symlink is rejected" planted_link_is_rejected plant_dangling_link
+assert "planted symlink with a missing expected directory is rejected" planted_missing_expected_is_rejected
+assert "live skills dirs are unchanged by the install" [ "$(live_state)" = "$LIVE_STATE_BEFORE" ]
+assert "planted untouched live dirs are reported as unchanged" planted_state_is_stable
+assert "planted added entry in a live dir is detected" planted_state_change_is_detected plant_added_entry
+assert "planted created live dir is detected" planted_state_change_is_detected plant_created_directory
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 
