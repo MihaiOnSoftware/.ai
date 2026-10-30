@@ -16,7 +16,7 @@ fail() { echo "✗ $1"; FAIL=$((FAIL + 1)); }
 
 assert() {
     local desc="$1"; shift
-    if "$@" 2>/dev/null; then pass "$desc"; else fail "$desc"; fi
+    if "$@" >/dev/null 2>&1; then pass "$desc"; else fail "$desc"; fi
 }
 
 # ── Frontmatter helpers ───────────────────────────────────────────────────────
@@ -81,6 +81,50 @@ planted_em_dash_is_detected() {
     em_dash_in_markdown "$SANDBOX/skill"
 }
 
+# ── Link and inventory helpers ────────────────────────────────────────────────
+
+skill_links_resolve() {
+    local dir="$1" links link
+    links="$(grep -ohE 'references/[^) ]+\.md' "$dir/SKILL.md" 2>/dev/null)" || return 1
+    while IFS= read -r link; do
+        [ -f "$dir/$link" ] || return 1
+    done <<< "$links"
+}
+
+references_link_onward() {
+    grep -rqE '\]\([^)#]*(references/|\.md)' "$1/references"
+}
+
+references_have_no_onward_links() {
+    markdown_files_exist "$1/references" && ! references_link_onward "$1"
+}
+
+skill_has_exactly_three_files() {
+    local expected inventory
+    expected="$(printf './SKILL.md\n./references/examples.md\n./references/surfaces.md')"
+    inventory="$(cd "$1" && find . ! -type d | LC_ALL=C sort)" || return 1
+    [ "$inventory" = "$expected" ]
+}
+
+planted_dangling_link_is_detected() {
+    SANDBOX="${SANDBOX:-$(mktemp -d)}"
+    mkdir -p "$SANDBOX/dangling/references"
+    printf 'Load [surfaces](references/ok.md) first.\n' > "$SANDBOX/dangling/SKILL.md"
+    printf 'body\n' > "$SANDBOX/dangling/references/ok.md"
+    skill_links_resolve "$SANDBOX/dangling" || return 1
+    rm "$SANDBOX/dangling/references/ok.md"
+    ! skill_links_resolve "$SANDBOX/dangling"
+}
+
+planted_onward_link_is_detected() {
+    SANDBOX="${SANDBOX:-$(mktemp -d)}"
+    mkdir -p "$SANDBOX/onward/references"
+    printf 'body\n' > "$SANDBOX/onward/references/a.md"
+    references_have_no_onward_links "$SANDBOX/onward" || return 1
+    printf 'See [b](b.md)\n' >> "$SANDBOX/onward/references/a.md"
+    ! references_have_no_onward_links "$SANDBOX/onward"
+}
+
 echo "writing-like-mihai skill"
 echo ""
 
@@ -98,6 +142,14 @@ assert "description is third person" description_is_third_person
 
 assert "skill markdown contains no em-dash" markdown_has_no_em_dash "$SKILL_DIR"
 assert "planted em-dash in a copy is detected" planted_em_dash_is_detected
+
+# ── Test 3: links and file inventory ──────────────────────────────────────────
+
+assert "every references link in SKILL.md resolves to a file" skill_links_resolve "$SKILL_DIR"
+assert "no reference file links onward to another reference" references_have_no_onward_links "$SKILL_DIR"
+assert "skill has exactly SKILL.md and the two references" skill_has_exactly_three_files "$SKILL_DIR"
+assert "planted dangling link is detected" planted_dangling_link_is_detected
+assert "planted onward reference link is detected" planted_onward_link_is_detected
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 
