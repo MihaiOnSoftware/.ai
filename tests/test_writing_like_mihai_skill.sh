@@ -58,6 +58,29 @@ description_is_third_person() {
     ! grep -Eiq "\b(I can|You can use)\b" <<< "$description"
 }
 
+# ── Em-dash helpers ───────────────────────────────────────────────────────────
+
+SANDBOX=""
+trap '[ -z "$SANDBOX" ] || rm -rf "$SANDBOX"' EXIT
+
+markdown_files_exist() { [ -n "$(find "$1" -name '*.md' -type f 2>/dev/null)" ]; }
+
+em_dash_in_markdown() {
+    LC_ALL=C grep -rqF --include='*.md' "$(printf '\xe2\x80\x94')" "$1"
+}
+
+markdown_has_no_em_dash() {
+    markdown_files_exist "$1" && ! em_dash_in_markdown "$1"
+}
+
+planted_em_dash_is_detected() {
+    SANDBOX="$(mktemp -d)"
+    mkdir -p "$SANDBOX/skill/references"
+    cp -R "$SKILL_DIR/." "$SANDBOX/skill/" 2>/dev/null || true
+    printf 'planted \xe2\x80\x94 here\n' > "$SANDBOX/skill/references/planted.md"
+    em_dash_in_markdown "$SANDBOX/skill"
+}
+
 echo "writing-like-mihai skill"
 echo ""
 
@@ -70,6 +93,11 @@ assert "name equals the directory name" name_is_directory_name
 assert "description is non-empty" description_is_non_empty
 assert "description is under 1024 characters" description_is_under_limit
 assert "description is third person" description_is_third_person
+
+# ── Test 2: no em-dashes in skill markdown ────────────────────────────────────
+
+assert "skill markdown contains no em-dash" markdown_has_no_em_dash "$SKILL_DIR"
+assert "planted em-dash in a copy is detected" planted_em_dash_is_detected
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 
