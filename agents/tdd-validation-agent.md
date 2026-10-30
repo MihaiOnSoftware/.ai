@@ -198,7 +198,7 @@ Examine implementation using `git show [commit]`:
 **Verify ALL cleanup steps from `5_cleanup.md` were completed**
 
 Check report for evidence of:
-- The repo's lint, formatter and typecheck commands run and passed (only those the repo defines). Use the commands documented in the closest AGENTS.md; when there is none, use the scripts in the nearest `package.json` or equivalent manifest
+- The repo's lint, formatter and typecheck commands run and passed (only those the repo defines). Use the commands documented in the closest AGENTS.md; for any it does not document, use the scripts in the nearest `package.json` or equivalent manifest
 - All tests still pass after cleanup
 
 **If TDD report doesn't show evidence:**
@@ -289,7 +289,7 @@ The command creates reports in: `~/.ai/wip/agent_reports/tdd-validation-agent/<r
 
 9. **Coverage Verification**:
    - Check TDD agent's report for coverage information
-   - If missing from report: run the repo's test command with coverage enabled (the test runner's coverage flag, as documented in the closest AGENTS.md or the runner's config)
+   - If missing from report: run the repo's test command with coverage enabled, using whatever mechanism the repo documents (the closest AGENTS.md, the runner's config or a package script)
    - If coverage info exists and is >80%: PASS
    - If coverage info exists and is <80%: FAIL
    - If cannot determine coverage: ⚠️ WARN but proceed with other checks
