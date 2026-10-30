@@ -206,6 +206,68 @@ planted_skill_check() {
 planted_skill_is_accepted() { planted_skill_check "$@"; }
 planted_skill_is_rejected() { ! planted_skill_check "$@"; }
 
+# ── Rule pointer helpers ──────────────────────────────────────────────────────
+
+RULE_GLOB='rules/*writing_style.md'
+RULE_GLOB_MENTION="(^|[^[:alnum:]_.*-])rules/\\*writing_style\\.md(\\.?\$|\\.[^[:alnum:]_]|[^[:alnum:]_.*/-])"
+NUMBERED_RULE_NAME='[0-9]_writing_style'
+
+rule_glob_matches_one_regular_file() {
+    local matches
+    matches="$(cd "$1" 2>/dev/null && compgen -G "$RULE_GLOB" || true)"
+    [ -n "$matches" ] || return 1
+    [ "$(grep -c '' <<< "$matches")" -eq 1 ] || return 1
+    [ -f "$1/$matches" ] && [ ! -L "$1/$matches" ]
+}
+
+skill_refers_to_rule_by_glob() {
+    grep -Eq "$RULE_GLOB_MENTION" "$1/SKILL.md" || return 1
+    ! grep -Eq "$NUMBERED_RULE_NAME" "$1/SKILL.md"
+}
+
+planted_rules_check() {
+    SANDBOX="${SANDBOX:-$(mktemp -d)}"
+    rm -rf "$SANDBOX/ruleroot"
+    mkdir -p "$SANDBOX/ruleroot/rules"
+    local entry
+    for entry in "$@"; do
+        if [[ "$entry" == */ ]]; then mkdir -p "$SANDBOX/ruleroot/rules/$entry"; else : > "$SANDBOX/ruleroot/rules/$entry"; fi
+    done
+    rule_glob_matches_one_regular_file "$SANDBOX/ruleroot"
+}
+
+planted_rules_are_accepted() { planted_rules_check "$@"; }
+planted_rules_are_rejected() { ! planted_rules_check "$@"; }
+
+planted_symlinked_rules_check() {
+    SANDBOX="${SANDBOX:-$(mktemp -d)}"
+    rm -rf "$SANDBOX/ruleroot"
+    mkdir -p "$SANDBOX/ruleroot/rules"
+    : > "$SANDBOX/ruleroot/target.md"
+    ln -s "$SANDBOX/ruleroot/$1" "$SANDBOX/ruleroot/rules/6_writing_style.md"
+    rule_glob_matches_one_regular_file "$SANDBOX/ruleroot"
+}
+
+planted_dangling_rule_is_rejected() { ! planted_symlinked_rules_check missing.md; }
+planted_symlinked_rule_is_rejected() { ! planted_symlinked_rules_check target.md; }
+
+planted_rule_reference_check() {
+    SANDBOX="${SANDBOX:-$(mktemp -d)}"
+    rm -rf "$SANDBOX/rulemention"
+    mkdir -p "$SANDBOX/rulemention"
+    printf '%s\n' "$@" > "$SANDBOX/rulemention/SKILL.md"
+    skill_refers_to_rule_by_glob "$SANDBOX/rulemention"
+}
+
+planted_rule_reference_is_accepted() { planted_rule_reference_check "$@"; }
+planted_rule_reference_is_rejected() { ! planted_rule_reference_check "$@"; }
+
+planted_missing_skill_is_rejected() {
+    SANDBOX="${SANDBOX:-$(mktemp -d)}"
+    mkdir -p "$SANDBOX/noskill"
+    ! skill_refers_to_rule_by_glob "$SANDBOX/noskill"
+}
+
 GOOD_EXAMPLES_LINE='Load references/examples.md when you need before and after pairs.'
 GOOD_SURFACES_LINE='Load references/surfaces.md when choosing structure for a surface.'
 
@@ -260,6 +322,31 @@ assert "planted 120-line SKILL.md is accepted" planted_skill_is_accepted 120
 assert "planted 121-line SKILL.md is rejected" planted_skill_is_rejected 121
 assert "planted 120-line SKILL.md without a final newline is accepted" planted_skill_is_accepted 120 unterminated
 assert "planted 121-line SKILL.md without a final newline is rejected" planted_skill_is_rejected 121 unterminated
+
+# ── Test 5: rule pointer resolves ────────────────────────────────────────────
+
+assert "rule glob matches exactly one regular file in the repo" rule_glob_matches_one_regular_file "$REPO_ROOT"
+assert "SKILL.md refers to the rule by glob and not by a numbered filename" skill_refers_to_rule_by_glob "$SKILL_DIR"
+assert "planted single regular rule file is accepted" planted_rules_are_accepted 6_writing_style.md
+assert "planted unnumbered rule file is accepted" planted_rules_are_accepted writing_style.md
+assert "planted rules with no match are rejected" planted_rules_are_rejected 1_other.md
+assert "planted rules with two matches are rejected" planted_rules_are_rejected 6_writing_style.md 7_writing_style.md
+assert "planted rules with a directory match are rejected" planted_rules_are_rejected 6_writing_style.md/
+assert "planted rules with a file and a directory match are rejected" planted_rules_are_rejected 6_writing_style.md 7_writing_style.md/
+assert "planted rules with a nested match only are rejected" planted_rules_are_rejected nested/ nested/6_writing_style.md
+assert "planted rules with a longer suffix are rejected" planted_rules_are_rejected 6_writing_style.md.bak
+assert "planted dangling symlink rule is rejected" planted_dangling_rule_is_rejected
+assert "planted symlinked rule is rejected" planted_symlinked_rule_is_rejected
+assert "planted SKILL.md with the literal glob is accepted" planted_rule_reference_is_accepted "Follow the rule at rules/*writing_style.md for style."
+assert "planted SKILL.md with the glob in backticks and a full stop is accepted" planted_rule_reference_is_accepted 'Rule 6 lives at `rules/*writing_style.md`.' 'Style comes first.'
+assert "planted SKILL.md with the glob at the end of a sentence is accepted" planted_rule_reference_is_accepted "Follow rules/*writing_style.md."
+assert "planted SKILL.md with a numbered filename only is rejected" planted_rule_reference_is_rejected "Follow rules/6_writing_style.md for style."
+assert "planted SKILL.md with the glob and a numbered filename is rejected" planted_rule_reference_is_rejected "Follow rules/*writing_style.md for style." "See also 10_writing_style.md."
+assert "planted SKILL.md without any mention is rejected" planted_rule_reference_is_rejected "Write plainly."
+assert "planted SKILL.md with the glob missing its star is rejected" planted_rule_reference_is_rejected "Follow rules/writing_style.md for style."
+assert "planted SKILL.md with the glob through a longer prefix is rejected" planted_rule_reference_is_rejected "Follow xrules/*writing_style.md for style."
+assert "planted SKILL.md with the glob and a .bak suffix is rejected" planted_rule_reference_is_rejected "Follow rules/*writing_style.md.bak for style."
+assert "planted missing SKILL.md is rejected" planted_missing_skill_is_rejected
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 
