@@ -93,8 +93,8 @@ The pipeline's state lives in a single markdown file at `~/.ai/wip/<feature>-pip
 
 ## Open follow-ups (across phases)
 
-- <bullet from Phase 1: e.g. "metafield value typing — out of v1, revisit in v2">
-- <bullet from Phase 3: e.g. "slice 7 deferred — depends on Flow change ETA Q3">
+- <bullet from Phase 1: e.g. "bulk import support, out of v1, revisit in v2">
+- <bullet from Phase 3: e.g. "slice 7 deferred, depends on the auth service change ETA Q3">
 
 ---
 
