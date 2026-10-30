@@ -10,7 +10,7 @@ All of these are invented. They show shape, not wording to copy. Each pair ends 
 4. Slack: almost good, returned unchanged
 5. Email: the point first, one ask
 6. Report-like prose: condensation
-7. Email rewrite: one fix, one-line note, no invented sender
+7. Email rewrite: one fix, one-line note, person and sender kept
 
 ## 1. TSD: a proposal stays a proposal (draft from notes)
 
@@ -105,14 +105,14 @@ The retention setting might be too long. Nobody has looked at it yet. Meera thin
 ```
 What changed and why: Outcome first, then who found and did what, then next steps, with no headings because none were supplied. The restart, dashboard, queue settings, log paths and the slow dashboard are dropped. "Might" and "probably" stay, and the alert stays Meera's view, not an agreed step. (Report rule: never add a conclusion, cause or agreement.)
 
-## 7. Email rewrite: one fix, one-line note, no invented sender
+## 7. Email rewrite: one fix, one-line note, person and sender kept
 
 Before:
 > Subject: Staging refresh moved to Friday
 >
-> Hi Priya,
+> Hi Lena,
 >
-> Just a quick note before the weekend. The staging refresh moves from Wednesday to Friday this week because the import is still running. Nothing changes for production. Let me know if Friday is a problem.
+> Just a quick note before the weekend. Tomas is moving the staging refresh from Wednesday to Friday this week because the import is still running. Nothing changes for production. Tomas is leaning toward keeping Friday as the regular slot. Let him know if Friday is a problem.
 >
 > Thanks,
 
@@ -120,12 +120,12 @@ After:
 ```text
 Subject: Staging refresh moved to Friday
 
-Hi Priya,
+Hi Lena,
 
-The staging refresh moves from Wednesday to Friday this week because the import is still running. Nothing changes for production. Let me know if Friday is a problem.
+Tomas is moving the staging refresh from Wednesday to Friday this week because the import is still running. Nothing changes for production. Tomas is leaning toward keeping Friday as the regular slot. Let him know if Friday is a problem.
 
 Thanks,
 ```
 Note: Fine apart from the opener, which delayed the point and is cut. Nothing else changed.
 
-What changed and why: One sentence breaks a rule, so one sentence goes and the rest comes back word for word. The note tells the writer what moved so they do not have to compare drafts. The input names no sender, so the sign-off stays unsigned rather than gaining a name. (Rewrite mode: edit the minimum and say what changed; email rule: never add a sender name.)
+What changed and why: One sentence breaks a rule, so one sentence goes and the rest comes back word for word. The input is written about Tomas, not by him, and the request names no writer, so he stays in third person: "Tomas is leaning" does not become "I'm leaning", even if Tomas is the one asking for the rewrite. His lean stays a lean. The note tells the writer what moved so they do not have to compare drafts. The input names no sender, so the sign-off stays unsigned rather than gaining a name. (Rewrite mode: edit the minimum, keep the person and say what changed; email rule: never add a sender name.)
