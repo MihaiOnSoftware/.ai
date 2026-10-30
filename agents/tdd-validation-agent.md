@@ -158,7 +158,7 @@ Examine test file using `git show [commit]`:
    - Verify coverage >80% from report
    - ❌ FAIL if coverage < 80%
 
-**Compare to patterns in `test/bin/work_on_issue_test.rb`**
+**Compare to the existing tests closest to the changed code: the test file the commit touched and its sibling test files**
 
 ### Step 5: Code Quality Check
 
@@ -183,7 +183,7 @@ Examine implementation using `git show [commit]`:
    - ✅ PASS if DRY principles followed
 
 5. **Follows Existing Patterns**:
-   - Compare to `bin/work_on_issue.rb` structure
+   - Compare to the structure of the existing modules closest to the changed code
    - ❌ FAIL if significantly deviates from patterns
    - ✅ PASS if follows established conventions
 
@@ -198,9 +198,7 @@ Examine implementation using `git show [commit]`:
 **Verify ALL cleanup steps from `5_cleanup.md` were completed**
 
 Check report for evidence of:
-- `shadowenv exec -- /opt/dev/bin/dev check -x` run and passed
-- `bundle exec rubocop -a` run (if Ruby files)
-- `/opt/dev/bin/dev tc` run (if Ruby files)
+- The repo's lint, formatter and typecheck commands run and passed. Use the commands documented in the closest AGENTS.md; when there is none, use the scripts in the nearest `package.json` or equivalent manifest
 - All tests still pass after cleanup
 
 **If TDD report doesn't show evidence:**
@@ -291,7 +289,7 @@ The command creates reports in: `~/.ai/wip/agent_reports/tdd-validation-agent/<r
 
 9. **Coverage Verification**:
    - Check TDD agent's report for coverage information
-   - If missing from report: Run coverage check yourself (e.g., `bundle exec rake test:coverage`)
+   - If missing from report: run the repo's test command for the changed test files with coverage enabled (the test runner's coverage flag, as documented in the closest AGENTS.md or the runner's config)
    - If coverage info exists and is >80%: PASS
    - If coverage info exists and is <80%: FAIL
    - If cannot determine coverage: ⚠️ WARN but proceed with other checks
