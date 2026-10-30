@@ -30,7 +30,7 @@ frontmatter_field() {
         value = data[ARGV[1]]
         exit 1 if value.nil?
         print value
-    ' "$SKILL_MD" "$1"
+    ' "${2:-$SKILL_MD}" "$1"
 }
 
 ruby_is_available() { command -v ruby >/dev/null; }
@@ -268,6 +268,38 @@ planted_missing_skill_is_rejected() {
     ! skill_refers_to_rule_by_glob "$SANDBOX/noskill"
 }
 
+# ── Excluded skills helpers ───────────────────────────────────────────────────
+
+EXCLUDED_SKILLS=(shape-review-comments maintainx-pr-description mihai-changelogs commit)
+
+text_names_skill() {
+    grep -Eq "(^|[^[:alnum:]_-])$1([^[:alnum:]_-]|\$)" <<< "$2"
+}
+
+description_names_excluded_skills() {
+    local description skill
+    description="$(frontmatter_field description "$1")" || return 1
+    for skill in "${EXCLUDED_SKILLS[@]}"; do
+        text_names_skill "$skill" "$description" || return 1
+    done
+}
+
+planted_excluded_check() {
+    SANDBOX="${SANDBOX:-$(mktemp -d)}"
+    mkdir -p "$SANDBOX/excluded"
+    printf -- '---\nname: planted\ndescription: %s\n---\n%s\n' "$1" "${2:-body}" > "$SANDBOX/excluded/SKILL.md"
+    description_names_excluded_skills "$SANDBOX/excluded/SKILL.md"
+}
+
+planted_excluded_are_accepted() { planted_excluded_check "$@"; }
+planted_excluded_are_rejected() { ! planted_excluded_check "$@"; }
+
+planted_missing_excluded_skill_file_is_rejected() {
+    SANDBOX="${SANDBOX:-$(mktemp -d)}"
+    mkdir -p "$SANDBOX/noexcluded"
+    ! description_names_excluded_skills "$SANDBOX/noexcluded/SKILL.md"
+}
+
 GOOD_EXAMPLES_LINE='Load references/examples.md when you need before and after pairs.'
 GOOD_SURFACES_LINE='Load references/surfaces.md when choosing structure for a surface.'
 
@@ -347,6 +379,24 @@ assert "planted SKILL.md with the glob missing its star is rejected" planted_rul
 assert "planted SKILL.md with the glob through a longer prefix is rejected" planted_rule_reference_is_rejected "Follow xrules/*writing_style.md for style."
 assert "planted SKILL.md with the glob and a .bak suffix is rejected" planted_rule_reference_is_rejected "Follow rules/*writing_style.md.bak for style."
 assert "planted missing SKILL.md is rejected" planted_missing_skill_is_rejected
+
+# ── Test 6: description names the excluded skills ────────────────────────────
+
+assert "description names shape-review-comments, maintainx-pr-description, mihai-changelogs and commit" description_names_excluded_skills "$SKILL_MD"
+assert "planted description with all four names is accepted" planted_excluded_are_accepted "Not for shape-review-comments, maintainx-pr-description, mihai-changelogs, or commit."
+assert "planted description with backticks, parentheses and the name at the end is accepted" planted_excluded_are_accepted 'Skips `shape-review-comments` and (maintainx-pr-description) plus mihai-changelogs or commit'
+assert "planted description without shape-review-comments is rejected" planted_excluded_are_rejected "Not for maintainx-pr-description, mihai-changelogs, or commit."
+assert "planted description without maintainx-pr-description is rejected" planted_excluded_are_rejected "Not for shape-review-comments, mihai-changelogs, or commit."
+assert "planted description without mihai-changelogs is rejected" planted_excluded_are_rejected "Not for shape-review-comments, maintainx-pr-description, or commit."
+assert "planted description without commit is rejected" planted_excluded_are_rejected "Not for shape-review-comments, maintainx-pr-description, or mihai-changelogs."
+assert "planted description with committed instead of commit is rejected" planted_excluded_are_rejected "Not for shape-review-comments, maintainx-pr-description, mihai-changelogs, or committed text."
+assert "planted description with commits instead of commit is rejected" planted_excluded_are_rejected "Not for shape-review-comments, maintainx-pr-description, mihai-changelogs, or commits."
+assert "planted description with commit-agent instead of commit is rejected" planted_excluded_are_rejected "Not for shape-review-comments, maintainx-pr-description, mihai-changelogs, or commit-agent."
+assert "planted description with pre-commit instead of commit is rejected" planted_excluded_are_rejected "Not for shape-review-comments, maintainx-pr-description, mihai-changelogs, or pre-commit."
+assert "planted description with a longer name instead of shape-review-comments is rejected" planted_excluded_are_rejected "Not for shape-review-comments-agent, maintainx-pr-description, mihai-changelogs, or commit."
+assert "planted description missing a name that the body mentions is rejected" planted_excluded_are_rejected "Not for shape-review-comments, maintainx-pr-description, or mihai-changelogs." "Hand off to commit for commit messages."
+assert "planted description with no names while the body names all four is rejected" planted_excluded_are_rejected "Drafts prose in Mihai voice." "Not for shape-review-comments, maintainx-pr-description, mihai-changelogs, or commit."
+assert "planted missing SKILL.md is rejected by the excluded skills check" planted_missing_excluded_skill_file_is_rejected
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 
