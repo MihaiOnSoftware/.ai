@@ -1,0 +1,13 @@
+{
+  "name": "parts-lookup",
+  "version": "0.3.0",
+  "description": "Part record lookup service with a short-lived in-memory cache",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p .",
+    "test": "node --test test/"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}

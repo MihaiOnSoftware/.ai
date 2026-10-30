@@ -1,0 +1,10 @@
+EMDASH
+WORDS<=180
+QUESTIONS<=1
+DATES_SUBSET
+NUMBERS_SUBSET
+NAMES_SUBSET
+KEEP: a subject line; 2026-11-18; 10-minute staleness for UI edits; API writes invalidate immediately; their current pattern keeps working; the one ask with the deadline framing; what is not changing
+ABSENT: "Dear Mr", "Dear Ms", "Head of", "CTO", "Team Lead", "Tech Lead", "Director", "Hope this email finds you well", "I wanted to reach out", "Please do not hesitate", "leverage", "seamless", "exciting"
+HEDGE_NONE: the date; the 10 minutes
+REVIEW: rubric note: first sentence says what is changing and when. One ask. Plain sign-off. Complete sentences; no Slack casualness. No title or role for Sam.

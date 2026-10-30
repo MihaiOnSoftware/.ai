@@ -1,0 +1,9 @@
+EMDASH
+WORDS<=90
+QUESTIONS<=1
+DATES_SUBSET
+NAMES_SUBSET
+KEEP: option A and option B each in a few words; my lean toward A and why; Thursday; the ask is a choice
+ABSENT: "hope you're doing well", "I wanted to reach out", "quick question", "please let me know at your earliest convenience", "Subject:", "wtf", "damn", "shit"
+REVIEW: no headings, no bold lead-ins, no bullet list longer than 2 items; the ask comes first or in the first sentence
+REVIEW: rubric note: the point (the ask) comes first or within the first sentence. No invented urgency beyond Thursday. Casual is fine; profanity and forced slang are failures since the input did not use them.

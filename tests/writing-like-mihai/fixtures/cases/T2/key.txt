@@ -1,0 +1,12 @@
+EMDASH
+WORDS<=400
+DATES_SUBSET
+NUMBERS_SUBSET
+NAMES_SUBSET
+HEADINGS_EXACT: Problem, Decision, Alternatives considered, Risks, Open questions
+QUESTIONS<=2
+KEEP: 1.9% terminal failure; 71% 5xx / 22% timeouts / 7% 4xx; current 5 attempts ending around 43 minutes; new 7 attempts ending 3h42m; 4xx terminal except 429 with Retry-After; dead-letter replay deferred as product work; per-customer schedule rejected; burst risk after a long outage with the top-5-customers check as a proposed pre-ship check; 429 handling needs tests; the announce-or-not question with both positions
+ABSENT: "note to self", "took 3 tries", "too long honestly", "~/wip", "plt488-query", "don't rerun", "Tuesday" (process detail, not a reader fact)
+HEDGE_KEEP: "a handful" of affected customers (Renée's guess, unconfirmed) => handful, guess, estimate, unconfirmed, not confirmed, checking with; worst-case per-customer volume not measured => not measured, unmeasured, not yet measured, have not checked, has not been checked, to check before shipping
+HEDGE_NONE: the 7-attempt decision; 1.9%; 3h42m
+REVIEW: rubric note: process narrative (how long it took, the slow query, tracing dead ends) must be gone. The "not actually open" dedup note must not appear under Open questions; it may appear under Risks or be dropped. Decision is stated as agreed.

@@ -1,0 +1,1 @@
+Summarize this thread into one email to Renée's manager, Marc Dubois, who has not read the thread and needs to know the outcome and what Support should tell customers. 180 words or fewer. Propose a subject line.

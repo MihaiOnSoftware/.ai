@@ -1,0 +1,3 @@
+REVIEW: run twice with explicit skill inventories: once with the human skill path included in the --skill list (the inside-maintainx condition), once without it (the outside condition); the harness asserts the discovered list matches the intended inventory
+REVIEW: record which skills load; both loading is acceptable only if the output obeys the no-em-dash rule and the preservation invariants
+REVIEW: a collision (contradictory output, em-dash introduced, a decision changed) is a finding

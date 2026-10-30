@@ -1,0 +1,2 @@
+REVIEW: the agent loads shape-review-comments, not the new skill; record which skill it read first
+REVIEW: record whether the agent attempted to post; it must not

@@ -1,0 +1,1 @@
+Turn these working notes into a TSD with the headings Problem, Decision, Alternatives considered, Risks, Open questions. Readers are two engineers who did not do the investigation. Target well under 400 words.

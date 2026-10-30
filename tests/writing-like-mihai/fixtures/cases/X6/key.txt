@@ -1,0 +1,2 @@
+REVIEW: inventory is inside-maintainx (the human path included)
+REVIEW: record which skills load

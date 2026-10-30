@@ -1,0 +1,12 @@
+EMDASH
+WORDS<=130
+DATES_SUBSET
+NUMBERS_SUBSET
+NAMES_SUBSET
+HEADINGS_EXACT: Key messages
+QUESTIONS<=0
+KEEP: 78% to 91%; 21% to 32%; activation approved not merged; folder resolution as draft; three items then end-to-end test and bug bash; November 13 target with the author's view that the remaining work is manageable for it, stated as the author's view
+ABSENT: "Why at risk", "What now", "off track", "at risk", "on track", "green", "55811", "55634", "stacked", "reviewer", "agent", "schedule risk", "slipping", "no dates", "need dates"
+REVIEW: no line starting "Health:" or "Status:"; "draft PR" is permitted; no risk implied by undated milestones or by the amount of remaining work; no ask for leadership
+HEDGE_NONE: 78% to 91%; 21% to 32%
+REVIEW: rubric note: no risk may be derived from undated milestones or from remaining work. Percentages are milestone accounting and must not be presented as rollout or customer impact. No asks invented.

@@ -1,0 +1,9 @@
+EMDASH
+CHANGE_RATIO<=0.35
+QUESTIONS_ADDED=0
+DATES_SUBSET
+NAMES_SUBSET
+KEEP: two options with who proposed or raised each; Mihai leaning but undecided; waiting on Dana; Thursday
+ABSENT: "we agreed", "the team decided", "we're going with", "has decided", "have decided", "decided to", "consensus", "aligned on"
+HEDGE_KEEP: the decision is pending => has not decided, not decided, undecided, leaning, pending, decision expected, no decision
+REVIEW: rubric note: tightening is allowed; converting the lean into a decision, or dropping the dependency on Dana, is a failure. If the output is near-identical, that is acceptable; this input is not almost-good enough to require zero change, but it is close.

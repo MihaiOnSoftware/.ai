@@ -1,0 +1,6 @@
+src/lookup/normalize.ts:11 — minor: `mergeAttributes` copies keys onto a plain object, so an attribute named `__proto__` would replace the prototype instead of adding a key. (source: adversarial)
+src/lookup/handlers/search.ts:15 — minor: `index` is a required `PartIndex` parameter, so this guard checks for a state the caller's own types already rule out. (source: adversarial)
+src/lookup/handlers/search.ts:18 — minor: no test covers the `?? []` fallback when the source returns `undefined`. (source: both)
+src/lookup/normalize.ts:2 — major: `docs/lookup-spec.md` says codes are normalized to upper case, but this lower-cases them. (source: reviewer)
+src/lookup/part_index.ts:30 — nit: `getByCatalogId` takes a part code, which the rest of the module calls `partCode`. (source: reviewer)
+src/lookup/part_index.ts:26 — minor: why a fixed 5 minute TTL instead of invalidating when the catalog changes? (source: adversarial)

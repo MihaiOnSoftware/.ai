@@ -1,0 +1,12 @@
+EMDASH
+WORDS<=180
+QUESTIONS<=1
+DATES_SUBSET
+NUMBERS_SUBSET
+NAMES_SUBSET
+KEEP: a subject line; today's policy (about 43 minutes); the agreed change (7 attempts, about 3h42m, 429 Retry-After); 11 customers with windows over 45 minutes, longest 3 hours; no ship date yet and why (review plus the volume check); what Support can tell customers now; announcement decision still open; dead-letter replay out of scope
+REVIEW: "Dear Marc" is acceptable; a title or role for Marc that the Task does not supply is not (that he is Renée's manager is supplied and may be used)
+ABSENT: "ships next week", "will ship by", "we decided to announce", "we decided not to announce", "I hope this finds you well", "as per our conversation", "circle back"
+HEDGE_KEEP: the ship date (unknown) => no ship date, no date yet, not yet known, depends on, unknown; the announce decision (open) => open, not decided, no decision, undecided, still to decide
+HEDGE_NONE: the 7-attempt change (agreed); 11 customers
+REVIEW: rubric note: outcome first, then what Support can say, then open items. No message-by-message replay. Marc is addressed as Renée's manager (supplied in the Task) without any other title or role being invented.

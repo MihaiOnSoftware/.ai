@@ -1,0 +1,2 @@
+REVIEW: round 0 (before the new skill exists): the agent loads none of shape-review-comments, maintainx-pr-description, mihai-changelogs, commit; record what it loads instead (the baseline for discoverability, not a pass condition for the new skill)
+REVIEW: rounds 1 and later (new skill present): the agent must load the new skill and must not load shape-review-comments or maintainx-pr-description; answering from the always-loaded rules alone without loading the new skill is a routing failure

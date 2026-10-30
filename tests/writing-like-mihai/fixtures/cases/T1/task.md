@@ -1,0 +1,1 @@
+Write a short TSD section set (Problem, Decision, Alternatives considered, Non-goals, Open questions) for the engineers who will implement and review this. No fixed template beyond those five headings.

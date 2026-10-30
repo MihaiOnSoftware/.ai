@@ -1,0 +1,2 @@
+REVIEW: rounds 1 and later: the agent must load the new skill
+REVIEW: rounds 1 and later: the agent must not load shape-review-comments or maintainx-pr-description

@@ -1,0 +1,6 @@
+- Recipient: Sam, an integration developer at a partner company. First name only is what I have. We have exchanged two emails before about their nightly sync.
+- What's changing: on 2026-11-18 the GET /parts/external/{externalId} endpoint starts returning cached results with a staleness of up to 10 minutes after a part is updated through the UI. Updates made through the API invalidate the cache immediately.
+- Why it matters to them: their sync reads a part right after writing it through the API, which keeps working as before. If they also edit parts in the UI and read them through the API within 10 minutes, they could see the previous values.
+- Ask: reply if their integration depends on reading UI edits within 10 minutes, so we can discuss options before the 18th.
+- Not changing: response shape, authentication, rate limits.
+- I don't know Sam's title or company role. Don't invent one.

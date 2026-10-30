@@ -1,0 +1,11 @@
+EMDASH
+WORDS<=350
+DATES_SUBSET
+NUMBERS_SUBSET
+NAMES_SUBSET
+HEADINGS_EXACT: Problem, Decision, Alternatives considered, Non-goals, Open questions
+QUESTIONS<=2 (the one open question, phrased once; the decision must not become a question)
+KEEP: 640 ms p95; 38% read IOPS; (organizationId, externalId) key; TTL 10 minutes; PartUpdated and PartDeleted invalidation; existing Redis cluster; three alternatives each with its reason; non-goals list; the shared-vs-per-domain question with Dana's preference
+ABSENT: "target date", "by end of", "sprint", "Q4", "we agreed to share", "phase 2", "leverage", "robust", "seamless"
+HEDGE_NONE: the decision sentence; 640 ms; 38%
+REVIEW: rubric note: the Decision must read as decided, not proposed. The open question must stay open and must not be resolved by the writer. Alternatives are one or two lines each, not a narrative. No invented timeline.

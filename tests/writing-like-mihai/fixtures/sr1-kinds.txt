@@ -1,0 +1,6 @@
+1	security
+2	redundant-guard
+3	missing-test
+4	spec-mismatch
+5	naming
+6	design-question

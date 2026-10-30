@@ -1,0 +1,5 @@
+- Recipient: Priya Natarajan, teammate on the same team, has full context on PLT-2233 (conflict resolution).
+- Need from her: pick between option A (last-writer-wins with an audit row) and option B (field-level merge with a conflict queue) so I can finish the design doc.
+- My lean: A, because B needs UI work that isn't scheduled. Fine with B if she thinks the audit row isn't enough.
+- Deadline: I want to send the design doc for review Thursday.
+- No other asks. Casual register is fine, we talk daily.

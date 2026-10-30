@@ -1,0 +1,13 @@
+EMDASH
+WORDS<=200
+QUESTIONS<=0
+DATES_SUBSET
+NUMBERS_SUBSET
+NAMES_SUBSET
+HEADINGS_EXACT: What happened, Impact, Cause, Next steps
+KEEP: window 06:12 to 06:58 UTC on 2026-10-27; 4,312 failed requests; 97% from one organization, remainder from 6 others; empty assignees parameter causing a TypeError after PR #56130 (PLT-471); rollback at 06:55 stopped it; missing empty-string unit test; next steps labeled as suggested, owner unassigned
+ABSENT: "Step 1", "Step 2", "investigator-agent", "20261027_091500", "two attempts", "wrong service tag", "process notes", "root cause confirmed", "we will re-land"
+REVIEW: no owner named for the next steps ("owner unassigned" is correct)
+HEDGE_KEEP: the cause is from reading the diff, not from running the code => from the diff, from reading the diff, not run, did not run, not executed, not reproduced; the 3% from other orgs likely but not confirmed the same cause => likely, not confirmed, could not confirm, unconfirmed, only 2 of 6 traces
+HEDGE_NONE: 4,312; the rollback time; the 06:12 to 06:58 window
+REVIEW: rubric note: no step narrative, no agent identifiers, no process notes. Cause section keeps the "from the diff, not executed" caveat without becoming vague. Next steps remain suggestions.

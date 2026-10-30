@@ -1,0 +1,13 @@
+EMDASH
+WORDS<=150
+DATES_SUBSET
+NUMBERS_SUBSET
+NAMES_SUBSET
+HEADINGS_EXACT: Why at risk?, What now?, Key messages
+QUESTIONS<=0
+KEEP: sandbox unavailable 9 days (since 2026-10-20); vendor ticket escalated with no ETA; integration tests and end-to-end validation of push blocked; connectivity milestone complete; asset pull merged and asset push in review; the two mitigations labeled as proposed/under discussion, not as commitments; December 4 target unchanged
+ABSENT: "a9c3e1f", "#56011", "#56040", "#56072", "#56090", "#56101", "#56120", "#56155", "bugbot", "4 rounds", "agent run", "wip/", "I decided", "we will build a stub", "by Monday we will"
+REVIEW: no PR number of any kind; Dana's question about dropping parts milestones may be omitted or stated as an open scope question for the PM, never as a decision; the health word is not written in the body
+HEDGE_KEEP: mitigations are proposals => proposed, proposal, under discussion, options, not started, not yet started, not decided; sandbox return date unknown => no ETA, no date, no estimate, unknown, not known, no return date
+HEDGE_NONE: 9 days; connectivity complete
+REVIEW: rubric note: "What now?" must describe proposed next steps as proposals and may name the possible escalation ask only as possible. No new dates. No ownership assigned to the mitigations. Health word itself not in the body.

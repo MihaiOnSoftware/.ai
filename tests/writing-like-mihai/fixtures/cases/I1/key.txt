@@ -1,0 +1,12 @@
+EMDASH
+WORDS<=160
+DATES_SUBSET
+NUMBERS_SUBSET
+NAMES_SUBSET
+HEADINGS_EXACT: Context, What to do, Out of scope
+QUESTIONS<=1
+KEEP: one-hour offset on DST transition day; REST API path only; web app unaffected; repro with America/Toronto and 2026-11-01T02:30:00; suspected cause marked as suspected with restDateMapper.ts named; both out-of-scope items
+ABSENT: "high priority", "urgent", "root cause is", "the fix is to"
+REVIEW: no priority label (P1, P2), no named assignee or owner, no fix approach stated as decided ("Nobody is assigned" may be restated as "unassigned")
+HEDGE_KEEP: suspected cause => suspected, not confirmed, not stepped through, did not step through, may, appears
+REVIEW: rubric note: "What to do" should say confirm the cause then fix, not prescribe the fix. No owner or priority invented.

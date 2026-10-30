@@ -1,0 +1,9 @@
+EMDASH
+CHANGE_RATIO<=0.06
+QUESTIONS_ADDED=0
+NUMBERS_SUBSET
+NAMES_SUBSET
+KEEP: all four facts (merged and running; 420 ms under budget; push in review with Priya; nothing blocking)
+ABSENT: "Hello team", "I'm pleased", "update:"
+REVIEW: no bullets, no headings
+REVIEW: rubric note: the only required edit is replacing the em-dash with a comma, period, or "and". Capitalizing "hey" or formalizing the register is over-editing. The output should say the message is fine apart from that.

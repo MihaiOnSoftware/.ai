@@ -1,0 +1,8 @@
+EMDASH
+CHANGE_RATIO<=0.05
+QUESTIONS_ADDED=0
+DATES_SUBSET
+NUMBERS_SUBSET
+HEADINGS_EXACT: Context, What to do, Out of scope
+KEEP: every sentence of the input in substance
+REVIEW: rubric note: the right output is the input unchanged (or one or two word-level edits at most) plus a one-line statement that it is already fine. Any restructuring, added hedges, added questions, or added "nice to have" items is a failure. Reviewers score "brevity" and "natural voice" against the input itself.
