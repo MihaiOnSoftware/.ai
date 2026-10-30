@@ -10,10 +10,6 @@ The loop stops when the next round of feedback stops adding signal. Pick the fir
 
 **Example**: Iteration 3 produces three findings: one Reject (weak) about variable naming, one Reject (invalid) citing a function that doesn't exist, one Repeat of iteration 2's already-fixed issue. → Stop.
 
-**Hard cap (iteration 5)**: If this iteration is the 5th, also flag to the user that the cap (5 iterations) was hit but the loop converged. Surface the final state and iteration log as normal. Nothing is held, because a zero-Accept round produces no iteration-5 fixes.
-
-**Example**: Iteration 5 produces one Reject (weak) and two Repeats. → Stop, flag cap, report converged.
-
 ## 2. Invalid
 
 **Condition**: Every finding this iteration was Reject (invalid) — the subagent is fabricating problems (citing nonexistent code, contradicted by the artifact, etc.).
@@ -22,9 +18,24 @@ The loop stops when the next round of feedback stops adding signal. Pick the fir
 
 **Example**: Iteration 2 produces two findings, both citing functions that don't exist in the codebase. → Stop.
 
-## 3. Hard cap — escalate (5 iterations)
+## 3. Hard cap — iteration 5 always stops (converged or escalate)
 
-**Condition**: You have completed 5 iterations without conditions 1–2 firing. Because condition 1 fires on any zero-Accept iteration, the **final (5th) iteration still produced substantive new Accepts** — new issues, not repeats of already-addressed points, not style nitpicks.
+**Condition**: Iteration 5 is an absolute ceiling. After its triage it stops unconditionally, regardless of conditions 1–2 (Weak, Invalid), and a 6th iteration is never started. The outcome is decided from round 5 alone. Every round-5 outcome maps to exactly one of the two outcomes below; the split turns on whether round 5 produced a substantive new Accept (see "What substantive means" below).
+
+**Why the cap is absolute**: Five rounds is the budget. Without an unconditional stop, a round that matches no other condition (for example, Defer-only or minor-Accept-only) would roll into a 6th iteration.
+
+### Converged — round 5 produced no substantive new Accepts
+
+Covers: zero Accepts; only Reject / Repeat / Defer findings in any mix; or only non-substantive Accepts (minor, stylistic).
+
+**Action**: Apply the held iteration-5 fixes (the non-substantive ones). Flag to the user that the cap (5 iterations) was hit but the loop converged. Surface any Deferred items. Report normally.
+
+**Examples**:
+- Iteration 5 produces one Reject (weak) and two Repeats. → Stop, flag cap, report converged. Nothing is held, because the round produced no Accepts.
+- Iteration 5 produces one Defer only (valid, out of scope). → Stop, flag cap, report converged, surface the Defer.
+- Iteration 5 produces one minor Accept (stylistic wording in a heading). → Apply the held fix, flag cap, report converged.
+
+### Escalate — round 5 produced at least one substantive new Accept
 
 **Why this is different**: Five rounds without convergence indicates a deep design flaw or a genuinely hard tradeoff requiring human judgment. Continuing to loop is wasteful and masks the real problem.
 
@@ -39,7 +50,7 @@ The loop stops when the next round of feedback stops adding signal. Pick the fir
 
 ## What Does NOT Terminate the Loop
 
-- **A single iteration with only one Accept**. One small fix is still signal. Keep going; if the next iteration produces zero Accepts, condition 1 fires.
+- **A single iteration with only one Accept**. One small fix is still signal. Keep going (before iteration 5; at iteration 5 the hard cap stops the loop regardless). If the next iteration produces zero Accepts, condition 1 fires.
 - **Subjective fatigue**. "I'm tired of this" is not a termination criterion. Use the rules.
 - **The subagent saying "I cannot find a mistake"**. That's a strong signal but treat it as one input to condition 1 (weak). If the subagent finds nothing, that iteration has zero Accepts → condition 1 fires → terminate. (Same outcome, but reach it through the rule, not the subagent's self-report.)
 

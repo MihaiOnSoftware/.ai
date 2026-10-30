@@ -91,11 +91,13 @@ For each iteration `N` (starting at 1):
 
 Stop the loop when **any** of these holds (see [references/termination-criteria.md](references/termination-criteria.md) for details and examples):
 
-- **Weak**: Every finding this iteration was Reject (weak), Reject (invalid), or Repeat. No Accepts. If this is iteration 5 (the hard cap), also flag to the user that the cap was hit but the loop converged.
+- **Weak**: Every finding this iteration was Reject (weak), Reject (invalid), or Repeat. No Accepts.
 - **Invalid**: Every finding this iteration was Reject (invalid) — the subagent is now fabricating problems.
-- **Hard cap — escalate**: You have completed **5 iterations** and the final iteration *still produced substantive new Accepts* (new issues, not repeats, not nitpicks). **Do not continue the loop.** This signals a deep design flaw or a hard tradeoff that needs human judgment — continuing to loop is wasteful and masks the real problem. Leave the held iteration-5 fixes unapplied; they are the unresolved findings. Escalate:
-  - **Running as a subagent** (invoked by `solve-this-problem` or another parent agent): emit a `NEED_HUMAN:` message to the parent listing the unresolved findings after 5 rounds. The parent must pause and wait for human intervention before continuing.
-  - **Running interactively** (direct user conversation): surface the unresolved findings directly to the user and ask for explicit guidance before doing anything else.
+- **Hard cap — iteration 5 is always the last**: Iteration 5 is an absolute ceiling. After its triage, stop unconditionally and never start a 6th iteration, whether or not Weak or Invalid also fired. Decide the outcome from round 5 alone; every round-5 outcome maps to exactly one of:
+  - **Converged**: round 5 produced no substantive new Accepts (zero Accepts; or only Reject/Repeat/Defer findings in any mix; or only non-substantive Accepts such as minor/stylistic points). Apply the held iteration-5 fixes (the non-substantive ones), flag to the user that the cap was hit but the loop converged, surface any Deferred items, and report normally.
+  - **Escalate**: round 5 produced at least one substantive new Accept (new issues, not repeats, not nitpicks; affects correctness, safety, or the conclusion). Leave ALL held iteration-5 fixes unapplied; they are the unresolved findings. This signals a deep design flaw or a hard tradeoff that needs human judgment — continuing to loop is wasteful and masks the real problem. Escalate:
+    - **Running as a subagent** (invoked by `solve-this-problem` or another parent agent): emit a `NEED_HUMAN:` message to the parent listing the unresolved findings after 5 rounds. The parent must pause and wait for human intervention before continuing.
+    - **Running interactively** (direct user conversation): surface the unresolved findings directly to the user and ask for explicit guidance before doing anything else.
 
 If none of these holds, go to Step 2 for iteration `N+1`.
 
