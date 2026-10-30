@@ -7,6 +7,7 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 SKILL_NAME="writing-like-mihai"
 SKILL_DIR="$REPO_ROOT/skills/$SKILL_NAME"
 SKILL_MD="$SKILL_DIR/SKILL.md"
+REFERENCE_FILES=(references/examples.md references/surfaces.md)
 
 PASS=0
 FAIL=0
@@ -101,7 +102,7 @@ references_have_no_onward_links() {
 
 skill_has_exactly_three_files() {
     local expected inventory
-    expected="$(printf './SKILL.md\n./references/examples.md\n./references/surfaces.md')"
+    expected="$(printf './%s\n' SKILL.md "${REFERENCE_FILES[@]}" | LC_ALL=C sort)"
     inventory="$(cd "$1" && find . ! -type d | LC_ALL=C sort)" || return 1
     [ "$inventory" = "$expected" ]
 }
@@ -124,6 +125,89 @@ planted_onward_link_is_detected() {
     printf 'See [b](b.md)\n' >> "$SANDBOX/onward/references/a.md"
     ! references_have_no_onward_links "$SANDBOX/onward"
 }
+
+# ── Contents, mention, and size helpers ───────────────────────────────────────
+
+line_count() { grep -c '' "$1"; }
+
+strip_final_newline() {
+    local body
+    body="$(cat "$1")"
+    printf '%s' "$body" > "$1"
+}
+
+has_table_of_contents() {
+    awk '
+        left > 0 { left--; if ($0 ~ /^([-*]|[0-9]+\.) /) found = 1 }
+        NR <= 30 && tolower($0) ~ /^#+ +(table of )?contents *$/ { left = 15 }
+        END { exit !found }
+    ' "$1"
+}
+
+references_without_contents() {
+    local file
+    while IFS= read -r file; do
+        [ "$(line_count "$file")" -le 100 ] || has_table_of_contents "$file" || echo "$file"
+    done < <(find "$1/references" -type f)
+}
+
+long_references_have_contents() {
+    markdown_files_exist "$1/references" && [ -z "$(references_without_contents "$1")" ]
+}
+
+reference_is_mentioned_once_with_reason() {
+    local md="$1/SKILL.md" ref="$2" pattern
+    [ "$(grep -oF -- "$ref" "$md" 2>/dev/null | grep -c '')" -eq 1 ] || return 1
+    pattern="\bload\b.*(^|[ \`(])${ref//./\\.}([^[:alnum:]_./-]|\$).*\b(when|if|for|to)\b( +[[:alnum:]][^ ]*){3,}"
+    grep -F -- "$ref" "$md" | grep -Eiq "$pattern"
+}
+
+skill_mentions_each_reference_with_reason() {
+    local ref
+    for ref in "${REFERENCE_FILES[@]}"; do
+        reference_is_mentioned_once_with_reason "$1" "$ref" || return 1
+    done
+}
+
+skill_is_at_most_120_lines() {
+    [ -f "$1/SKILL.md" ] && [ "$(line_count "$1/SKILL.md")" -le 120 ]
+}
+
+planted_reference_check() {
+    SANDBOX="${SANDBOX:-$(mktemp -d)}"
+    rm -rf "$SANDBOX/toc"
+    mkdir -p "$SANDBOX/toc/references"
+    seq 1 "$1" | awk -v at="$2" -v block="$3" '{ print (NR == at ? block : $0) }' > "$SANDBOX/toc/references/a.md"
+    [ -z "${4:-}" ] || strip_final_newline "$SANDBOX/toc/references/a.md"
+    long_references_have_contents "$SANDBOX/toc"
+}
+
+planted_reference_is_accepted() { planted_reference_check "$@"; }
+planted_reference_is_rejected() { ! planted_reference_check "$@"; }
+
+planted_mentions_check() {
+    SANDBOX="${SANDBOX:-$(mktemp -d)}"
+    mkdir -p "$SANDBOX/mentions"
+    printf '%s\n' "$@" > "$SANDBOX/mentions/SKILL.md"
+    skill_mentions_each_reference_with_reason "$SANDBOX/mentions"
+}
+
+planted_mentions_are_accepted() { planted_mentions_check "$@"; }
+planted_mentions_are_rejected() { ! planted_mentions_check "$@"; }
+
+planted_skill_check() {
+    SANDBOX="${SANDBOX:-$(mktemp -d)}"
+    mkdir -p "$SANDBOX/size"
+    seq 1 "$1" > "$SANDBOX/size/SKILL.md"
+    [ -z "${2:-}" ] || strip_final_newline "$SANDBOX/size/SKILL.md"
+    skill_is_at_most_120_lines "$SANDBOX/size"
+}
+
+planted_skill_is_accepted() { planted_skill_check "$@"; }
+planted_skill_is_rejected() { ! planted_skill_check "$@"; }
+
+GOOD_EXAMPLES_LINE='Load references/examples.md when you need before and after pairs.'
+GOOD_SURFACES_LINE='Load references/surfaces.md when choosing structure for a surface.'
 
 echo "writing-like-mihai skill"
 echo ""
@@ -150,6 +234,32 @@ assert "no reference file links onward to another reference" references_have_no_
 assert "skill has exactly SKILL.md and the two references" skill_has_exactly_three_files "$SKILL_DIR"
 assert "planted dangling link is detected" planted_dangling_link_is_detected
 assert "planted onward reference link is detected" planted_onward_link_is_detected
+
+# ── Test 4: contents, mentions, and size ─────────────────────────────────────
+
+assert "references over 100 lines have a table of contents in the first 30 lines" long_references_have_contents "$SKILL_DIR"
+assert "SKILL.md mentions each reference once with a reason to load it" skill_mentions_each_reference_with_reason "$SKILL_DIR"
+assert "SKILL.md is at most 120 lines" skill_is_at_most_120_lines "$SKILL_DIR"
+assert "planted 101-line reference without contents is rejected" planted_reference_is_rejected 101 0 ""
+assert "planted 101-line reference without contents or a final newline is rejected" planted_reference_is_rejected 101 0 "" unterminated
+assert "planted 101-line reference with a table of contents on line 1 is accepted" planted_reference_is_accepted 101 1 "## Table of contents\n- one"
+assert "planted 101-line reference with a table of contents on line 30 is accepted" planted_reference_is_accepted 101 30 "## Table of contents\n- one"
+assert "planted 101-line reference with a table of contents on line 31 is rejected" planted_reference_is_rejected 101 31 "## Table of contents\n- one"
+assert "planted 101-line reference with a bare contents heading and no list is rejected" planted_reference_is_rejected 101 1 "## Contents"
+assert "planted 101-line reference with a wrong heading is rejected" planted_reference_is_rejected 101 1 "## Why we discuss contents of cups\n- one"
+assert "planted 100-line reference without contents is accepted" planted_reference_is_accepted 100 0 ""
+assert "planted good mention lines are accepted" planted_mentions_are_accepted "$GOOD_EXAMPLES_LINE" "$GOOD_SURFACES_LINE"
+assert "planted missing mention is rejected" planted_mentions_are_rejected "$GOOD_EXAMPLES_LINE"
+assert "planted double mention is rejected" planted_mentions_are_rejected "$GOOD_EXAMPLES_LINE" "$GOOD_SURFACES_LINE" "$GOOD_SURFACES_LINE"
+assert "planted mention without Load before the path is rejected" planted_mentions_are_rejected "$GOOD_EXAMPLES_LINE" "Look at this (for real) references/surfaces.md"
+assert "planted mention without a reason after the path is rejected" planted_mentions_are_rejected "$GOOD_EXAMPLES_LINE" "Load references/surfaces.md when ok."
+assert "planted mention with the reason on the next line is rejected" planted_mentions_are_rejected "$GOOD_EXAMPLES_LINE" "Load references/surfaces.md" "when choosing structure for a surface."
+assert "planted mention through a longer path prefix is rejected" planted_mentions_are_rejected "$GOOD_EXAMPLES_LINE" "Load xreferences/surfaces.md when choosing structure for a surface."
+assert "planted mention with a .md.bak suffix is rejected" planted_mentions_are_rejected "$GOOD_EXAMPLES_LINE" "Load references/surfaces.md.bak when choosing structure for a surface."
+assert "planted 120-line SKILL.md is accepted" planted_skill_is_accepted 120
+assert "planted 121-line SKILL.md is rejected" planted_skill_is_rejected 121
+assert "planted 120-line SKILL.md without a final newline is accepted" planted_skill_is_accepted 120 unterminated
+assert "planted 121-line SKILL.md without a final newline is rejected" planted_skill_is_rejected 121 unterminated
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 
