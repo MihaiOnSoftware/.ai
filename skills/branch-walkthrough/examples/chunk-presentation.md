@@ -1,6 +1,6 @@
 # Example: Presenting a Chunk
 
-```
+````markdown
 ## Chunk 1: Add validation for user input
 
 **Purpose**: Ensure user input is sanitized before processing
@@ -8,8 +8,7 @@
 - lib/user_input.rb
 - test/user_input_test.rb
 
-### Changes:
-
+```diff
 diff --git a/lib/user_input.rb b/lib/user_input.rb
 --- a/lib/user_input.rb
 +++ b/lib/user_input.rb
@@ -42,10 +41,9 @@ diff --git a/test/user_input_test.rb b/test/user_input_test.rb
 +    assert_equal "scriptalert('xss')/script", result
 +  end
  end
+```
 
-### Context:
-
-This follows the validation pattern used throughout the codebase - sanitize
+**Context**: This follows the validation pattern used throughout the codebase - sanitize
 at the boundary before processing.
 
 Ready for your feedback on this chunk:
@@ -53,4 +51,4 @@ Ready for your feedback on this chunk:
 - Ask questions about the changes
 - Request modifications
 - Type "skip" to move to next chunk without approval
-```
+````
