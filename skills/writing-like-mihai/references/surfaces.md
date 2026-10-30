@@ -1,11 +1,11 @@
 # Surfaces
 
-Defaults for each surface the skill covers. Everything here yields to the input and to the request. A template the user supplies replaces the default structure, and the input's facts, uncertainty, owners, dates, health, commitments, person and the author's own questions outrank everything here. A limit in the request replaces the length budget and is a hard limit: count the words, cut until under it, and recount after every cut. The budgets below apply only when the request sets none, and any instruction in the request ("make it longer", "ask both questions", "leave out the review mechanics", "do not propose a fix", a section order) overrides the matching default structure, cap or drop list. Question caps limit what you add. They never remove a question the author wrote.
+Defaults for each surface the skill covers. Everything here yields to the input and to the request. A template the user supplies replaces the default structure, and the input's facts, uncertainty, owners, dates, health, commitments, person and the author's own questions outrank everything here. A limit in the request replaces the length budget and is a hard limit: split it into per-section allowances before drafting, count once after, and when over remove whole sentences, a secondary fact included, until under it. The budgets below apply only when the request sets none, and any instruction in the request ("make it longer", "ask both questions", "leave out the review mechanics", "do not propose a fix", a section order) overrides the matching default structure, cap or drop list. Question caps limit what you add. They never remove a question the author wrote.
 
 ## TSD or design note
 
 - Reader: engineers who will build or review it and did not do the investigation.
-- Default structure: problem, decision, alternatives considered (one or two lines each, with the reason), scope or non-goals, risks, open questions. A supplied template replaces this, with no title above its first heading.
+- Default structure: problem, decision, alternatives considered (one or two lines each, with the reason), scope or non-goals, risks, open questions. A supplied template replaces this, and its first heading is the first line of the deliverable.
 - Decisions: state a decision as decided when the input says so. A proposal or a lean stays labeled as one.
 - Risks: carry the likelihood the input gives and no more.
 - Length: as long as the decisions need, and no narrative.
@@ -26,7 +26,7 @@ Defaults for each surface the skill covers. Everything here yields to the input 
 ## Project or status update
 
 - Reader: leadership or stakeholders outside the daily work.
-- Default structure: the supplied template, exactly: its headings, its order, nothing above the first heading. This skill embeds no team template. If none is supplied, ask for it, or lead with outcomes and changes since the last update.
+- Default structure: the supplied template, exactly: its headings, its order, its first heading on the first line. This skill embeds no team template. If none is supplied, ask for it, or lead with outcomes and changes since the last update.
 - Numbers: keep percentages exactly as given and say what they measure.
 - Length: under about 150 words.
 - Question cap: 0, unless the template asks for one. An ask is a statement ("Need X from Y by Z"), and naming the readers in the request does not turn it into a question.

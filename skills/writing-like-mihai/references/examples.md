@@ -7,10 +7,10 @@ All of these are invented. They show shape, not wording to copy. Each pair ends 
 1. TSD: a proposal stays a proposal
 2. Issue description: suspected cause means confirm first
 3. Project update: undated means no risk language
-4. Slack: almost good, returned unchanged
+4. Slack: almost good, returned unchanged with its verdict line
 5. Email: the point first, one ask
 6. Report-like prose: condensation
-7. Email rewrite: one fix, one-line note, person and sender kept
+7. Email rewrite: one fix, verdict line first, person and sender kept
 
 ## 1. TSD: a proposal stays a proposal (draft from notes)
 
@@ -62,18 +62,20 @@ Nothing.
 ```
 What changed and why: The headings and order are binding. "A lot of work left" with no date is not evidence of a slip, so it is cut and no risk or health is added. (Update rule: never infer risk from undated milestones.)
 
-## 4. Slack: almost good, returned unchanged
+## 4. Slack: almost good, returned unchanged with its verdict line
 
 Before:
 > hey folks, the nightly sync is back after the config fix. Watch tomorrow's run and shout if the counts look off.
 
 After:
 ```text
+Fine as is: the point is in the first sentence, there is one ask, and the casual register is the author's own.
+
 hey folks, the nightly sync is back after the config fix. Watch tomorrow's run and shout if the counts look off.
 ```
-Note: Fine as is. The point is in the first sentence, there is one ask, and the casual register is the author's own. Optional word-level tweak: "is back" to "is running again".
+Optional word-level tweak: "is back" to "is running again".
 
-What changed and why: Nothing breaks a rule, so the text comes back unchanged with a one-line verdict and one optional swap that adds no information. A longer, tidier rewrite would be an over-edit. (Rewrite mode: edit the minimum.)
+What changed and why: Nothing breaks a rule, so the verdict line comes first and the text comes back unchanged under it, with one optional swap that adds no information. A longer, tidier rewrite would be an over-edit. (Rewrite mode: edit the minimum.)
 
 ## 5. Email: the point first, one ask
 
@@ -105,7 +107,7 @@ The retention setting might be too long. Nobody has looked at it yet. Meera thin
 ```
 What changed and why: Outcome first, then who found and did what, then next steps, with no headings because none were supplied. The restart, dashboard, queue settings, log paths and the slow dashboard are dropped. "Might" and "probably" stay, and the alert stays Meera's view, not an agreed step. (Report rule: never add a conclusion, cause or agreement.)
 
-## 7. Email rewrite: one fix, one-line note, person and sender kept
+## 7. Email rewrite: one fix, verdict line first, person and sender kept
 
 Before:
 > Subject: Staging refresh moved to Friday
@@ -118,6 +120,8 @@ Before:
 
 After:
 ```text
+Changed: the opener is cut because it delayed the point. Nothing else changed.
+
 Subject: Staging refresh moved to Friday
 
 Hi Lena,
@@ -126,6 +130,5 @@ Tomas is moving the staging refresh from Wednesday to Friday this week because t
 
 Thanks,
 ```
-Note: Fine apart from the opener, which delayed the point and is cut. Nothing else changed.
 
-What changed and why: One sentence breaks a rule, so one sentence goes and the rest comes back word for word. The input is written about Tomas, not by him, and the request names no writer, so he stays in third person: "Tomas is leaning" does not become "I'm leaning", even if Tomas is the one asking for the rewrite. His lean stays a lean. The note tells the writer what moved so they do not have to compare drafts. The input names no sender, so the sign-off stays unsigned rather than gaining a name. (Rewrite mode: edit the minimum, keep the person and say what changed; email rule: never add a sender name.)
+What changed and why: One sentence breaks a rule, so one sentence goes and the rest comes back word for word. The input is written about Tomas, not by him, and the request names no writer, so he stays in third person: "Tomas is leaning" does not become "I'm leaning", even if Tomas is the one asking for the rewrite. His lean stays a lean. The verdict line is the first line of the deliverable, so the writer sees what moved before reading the text and a minimal edit cannot pass as untouched. Nothing is added about what Tomas checked or confirmed, because the input does not say. The input names no sender, so the sign-off stays unsigned rather than gaining a name. (Rewrite mode: edit the minimum, keep the person and lead with the verdict; email rule: never add a sender name.)
