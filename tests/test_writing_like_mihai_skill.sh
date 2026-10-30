@@ -300,6 +300,125 @@ planted_missing_excluded_skill_file_is_rejected() {
     ! description_names_excluded_skills "$SANDBOX/noexcluded/SKILL.md"
 }
 
+# ── Shaper guard helpers ──────────────────────────────────────────────────────
+
+SHAPER_BASE_SHA=106f522
+UNRESOLVABLE_SHA=0000000000000000000000000000000000000001
+EMPTY_TREE_SHA=4b825dc642cb6eb9a060e54bf8d69288fbee4904
+PROTECTED_PATHS=(skills/shape-review-comments agents/shape-review-comments-agent.md skills/review-pipeline)
+
+path_is_protected() {
+    local protected
+    for protected in "${PROTECTED_PATHS[@]}"; do
+        [ "$1" = "$protected" ] || [[ "$1" == "$protected"/* ]] && return 0
+    done
+    return 1
+}
+
+shaper_base_entries() {
+    local listing meta path
+    listing="$(git -C "$1" ls-tree -r -t "$2" -- "${PROTECTED_PATHS[@]}")" || return 1
+    [ -n "$listing" ] || return 1
+    while IFS=$'\t' read -r meta path; do
+        if path_is_protected "$path"; then printf '%s\t%s\t%s\n' "${meta%% *}" "${meta##* }" "$path"; fi
+    done <<< "$listing"
+}
+
+shaper_base_inventory() {
+    local entries mode oid path type target
+    entries="$(shaper_base_entries "$@")" || return 1
+    while IFS=$'\t' read -r mode oid path; do
+        target=""
+        case "$mode" in
+            120000) type=link; target="$(git -C "$1" cat-file blob "$oid")" ;;
+            100644|100755) type=file ;;
+            040000) type=dir ;;
+            *) type="mode-$mode" ;;
+        esac
+        printf '%s\t%s\t%s\n' "$type" "$path" "$target"
+    done <<< "$entries" | LC_ALL=C sort
+}
+
+shaper_fs_inventory() {
+    local entries path type target
+    entries="$(cd "$1" && find "${PROTECTED_PATHS[@]}")" || return 1
+    while IFS= read -r path; do
+        target=""
+        if [ -L "$1/$path" ]; then type=link; target="$(readlink "$1/$path")"
+        elif [ -d "$1/$path" ]; then type=dir
+        elif [ -f "$1/$path" ]; then type=file
+        else type=other
+        fi
+        printf '%s\t%s\t%s\n' "$type" "$path" "$target"
+    done <<< "$entries" | LC_ALL=C sort
+}
+
+shaper_matches_base_in_git() {
+    local status
+    git -C "$1" diff --quiet "$2" -- "${PROTECTED_PATHS[@]}" || return 1
+    status="$(git -C "$1" status --porcelain --untracked-files=all -- "${PROTECTED_PATHS[@]}")" || return 1
+    [ -z "$status" ]
+}
+
+shaper_inventory_matches_base() {
+    local base filesystem
+    base="$(shaper_base_inventory "$@")" || return 1
+    filesystem="$(shaper_fs_inventory "$1")" || return 1
+    [ "$base" = "$filesystem" ]
+}
+
+shaper_file_hashes_match_base() {
+    local entries mode oid path
+    entries="$(shaper_base_entries "$@")" || return 1
+    while IFS=$'\t' read -r mode oid path; do
+        case "$mode" in
+            100644|100755) [ "$(git -C "$1" hash-object --no-filters -- "$path")" = "$oid" ] || return 1 ;;
+        esac
+    done <<< "$entries"
+}
+
+shaper_guard_holds() {
+    local sha
+    sha="$(git -C "$1" rev-parse --verify "${2:-$SHAPER_BASE_SHA}^{commit}")" || return 1
+    shaper_matches_base_in_git "$1" "$sha" && shaper_inventory_matches_base "$1" "$sha" && shaper_file_hashes_match_base "$1" "$sha"
+}
+
+planted_shaper_check() {
+    local checker="$1" mutation="$2" clone
+    SANDBOX="${SANDBOX:-$(mktemp -d)}"
+    clone="$SANDBOX/shaper-clone"
+    rm -rf "$clone"
+    git clone -q "$REPO_ROOT" "$clone" || return 1
+    "$mutation" "$clone"
+    "$checker" "$clone" "${3:-$SHAPER_BASE_SHA}"
+}
+
+planted_shaper_is_accepted() { planted_shaper_check "$@"; }
+planted_shaper_is_rejected() { ! planted_shaper_check "$@"; }
+
+leave_untouched() { :; }
+
+plant_ignored_symlink() {
+    printf 'skills/shape-review-comments/AGENTS.md\n' >> "$1/.git/info/exclude"
+    ln -s SKILL.md "$1/skills/shape-review-comments/AGENTS.md"
+}
+
+plant_modified_file() { printf 'changed\n' >> "$1/skills/shape-review-comments/SKILL.md"; }
+
+plant_untracked_file() { : > "$1/skills/review-pipeline/references/new.md"; }
+
+plant_deleted_file() { rm "$1/agents/shape-review-comments-agent.md"; }
+
+plant_committed_mode_change() {
+    chmod +x "$1/skills/shape-review-comments/SKILL.md"
+    git -C "$1" -c user.name=planted -c user.email=planted@example.invalid -c core.hooksPath=/dev/null commit -q -a -m planted
+}
+
+plant_hidden_modification() {
+    plant_modified_file "$1"
+    git -C "$1" update-index --assume-unchanged skills/shape-review-comments/SKILL.md
+}
+
 GOOD_EXAMPLES_LINE='Load references/examples.md when you need before and after pairs.'
 GOOD_SURFACES_LINE='Load references/surfaces.md when choosing structure for a surface.'
 
@@ -397,6 +516,36 @@ assert "planted description with a longer name instead of shape-review-comments 
 assert "planted description missing a name that the body mentions is rejected" planted_excluded_are_rejected "Not for shape-review-comments, maintainx-pr-description, or mihai-changelogs." "Hand off to commit for commit messages."
 assert "planted description with no names while the body names all four is rejected" planted_excluded_are_rejected "Drafts prose in Mihai voice." "Not for shape-review-comments, maintainx-pr-description, mihai-changelogs, or commit."
 assert "planted missing SKILL.md is rejected by the excluded skills check" planted_missing_excluded_skill_file_is_rejected
+
+# ── Test 7: shaper guard ─────────────────────────────────────────────────────
+
+assert "shaper paths match base $SHAPER_BASE_SHA in the real worktree" shaper_guard_holds "$REPO_ROOT"
+assert "planted untouched clone is accepted" planted_shaper_is_accepted shaper_guard_holds leave_untouched
+assert "planted ignored AGENTS.md symlink under the shaper is rejected" planted_shaper_is_rejected shaper_guard_holds plant_ignored_symlink
+assert "planted modified tracked file is rejected" planted_shaper_is_rejected shaper_guard_holds plant_modified_file
+assert "planted untracked file is rejected" planted_shaper_is_rejected shaper_guard_holds plant_untracked_file
+assert "planted deleted file is rejected" planted_shaper_is_rejected shaper_guard_holds plant_deleted_file
+assert "planted modification hidden from git is rejected" planted_shaper_is_rejected shaper_guard_holds plant_hidden_modification
+assert "planted unresolvable base SHA is rejected" planted_shaper_is_rejected shaper_guard_holds leave_untouched "$UNRESOLVABLE_SHA"
+assert "planted committed mode change is rejected" planted_shaper_is_rejected shaper_guard_holds plant_committed_mode_change
+assert "git checks accept an untouched clone" planted_shaper_is_accepted shaper_matches_base_in_git leave_untouched
+assert "git checks cannot see a planted ignored symlink" planted_shaper_is_accepted shaper_matches_base_in_git plant_ignored_symlink
+assert "git checks cannot see a planted hidden modification" planted_shaper_is_accepted shaper_matches_base_in_git plant_hidden_modification
+assert "git checks reject a planted committed mode change" planted_shaper_is_rejected shaper_matches_base_in_git plant_committed_mode_change
+assert "git checks reject a planted modified file" planted_shaper_is_rejected shaper_matches_base_in_git plant_modified_file
+assert "git checks reject a planted untracked file" planted_shaper_is_rejected shaper_matches_base_in_git plant_untracked_file
+assert "git checks reject a planted deleted file" planted_shaper_is_rejected shaper_matches_base_in_git plant_deleted_file
+assert "inventory accepts an untouched clone" planted_shaper_is_accepted shaper_inventory_matches_base leave_untouched
+assert "inventory accepts a planted hidden modification" planted_shaper_is_accepted shaper_inventory_matches_base plant_hidden_modification
+assert "inventory rejects a planted ignored symlink" planted_shaper_is_rejected shaper_inventory_matches_base plant_ignored_symlink
+assert "inventory rejects a planted untracked file" planted_shaper_is_rejected shaper_inventory_matches_base plant_untracked_file
+assert "inventory rejects a planted deleted file" planted_shaper_is_rejected shaper_inventory_matches_base plant_deleted_file
+assert "inventory rejects an empty base listing" planted_shaper_is_rejected shaper_inventory_matches_base leave_untouched "$EMPTY_TREE_SHA"
+assert "hash check accepts an untouched clone" planted_shaper_is_accepted shaper_file_hashes_match_base leave_untouched
+assert "hash check accepts a planted ignored symlink" planted_shaper_is_accepted shaper_file_hashes_match_base plant_ignored_symlink
+assert "hash check rejects a planted hidden modification" planted_shaper_is_rejected shaper_file_hashes_match_base plant_hidden_modification
+assert "hash check rejects a planted deleted file" planted_shaper_is_rejected shaper_file_hashes_match_base plant_deleted_file
+assert "hash check rejects an empty base listing" planted_shaper_is_rejected shaper_file_hashes_match_base leave_untouched "$EMPTY_TREE_SHA"
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 
