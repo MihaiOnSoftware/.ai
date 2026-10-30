@@ -56,7 +56,7 @@ git diff HEAD
 For branch changes:
 
 1. From inside the repo, run the bundled `get-parent-branch.sh` script (in the `scripts/` directory alongside this SKILL.md file). Pass the branch the user named as its argument, or omit it to default to HEAD. Call that branch `<target>` (HEAD when omitted).
-2. If the script exits non-zero, stop and ask the user which branch to compare against instead of guessing. Exit 2: no `origin` remote. Exit 3: the branch is already on its base branch, so there is nothing to diff.
+2. If the script exits non-zero, stop and ask the user which branch to compare against instead of guessing. Exit 2: no `origin` remote. Exit 3: the branch is already on its base branch, so there is nothing to diff. Exit 4: the base branch could not be determined.
 3. On success it prints a merge-base SHA. Diff and log that SHA against `<target>`, not against your current checkout:
 
    ```bash

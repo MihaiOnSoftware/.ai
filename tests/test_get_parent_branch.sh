@@ -181,7 +181,6 @@ assert "unreachable origin warns that the fetch failed on stderr" stderr_contain
 # ── gh absent or unauthenticated ─────────────────────────────────────────────
 
 DEVELOP_BASE="$(git -C "$DEV_CLONE" rev-parse origin/develop)"
-MAIN_BASE="$(git -C "$DEV_CLONE" rev-parse origin/main~1)"
 
 git -C "$DEV_CLONE" remote set-head origin develop >/dev/null
 run_script_with_path "$NO_GH_BIN"
@@ -191,9 +190,11 @@ assert "gh failing uses origin/HEAD as the base" run_succeeded_with "$DEVELOP_BA
 
 git -C "$DEV_CLONE" remote set-head origin -d >/dev/null
 run_script_with_path "$NO_GH_BIN"
-assert "gh absent and origin/HEAD unset falls back to main" run_succeeded_with "$MAIN_BASE"
+assert "gh absent and origin/HEAD unset exits 4" status_is 4
 run_script_with_path "$GH_FAILS_BIN:$NO_GH_BIN"
-assert "gh failing and origin/HEAD unset falls back to main" run_succeeded_with "$MAIN_BASE"
+assert "gh failing and origin/HEAD unset exits 4" status_is 4
+assert "base branch undetermined asks the user on stderr" stderr_contains "could not determine base branch; ask the user which branch to compare against"
+assert "base branch undetermined leaves stdout empty" stdout_is_empty
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 
