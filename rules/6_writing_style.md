@@ -57,7 +57,7 @@ DON'T: "Hello team, I wanted to update everyone that the issue is being addresse
 
 - Corporate buzzwords ("leverage synergies", "ideate solutions")
 - Passive voice when active is clearer
-- Unnecessary qualifiers ("I think maybe perhaps")
+- Empty hedging. Cut qualifiers that carry no uncertainty; keep the ones that mark real doubt.
 - **Intensifiers for emphasis.** Don't stack "real" / "actually" / "genuinely" / "truly" in front of nouns to make them feel weightier. "I hit friction" is stronger than "I hit real friction."
 - Being artificially humble (you have genuine expertise)
 - Over-formality in casual contexts
