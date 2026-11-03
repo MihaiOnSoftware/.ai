@@ -18,7 +18,7 @@ Load skill: tdd-slice
 
 The skill defines the full micro-TDD cycle structure, retry logic, validation rules, and report format. Execute it exactly.
 
-**You may not skip, reorder, merge, or shortcut red → green → refactor/cleanup → commit → validation.** Each micro cycle must complete before the next begins.
+**You may not skip, reorder, merge, or shortcut red → green → refactor/cleanup → commit → validation.** Each micro cycle must complete before the next begins. Chore items have no red or green; their cycle is chore → commit → validation.
 
 ## Dispatch rule
 

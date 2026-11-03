@@ -68,7 +68,7 @@ The user can hand you an existing artifact and a phase to resume from. Supported
 | "Plan at Y, already reviewed, start slicing" | 1–4 | Phase 5 | design doc path is **optional** — if absent, Phase 5 dispatch omits the design-doc field and tdd-slice runs without it |
 | "Resume pipeline at `<wip-file-path>`" | (read state from file) | wherever paused | — |
 
-When resuming, create the wip file with skipped phases marked as "skipped (artifact supplied)" linking the user-supplied path. Don't fabricate review logs for skipped reviews — just note "user-supplied; not reviewed by this pipeline." If the user supplies a plan but no design doc, mark Phase 1's `design_doc_path` field as `n/a (not supplied at resume)` and skip the design-doc field in the Phase 5 dispatch task.
+When resuming, create the wip file with skipped phases marked as "skipped (artifact supplied)" linking the user-supplied path. Don't fabricate review logs for skipped reviews — just note "user-supplied; not reviewed by this pipeline." If the user supplies a plan but no design doc, mark Phase 1's `design_doc_path` field as `n/a (not supplied at resume)` and skip the design-doc field in the Phase 5 dispatch task. A supplied plan must carry the PR stack table; copy it into the wip file as Phase 5 describes, and if the plan has none, stop and ask the user whether to treat the whole plan as one bundle on the current branch (then record that as the table) or to re-plan.
 
 ## Phase dispatch shape
 

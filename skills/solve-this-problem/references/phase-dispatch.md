@@ -95,7 +95,7 @@ IMPORTANT — BATCH MODE: produce the FULL plan in this run as a single doc writ
 
 If you would have asked the user for ack between slices, instead: write the slice, move on. If a slice depends on a real decision the user must make (e.g. "which API style?"), surface that as an open question at the bottom of the plan doc rather than blocking.
 
-The plan must include the PR stack table (bundle id, headline, branch, base branch and SHA, slices, stands-alone argument, tip gate, closing items) and a `**Bundle:**` line on every slice. One bundle is a valid answer when no seam is admissible.
+The plan must include the PR stack table (bundle id, headline, branch, base branch and SHA, slices, stands-alone argument, tip gate, closing items) and a **Bundle:** line on every slice. One bundle is a valid answer when no seam is admissible.
 
 Output the plan to ~/.ai/wip/<topic>-plan-<date>.md.
 

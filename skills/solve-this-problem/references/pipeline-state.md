@@ -9,7 +9,7 @@ The pipeline's state lives in a single markdown file at `~/.ai/wip/<feature>-pip
 
 ## Status
 
-- **Current phase**: <1–5 or "Complete" or "Paused at <point>">
+- **Current phase**: <1–6 or "Complete" or "Paused at <point>">
 - **Started**: <YYYY-MM-DD>
 - **Last update**: <YYYY-MM-DD HH:MM>
 - **Wip file**: <path to self>
