@@ -15,7 +15,7 @@ metadata:
 
 # Create Implementation Plan
 
-You are a planner, not an implementer. You turn a settled design into small, incremental slices that someone else implements, grouped into PR bundles so the work lands as a stack of independently reviewable PRs. Plans describe algorithms and approaches in natural language; the implementer chooses the syntax. Follow the Process at the end; the Principles are the rules each step applies.
+You turn a settled design into small, incremental slices that someone else implements, grouped into PR bundles so the work lands as a stack of independently reviewable PRs. Plans describe algorithms and approaches in natural language; the implementer chooses the syntax.
 
 ## Modes
 
@@ -27,7 +27,17 @@ You are a planner, not an implementer. You turn a settled design into small, inc
 - There is no design or investigation document to plan from; a ticket title is not enough. Batch: return without a plan and say what is missing.
 - The base is unknown: the branch and commit the plan is written against (the default branch, or another ticket's branch when the work stacks on it). The first slice starts there. Batch: plan against the default branch's current head and record the assumption.
 - A slice hinges on a decision the user has not made (which API shape, which storage). Interactive: ask before presenting that slice. Batch: record it and plan on the stated assumption.
-- The user rejects a presented slice: revise and re-present it before moving on; if the rejection changes the proof of concept (Principle 2), restart from Slice 1.
+- The user rejects a presented slice: revise and re-present it before moving on; if the rejection changes the proof slice (Principle 2), restart from it.
+
+## Process
+
+1. **Read the inputs.** The design or investigation document in full, the base branch and SHA, and what "done" looks like. Done when you can state the base branch and SHA and list the design's acceptance criteria in one line each; anything you can't state goes to Stop and ask.
+2. **Find the proof slice.** The smallest behaviour at the task's boundary that validates the approach (Principle 2). Done when you have written the one assumption that, if false, kills the approach, and the boundary behaviour the proof slice uses to test it.
+3. **Map the path to complete.** List every behaviour or rule to add on top of the proof slice along the axes in Principle 4, applying Principle 3 to each entry. Order by dependencies between complete behaviours (Principle 7), then complexity. Done when every acceptance criterion from step 1 maps to at least one listed behaviour. [examples/iterm-profile-generation.md](examples/iterm-profile-generation.md) is a plan that came out of this mapping.
+4. **Write each slice** as goal, approach in words, and tests, in the shape of [examples/presenting-a-slice.md](examples/presenting-a-slice.md). Check it against INVEST ([references/invest-criteria.md](references/invest-criteria.md)) and the [references/red-flags.md](references/red-flags.md); split or reorder what fails. Interactive: present it and wait. Batch: move on.
+5. **Cut the PR stack.** Once the slices are settled, mark the admissible seams, assign each slice to a bundle with its position (first, middle, last, only), and move each bundle's closing items into its last slice. The written plan opens with the PR stack table and tags every slice header with `**Bundle:** PRn (position)`; Interactive: propose the table after the last slice is approved, then place it at the top. Done when each seam you rejected names the admissibility test it fails and each bundle names its base.
+
+Done when every slice has a pattern, a goal, the tests or evidence Principle 5 asks of its kind, and a bundle; every bundle's last slice carries its closing items; and the first bundle's base names a branch and a SHA.
 
 ## Principles
 
@@ -35,19 +45,19 @@ You are a planner, not an implementer. You turn a settled design into small, inc
 
 Pick the pattern that fits the work and name it in the plan with one sentence of reasoning: WORKFLOW STEPS, OPERATIONS, BUSINESS RULES, VARIATIONS IN DATA, SIMPLE/COMPLEX, DEFER PERFORMANCE, MAJOR EFFORT. Consult [references/story-splitting-patterns.md](references/story-splitting-patterns.md) for the definitions and [references/flowchart.md](references/flowchart.md) when the choice is not obvious.
 
-### 2. Slice 1 proves the approach
+### 2. The proof slice
 
-Name the assumption that, if false, kills the whole approach, and design Slice 1 to test it, so a bad approach fails fast. Prove it through the smallest usable behaviour at the task's intended boundary, not through an unwired component: the riskiest mechanism in isolation is not the proof. [examples/thought-process.md](examples/thought-process.md) shows the framing.
+Slice 1 is the proof slice. Name the assumption that, if false, kills the whole approach, and design the proof slice to test it, so a bad approach fails fast. Prove it through the smallest usable behaviour at the task's intended boundary, not through an unwired component: the riskiest mechanism in isolation is not the proof. [examples/thought-process.md](examples/thought-process.md) shows the framing.
 
 ### 3. Each slice stands alone
 
-A slice stands alone when the behaviour the task promises works through the boundary that uses it, with no later slice needed to wire it in. The boundary is whatever the task delivers: a route, a command, a service or library contract with no in-repo caller yet. Compiling and passing its own unit tests is not standing alone; a helper awaiting its consumer is a layer, not a slice.
+A slice stands alone when the behaviour the task promises works through the boundary that uses it, with no later slice needed to wire it in. The boundary is whatever the task delivers: a route, a command, a service or library contract with no in-repo caller yet. Layers and producers are items inside a slice, never a slice of their own; compiling and passing its own unit tests is not standing alone.
 
 Three kinds of slice are exempt and say so in the plan: a **spike** (names the uncertainty and the decision it settles, ships no behaviour), a **mechanical** move or refactor (proves preserved behaviour), and a **contract-only task** whose whole deliverable is a producer with no consumer in scope.
 
 ### 4. One new concept per slice, ordered by complexity
 
-A concept is a capability or rule, not an architectural layer. Widen along one axis at a time: scope of data (one case → common cases → the full set), edge cases (happy path → known edges → recursive or cyclic shapes), automation (hard-coded → discovered), entry points (one way to reach the behaviour → every way). [examples/schema-hash-cache-keys.md](examples/schema-hash-cache-keys.md) layers one concept per slice across these axes.
+A concept is a capability or rule (Principle 3). Widen along one axis at a time: scope of data (one case → common cases → the full set), edge cases (happy path → known edges → recursive or cyclic shapes), automation (hard-coded → discovered), entry points (one way to reach the behaviour → every way). [examples/schema-hash-cache-keys.md](examples/schema-hash-cache-keys.md) layers one concept per slice across these axes.
 
 ### 5. Name the property you can check
 
@@ -59,22 +69,12 @@ Say what is built and how it works in words: the logical steps, the key data str
 
 ### 7. Dependencies order work inside a slice
 
-A consumer needs its producer, a recursive case needs its base case, a composite type needs its element types. These order the items *inside* a slice: the slice that introduces a consumer carries the minimum producer it needs, built first. A dependency on its own does not justify a separate slice (Principle 3). Order slices by dependencies between complete behaviours. Consult [examples/layer-cut-vs-vertical.md](examples/layer-cut-vs-vertical.md) to see one feature cut both ways.
+A consumer needs its producer, a recursive case needs its base case, a composite type needs its element types. These order the items *inside* a slice (Principle 3): the slice that introduces a consumer carries the minimum producer it needs, built first. Order slices by dependencies between complete behaviours. Consult [examples/layer-cut-vs-vertical.md](examples/layer-cut-vs-vertical.md) to see one feature cut both ways.
 
 ### 8. Say when a slice can't be automated
 
-Boot-time code, hot-reload paths, dev-only tooling, third-party UI flows: state it in the slice and give the manual verification steps instead of pretending a half-test covers it.
+Boot-time code, hot-reload paths, dev-only tooling, third-party UI flows: state it in the slice and give numbered manual verification steps as the slice's evidence.
 
 ### 9. Group slices into PR bundles
 
 The plan ends in a stack of PRs, one per **bundle** of consecutive slices. Cut a seam only where the tree at that slice stands alone green, leaves nothing half-moved, has one reason to exist, is worth its own review, and depends only on the bundles below it. One bundle is the right answer when no seam is admissible. Each bundle's last slice carries the bundle's **closing items**, the administrative work PRs in this repo require (e.g. changelogs, CODEOWNERS), as chore items; find them in the repo's PR template, contributing guide and recent merged PRs, and when there are none, the plan says so. Consult [references/pr-bundles.md](references/pr-bundles.md) if you need the admissibility rules in full, the table columns or a worked example.
-
-## Process
-
-1. **Read the inputs.** The design or investigation document in full, the base branch and SHA, and what "done" looks like. Done when you can state the base branch and SHA and list the design's acceptance criteria in one line each; anything you can't state goes to Stop and ask.
-2. **Find the proof of concept.** The smallest behaviour at the task's boundary that validates the approach (Principle 2).
-3. **Map the path to complete.** List every behaviour or rule to add on top of it along the axes in Principle 4; the layers an implementer builds on the way are items inside those slices, not entries in the list. Order by dependencies between complete behaviours (Principle 7), then complexity. [examples/iterm-profile-generation.md](examples/iterm-profile-generation.md) is a plan that came out of this mapping.
-4. **Write each slice** as goal, approach in words, and tests, in the shape of [examples/presenting-a-slice.md](examples/presenting-a-slice.md). Check it against INVEST ([references/invest-criteria.md](references/invest-criteria.md)) and the [references/red-flags.md](references/red-flags.md); split or reorder what fails. Interactive: present it and wait. Batch: move on.
-5. **Cut the PR stack.** Once the slices are settled, mark the admissible seams, assign each slice to a bundle with its position (first, middle, last, only), and move each bundle's closing items into its last slice. The written plan opens with the PR stack table and tags every slice header with `**Bundle:** PRn (position)`; Interactive: propose the table after the last slice is approved, then place it at the top.
-
-Done when every slice has a pattern, a goal, the tests or evidence Principle 5 asks of its kind, and a bundle; every bundle's last slice carries its closing items; and the first bundle's base names a branch and a SHA.
