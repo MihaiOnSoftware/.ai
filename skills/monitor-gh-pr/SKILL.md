@@ -1,7 +1,6 @@
 ---
 name: monitor-gh-pr
 description: Monitor a GitHub PR for actionable events. Two scripts, picked by role — author mode (monitor-gh-pr.sh) watches CI results and new comments after you push; reviewer mode (monitor-gh-pr-review.sh) watches a PR you are reviewing for merge/close, new commits, re-review requests, and new comments. Trigger phrases include "watch my PR", "monitor PR #N", "notify me when CI is done", "background CI watch", "let me know if there are new comments", "watch this PR for re-requests", "tell me when they push changes".
-license: MIT
 metadata:
   category: github
 ---

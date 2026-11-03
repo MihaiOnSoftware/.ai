@@ -1,7 +1,6 @@
 ---
 name: explore-and-design
 description: Investigates a problem space and shapes a solution into a design doc before any code is written. Use for a feature whose approach isn't settled, a spike, a production investigation, or a user-supplied draft spec to extend into a design. Not for tickets with a decided solution (create-implementation-plan) or reviewing a finished design on its own (adversarial-review-loop).
-license: MIT
 metadata:
   category: planning
 ---

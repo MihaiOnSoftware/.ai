@@ -1,7 +1,6 @@
 ---
 name: branch-walkthrough
 description: Use when the user asks to interactively walk through branch or uncommitted code changes chunk by chunk before or during review. Presents actual diffs and waits for feedback; not a defect-finding review unless the user asks evaluative questions.
-license: MIT
 metadata:
   category: analysis
 ---

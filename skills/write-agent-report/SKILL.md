@@ -1,7 +1,6 @@
 ---
 name: write-agent-report
 description: Write an agent report with proper naming and location
-license: MIT
 metadata:
   category: reporting
 ---

@@ -1,7 +1,6 @@
 ---
 name: solve-this-problem
 description: "End-to-end: problem → design → plan → TDD slices → a stack of draft PRs. Chains explore-and-design + adversarial-review-loop → create-implementation-plan → tdd-slice per bundle → PR submission per bundle. Supports mid-pipeline entry."
-license: MIT
 metadata:
   category: orchestration
 ---

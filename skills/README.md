@@ -33,7 +33,6 @@ The flat layout is required because Claude Code only discovers skills one level 
    ---
    name: my-skill
    description: Brief description of what this skill does
-   license: MIT
    metadata:
      category: <category>
    ---

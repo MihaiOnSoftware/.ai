@@ -1,7 +1,6 @@
 ---
 name: adversarial-review-loop
 description: "Runs fresh-context adversarial review subagents repeatedly, incorporating valid findings each round, until feedback is weak or invalid or a hard cap is hit. Use for substantial work a single pass plausibly misses: multi-file refactors, research conclusions other decisions hang on, architectural design docs, long proofs or derivations."
-license: MIT
 metadata:
   category: review
 ---

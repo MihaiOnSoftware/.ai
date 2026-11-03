@@ -1,7 +1,6 @@
 ---
 name: load-rules
 description: Load all user rules from ~/.ai/rules/ directory
-license: MIT
 metadata:
   category: setup
   workflow: initialization

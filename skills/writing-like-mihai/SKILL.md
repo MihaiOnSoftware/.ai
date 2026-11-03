@@ -2,7 +2,6 @@
 name: writing-like-mihai
 description: >-
   Drafts or rewrites prose in Mihai's voice for a specific reader: TSDs and design notes, issue descriptions, project and status updates, Slack messages, email, and other report-like prose such as incident or investigation summaries. Use when asked to write, draft, tighten, condense, or make text sound like Mihai, either from facts or from an existing draft. Not for PR review comments (shape-review-comments), PR descriptions (maintainx-pr-description), changelog entries (mihai-changelogs), or commit messages (commit).
-license: MIT
 metadata:
   category: writing
 ---

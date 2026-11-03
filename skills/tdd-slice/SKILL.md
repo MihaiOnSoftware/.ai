@@ -1,7 +1,6 @@
 ---
 name: tdd-slice
 description: Implement a complete TDD slice on its PR bundle branch by orchestrating micro cycles (test, refactor, chore), validating each commit, and ending with a boundary validation of the slice and, on a bundle's last slice, of the bundle tip. Use when given a slice requirements document with several items; not for a single behaviour (micro-tdd) or a single refactor (micro-refactor).
-license: MIT
 metadata:
   category: tdd
 ---

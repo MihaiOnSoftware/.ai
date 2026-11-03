@@ -1,7 +1,6 @@
 ---
 name: mihai-code-review
 description: "Review a PR, branch, or diff the way Mihai would: mechanical style/test sweeps first, then precedent diffing, then an adversarial correctness hunt. Use when asked to 'review like Mihai', 'mihai review' a PR/diff, or to apply the Mihai reviewer profile inside an adversarial review loop."
-license: MIT
 metadata:
   category: review
 ---

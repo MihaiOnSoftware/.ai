@@ -1,7 +1,6 @@
 ---
 name: commit
 description: Create a commit following message rules and writing style guidelines. Also the single place an orchestrator without bash sends branch, amend and reset instructions.
-license: MIT
 metadata:
   category: git
 ---

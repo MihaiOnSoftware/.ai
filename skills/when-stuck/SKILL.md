@@ -1,7 +1,6 @@
 ---
 name: when-stuck
 description: Reload problem-solving discipline (STOP→THINK→INVESTIGATE→ASK) when stuck mid-task — about to make an unjustified change, an error has resisted multiple attempts, or you're considering a compromise.
-license: MIT
 metadata:
   category: guidance
 ---

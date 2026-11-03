@@ -9,7 +9,6 @@ description: >-
   intake from Linear or Jira (plan-linear-issue, plan-ticket), for creating
   Linear sub-issues (slice-issue), or for re-splitting a change that already
   exists as a branch or PR (stacking-prs).
-license: MIT
 metadata:
   category: planning
 ---

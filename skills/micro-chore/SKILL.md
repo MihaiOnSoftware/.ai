@@ -1,7 +1,6 @@
 ---
 name: micro-chore
 description: Perform ONE piece of administrative work a repo requires for a PR (e.g. a changelog entry, a CODEOWNERS line, a docs update, a regenerated file), with no behaviour and no test, then stage it for the caller to commit. Use for a PR bundle's closing items inside a TDD slice. Not for code changes (micro-tdd, micro-refactor) or validation fixes (micro-fix).
-license: MIT
 metadata:
   category: tdd
 ---

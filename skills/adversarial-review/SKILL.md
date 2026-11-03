@@ -1,7 +1,6 @@
 ---
 name: adversarial-review
 description: Spawn a fresh-context subagent that is told a mistake exists in your work and tasked with finding it. Useful as a self-check after reaching a conclusion or end state when no automated oracle is available.
-license: MIT
 metadata:
   category: review
 ---
