@@ -1,6 +1,15 @@
 ---
 name: create-implementation-plan
-description: Break a large task into incremental slices using story splitting patterns and group the slices into PR bundles that each stand alone. Use when planning a feature, breaking down a complex task, or turning an investigation document into a slice-by-slice plan that ends in a stack of PRs.
+description: >-
+  Break a design or investigation document into INVEST slices with story
+  splitting patterns, each delivering a behaviour at the task's boundary, and
+  group the slices into PR bundles that each stand alone, so implementation
+  ends in a stack of PRs. Use when the approach is settled and the work needs
+  cutting before code exists: "plan this feature", "slice this design",
+  "break this down". Not for ticket intake from Linear or Jira
+  (plan-linear-issue, plan-ticket), for creating Linear sub-issues
+  (slice-issue), or for re-splitting a change that already exists as a
+  branch or PR (stacking-prs).
 license: MIT
 metadata:
   category: planning
