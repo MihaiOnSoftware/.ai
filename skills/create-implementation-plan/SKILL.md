@@ -15,187 +15,63 @@ metadata:
   category: planning
 ---
 
-# Create Implementation Plan Command
+# Create Implementation Plan
 
-You are tasked with creating an excellent implementation plan that breaks down a large task into small, incremental slices, grouped into PR bundles so the implementation ends in a stack of independently reviewable PRs.
+You are a planner, not an implementer. You turn a settled design into small, incremental slices that someone else implements, grouped into PR bundles so the work lands as a stack of independently reviewable PRs. Plans describe algorithms and approaches in natural language; the implementer chooses the syntax. With a live user, present one slice at a time and wait for approval before the next; when dispatched without one, write the whole plan in one pass and list the decisions you would have asked about under "Open questions".
 
-## Your Role
+## Stop and ask when
 
-**You are a planner, not an implementer.** Your job is to break down complex tasks into incremental slices that someone else will implement. You design the strategy, not the code.
+- There is no design or investigation document to plan from; a ticket title is not enough.
+- The base is unknown: the branch and commit the plan is written against (the default branch, or another ticket's branch when the work stacks on it). The first slice starts there.
+- A slice hinges on a decision the user has not made (which API shape, which storage). Interactive: ask before presenting that slice. Batch: record it under "Open questions" and plan the slice on the stated assumption.
+- The user rejects a presented slice: revise and re-present it before moving on; if the rejection changes the proof of concept (Principle 2), restart from Slice 1.
 
-### Critical Rules
+## Principles
 
-1. **NO CODE IN PLANS** - Code-in-a-doc is unacceptable. Describe algorithms and approaches in natural language. Instead of writing code, explain what needs to happen.
-   - ❌ BAD: "Add this function: `function calculateHash() { return crypto.hash(...) }`"
-   - ✅ GOOD: "Create a function that calculates a deterministic hash of the class schema using SHA-256"
+### 1. Apply a story splitting pattern
 
-2. **Iterative Presentation** - Present slices one at a time for user approval, not all at once. After each slice is approved, present the next.
+Pick the pattern that fits the work and name it in the plan with one sentence of reasoning: WORKFLOW STEPS, OPERATIONS, BUSINESS RULES, VARIATIONS IN DATA, SIMPLE/COMPLEX, DEFER PERFORMANCE, MAJOR EFFORT. Consult [references/story-splitting-patterns.md](references/story-splitting-patterns.md) for the definitions and [references/flowchart.md](references/flowchart.md) when the choice is not obvious.
 
-## Your Instructions
+### 2. Slice 1 proves the approach
 
-1. **Ask the user for context**: What task needs to be planned? Is there an investigation document, issue, or problem statement to read?
+Name the assumption that, if false, kills the whole approach, and design Slice 1 to test it, so a bad approach fails fast. Prove it through the smallest usable behaviour at the task's intended boundary, not through an unwired component: the riskiest mechanism in isolation is not the proof. [examples/thought-process.md](examples/thought-process.md) shows the framing.
 
-2. **Read and understand the context**: Read any provided documents thoroughly.
+### 3. Each slice stands alone
 
-3. **Apply the methodology below**: Use the story splitting patterns and planning process to create a plan.
-
-4. **Present slices iteratively**:
-   - Present **Slice 1 only** with its goal, implementation approach (no code!), and tests
-   - Wait for user approval or feedback
-   - Once approved, present **Slice 2**
-   - Repeat until all slices are approved
-   - After all slices approved, propose the PR stack (Principle 9) and provide a summary of the complete plan
-
----
-
-# Planning Methodology
-
-This methodology explains how to create excellent implementation plans.
-
-## Required Inputs
-
-Before creating a plan, you need:
-
-1. **Complete investigation document** - Understanding the problem, explored solutions, chosen approach, and technical details
-2. **Story splitting framework** - Patterns for breaking down large stories
-3. **Concrete example** - A reference plan showing desired style and granularity
-4. **End goal clarity** - Know exactly what "done" looks like
-5. **The base** - The branch and commit the plan is written against (the default branch, or another ticket's branch when the work stacks on it). Record the SHA; the implementer's first branch starts there.
-
-## Reference Examples
-
-**Note**: These examples cover both complete multi-slice plans and the format of a single slice. When creating your plan, present slices one at a time to the user, not all at once.
-
-- For an example of a multi-slice plan with pattern analysis, see [examples/iterm-profile-generation.md](examples/iterm-profile-generation.md)
-- For an example using the SIMPLE/COMPLEX pattern, see [examples/schema-hash-cache-keys.md](examples/schema-hash-cache-keys.md)
-- For the format of a single slice (goal/approach/tests), see [examples/presenting-a-slice.md](examples/presenting-a-slice.md)
-- For one feature cut by layer and cut vertically, side by side, see [examples/layer-cut-vs-vertical.md](examples/layer-cut-vs-vertical.md)
-
-## Key Principles
-
-### 1. Apply Story Splitting Patterns
-
-For the full list of patterns (WORKFLOW STEPS, OPERATIONS, BUSINESS RULES, VARIATIONS IN DATA, SIMPLE/COMPLEX, DEFER PERFORMANCE, MAJOR EFFORT), see [references/story-splitting-patterns.md](references/story-splitting-patterns.md).
-
-### Choosing the Right Pattern
-
-Use the decision tree in [references/flowchart.md](references/flowchart.md) to pick a pattern. For two worked examples of pattern selection, see [examples/iterm-profile-generation.md](examples/iterm-profile-generation.md) (multi-pattern) and [examples/schema-hash-cache-keys.md](examples/schema-hash-cache-keys.md) (SIMPLE/COMPLEX).
-
-### 2. Think About What Validates the Approach
-
-Slice 1 must prove the core concept works. List the assumption that, if false, kills the whole approach - and design Slice 1 to test it. If Slice 1 fails, the whole approach fails. This is intentional - fail fast. Prove it through the smallest usable behaviour at the task's intended boundary, not through an unwired component: the riskiest mechanism in isolation is not the proof.
-
-See [examples/thought-process.md](examples/thought-process.md) for the Q&A framing.
-
-### 3. Each Slice Must Be Independently Valuable
-
-Ask for each slice:
-- **What does this prove?** (learning/risk mitigation)
-- **What value does it deliver?** (even if incomplete)
-- **Can I test this?** (verify it works)
-- **Does it stand alone?** A slice stands alone when the behaviour the task promises works through the boundary that uses it, with no later slice needed to wire it in. The boundary is whatever the task delivers: a route, a command, a service or library contract with no in-repo caller yet. Compiling and passing its own unit tests is not standing alone; a helper awaiting its consumer is a layer, not a slice.
+A slice stands alone when the behaviour the task promises works through the boundary that uses it, with no later slice needed to wire it in. The boundary is whatever the task delivers: a route, a command, a service or library contract with no in-repo caller yet. Compiling and passing its own unit tests is not standing alone; a helper awaiting its consumer is a layer, not a slice.
 
 Three kinds of slice are exempt and say so in the plan: a **spike** (names the uncertainty and the decision it settles, ships no behaviour), a **mechanical** move or refactor (proves preserved behaviour), and a **contract-only task** whose whole deliverable is a producer with no consumer in scope.
 
-### 4. Build Complexity Incrementally
+### 4. One new concept per slice, ordered by complexity
 
-Order slices by increasing complexity. Typical axes to widen along:
+A concept is a capability or rule, not an architectural layer. Widen along one axis at a time: scope of data (one case → common cases → the full set), edge cases (happy path → known edges → recursive or cyclic shapes), automation (hard-coded → discovered), entry points (one way to reach the behaviour → every way). [examples/schema-hash-cache-keys.md](examples/schema-hash-cache-keys.md) layers one concept per slice across these axes.
 
-- **Scope of data**: one case → a few common cases → the full set
-- **Edge cases**: happy path → known edge cases → recursive / nested / cyclic shapes
-- **Automation**: hard-coded list → discovered automatically
-- **Entry points**: one way to reach the behaviour → every way (manual trigger → automatic on initialization → hot reload)
+### 5. Name the property you can check
 
-Each slice adds exactly one new concept, and a concept is a capability or rule, not an architectural layer. Don't combine two axes (e.g. "handle nested types" plus "add automatic discovery") in the same slice.
+Each slice lists concrete tests: "endpoint returns the expected count", "output is deterministic across runs", not "works correctly" or "handles errors". One of them exercises the behaviour at the slice's boundary (Principle 3).
 
-See [examples/schema-hash-cache-keys.md](examples/schema-hash-cache-keys.md) for a six-slice plan that layers exactly one new concept per slice across these axes.
+### 6. Describe, don't implement
 
-### 5. Make Each Slice Testable
+Say what is built and how it works in words: the logical steps, the key data structures, the edge cases, the pattern it follows. "Create a function that walks the type graph from a class, collecting field names and types, with a visited set for cycles" is a plan; a code block is not.
 
-For each slice, identify concrete test cases. Specific over vague:
+### 7. Dependencies order work inside a slice
 
-- ❌ "works correctly" / "handles errors"
-- ✅ "endpoint returns the expected count", "output is deterministic across runs", "response body matches the schema", "discovers the known fixture item"
+A consumer needs its producer, a recursive case needs its base case, a composite type needs its element types. These order the items *inside* a slice: the slice that introduces a consumer carries the minimum producer it needs, built first. A dependency on its own does not justify a separate slice; a producer-only slice is a layer (Principle 3). Order slices by dependencies between complete behaviours. Consult [examples/layer-cut-vs-vertical.md](examples/layer-cut-vs-vertical.md) to see one feature cut both ways.
 
-Name the property you can check, not the feeling you want.
+### 8. Say when a slice can't be automated
 
-### 6. Describe, Don't Implement
+Boot-time code, hot-reload paths, dev-only tooling, third-party UI flows: state it in the slice and give the manual verification steps instead of pretending a half-test covers it.
 
-**Remember: You are a planner, not an implementer.** Describe what needs to be built, not how to build it in code.
+### 9. Group slices into PR bundles
 
-✅ **Good descriptions**:
-- "Create a function that walks the Sorbet type graph starting from a given class, collecting field names and types"
-- "Use SHA-256 to generate a deterministic hash from the sorted list of field signatures"
-- "Store the hash in Rails.configuration during initialization so it persists across requests"
-- "Implement cycle detection using a Set to track visited class names and skip classes we've already processed"
+The plan ends in a stack of PRs, one per **bundle** of consecutive slices. Cut a seam only where the tree at that slice stands alone green, leaves nothing half-moved, has one reason to exist, is worth its own review, and depends only on the bundles below it. One bundle is the right answer when no seam is admissible. Each bundle's last slice carries the bundle's **closing items**, the administrative work PRs in this repo require (e.g. changelogs, CODEOWNERS), as chore items. Consult [references/pr-bundles.md](references/pr-bundles.md) for the admissibility rules, the table columns and a worked example.
 
-❌ **Bad (includes code)**:
-- "Add this code: `def hash_schema; fields.map(&:signature).sort.join.hash; end`"
-- "Use this implementation: `visited = Set.new; return if visited.include?(klass.name)`"
-- Writing out actual Ruby/JavaScript/Python/etc. code blocks
+## Process
 
-**How to describe algorithms**:
-- Focus on the logical steps: "First do X, then check Y, finally return Z"
-- Mention key data structures: "Use a Set to track visited items", "Store results in a Hash keyed by class name"
-- Describe edge cases: "If the field is nil, skip it. If we encounter a cycle, stop recursing"
-- Reference patterns: "Use the Visitor pattern", "Apply memoization to avoid redundant calculations"
+1. **Read the inputs.** The design or investigation document in full, the base branch and SHA, and what "done" looks like.
+2. **Find the proof of concept.** The smallest behaviour at the task's boundary that validates the approach (Principle 2).
+3. **Map the path to complete.** List every behaviour or rule to add on top of it along the axes in Principle 4; the layers an implementer builds on the way are items inside those slices, not entries in the list. Order by dependencies between complete behaviours (Principle 7), then complexity. [examples/iterm-profile-generation.md](examples/iterm-profile-generation.md) is a plan that came out of this mapping.
+4. **Write each slice** as goal, approach in words, and tests, in the shape of [examples/presenting-a-slice.md](examples/presenting-a-slice.md). Check it against INVEST ([references/invest-criteria.md](references/invest-criteria.md)) and the [references/red-flags.md](references/red-flags.md); split or reorder what fails. Interactive: present it and wait. Batch: move on.
+5. **Cut the PR stack.** Once the slices are settled, mark the admissible seams, assign each slice to a bundle with its position (first, middle, last, only), and move each bundle's closing items into its last slice. The written plan opens with the PR stack table and tags every slice header with `**Bundle:** PRn (position)`; in an interactive session you propose the table after the last slice is approved and then place it at the top.
 
-The implementer will figure out the exact syntax. Your job is to clearly explain the approach and logic.
-
-### 7. Consider Dependencies
-
-Some work must happen in order. Common shapes:
-
-- A consumer can't be exercised until the producer it reads from exists (e.g. a route handler needs the request parser it depends on)
-- A recursive case can't be exercised until the base case works
-- A composite type (Array, Union, nested record) can't be handled until its element types are handled
-
-Dependencies order the work *inside* a slice: the slice that introduces a consumer carries the minimum producer it needs, as ordered items the implementer builds first. A dependency on its own never justifies a separate slice; a producer-only slice is a layer (Principle 3). Order slices by dependencies between complete behaviours, so each builds on previous work. Consult [examples/layer-cut-vs-vertical.md](examples/layer-cut-vs-vertical.md) if you need to see the same feature cut both ways.
-
-### 8. Acknowledge Untestable Slices
-
-Some behavior can't be fully automated - boot-time code, hot-reload paths, anything that depends on a real process restart, dev-only tooling, third-party UI flows.
-
-When a slice falls into this bucket, state it explicitly in the slice's plan and document the manual verification steps the implementer should run. Don't pretend a half-test covers it.
-
-### 9. Group Slices into PR Bundles
-
-The plan ends in a stack of PRs, one per **bundle** of consecutive slices. Cut a seam only where the tree at that slice stands alone green, leaves nothing half-moved, has one reason to exist, is worth its own review, and depends only on the bundles below it. No admissible seam means one bundle; never force a split.
-
-Each bundle's last slice carries the bundle's **closing items**, any administrative work PRs in this repo require (e.g. changelogs, CODEOWNERS), as chore items, so none of it is left for after the branches exist.
-
-The plan records a PR stack table before the slices and tags every slice with its bundle and position. Consult [references/pr-bundles.md](references/pr-bundles.md) if you need the admissibility rules in full, the table columns, or the worked example.
-
-## The Planning Process
-
-### Step 1: Understand the Solution Architecture
-
-Read the investigation document to understand:
-- What classes are involved?
-- What technical approach are we using?
-- What are the key challenges?
-- What patterns exist in the codebase?
-
-### Step 2: Identify the Simplest Proof of Concept
-
-Ask: What's the absolute minimum that validates this approach?
-
-### Step 3: Map the Path from Simple to Complete
-
-List every behaviour or rule that has to be added on top of the proof of concept to reach the end goal, along the axes in Principle 4; layers an implementer builds on the way are items inside those slices, not entries in this list. Order the slices by dependency between complete behaviours (Principle 7) and complexity (Principle 4). For a finished plan that came out of this kind of mapping, see [examples/iterm-profile-generation.md](examples/iterm-profile-generation.md).
-
-### Step 4: Make Each Step Testable
-
-Apply Principle 5 to each concept: name the property you can check.
-
-### Step 5: Verify Each Slice with INVEST Criteria
-
-Each slice should satisfy INVEST (Independent, Negotiable, Valuable, Estimable, Small, Testable).
-
-For the full breakdown and an applied example, see [references/invest-criteria.md](references/invest-criteria.md).
-
-For common red flags in plans (too large, not testable, unordered dependencies, etc.), see [references/red-flags.md](references/red-flags.md).
-
-### Step 6: Cut the PR Stack
-
-Mark the admissible seams (Principle 9), write the PR stack table, and tag every slice with its bundle. Done when every slice belongs to exactly one bundle, every bundle's last slice carries its closing items, and the first bundle's base names a branch and a SHA.
+Done when every slice has a pattern, a goal, tests including a boundary check, and a bundle; every bundle's last slice carries its closing items; and the first bundle's base names a branch and a SHA.

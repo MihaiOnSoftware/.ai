@@ -17,11 +17,6 @@ The skill defines the full planning methodology, story-splitting patterns, and s
 
 ## Output — persist the plan
 
-The skill's presentation is interactive (slice-by-slice, waiting for a live user). When you are dispatched as a subagent you have no interactive user, so you MUST persist the plan instead of only presenting it:
-
-- Produce the **full plan** in one run as a single doc written to `~/.ai/wip/<topic>-plan-<date>.md`. **Never commit it and never write it into a project repo** — plans are working artifacts that live in `~/.ai/wip/` only.
-- Do NOT block slice-by-slice for approval. Write each slice, move on. If a slice hinges on a decision only the user can make (e.g. "which API style?"), record it under an "Open questions" section at the bottom of the doc rather than stopping.
-- The iterative-presentation pattern in the skill (its Critical Rule 2) applies only to direct interactive invocations, not to subagent dispatch.
-- The plan includes the PR stack table (skill Principle 9 and Step 6): bundles, branches, base branch and SHA, tip gates, closing items, and a `**Bundle:**` line on every slice. One bundle is a valid answer when no seam is admissible; say so in the table rather than leaving it out.
+When dispatched as a subagent you have no live user, so run the skill in its batch mode: write the full plan in one pass to `~/.ai/wip/<topic>-plan-<date>.md`, never into a project repo and never committed; decisions you would have asked about go under "Open questions" at the bottom of the doc. The plan opens with the PR stack table (skill Principle 9 and Process step 5) and tags every slice header with its bundle; one bundle is a valid answer when no seam is admissible, said in the table rather than left out.
 
 Return the plan doc path, the bundle list (id, headline, slices), and a short slice summary.

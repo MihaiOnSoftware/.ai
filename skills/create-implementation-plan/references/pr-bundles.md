@@ -1,6 +1,6 @@
 # PR Bundles
 
-A **bundle** is an ordered, consecutive run of slices that becomes exactly one PR on its own branch. The **stack** is the ordered list of bundles: bundle 1 sits on the base the user supplied (the default branch, or another ticket's branch), bundle N+1 sits on bundle N's branch. A plan with no admissible seam is one bundle; a stack of one is a valid outcome. Never force a seam.
+A **bundle** is an ordered, consecutive run of slices that becomes exactly one PR on its own branch. The **stack** is the ordered list of bundles: bundle 1 sits on the base the user supplied (the default branch, or another ticket's branch), bundle N+1 sits on bundle N's branch. A plan with no admissible seam is one bundle; a stack of one is a valid outcome. One bundle is the right answer when no seam is admissible.
 
 ## Seam admissibility
 
@@ -20,7 +20,7 @@ Any administrative work PRs in this repo require (e.g. changelogs, CODEOWNERS, d
 
 ## What the plan records
 
-Before the slices, a **PR stack** table:
+The written plan opens with a **PR stack** table (filled in once the slices are settled; in an interactive session, proposed after the last slice is approved):
 
 | Column | Content |
 |---|---|

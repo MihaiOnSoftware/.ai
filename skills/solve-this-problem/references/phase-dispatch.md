@@ -91,7 +91,7 @@ subagent({
   task: `Design doc to plan against: <design-doc-path>
 Pipeline state file: <wip-path>
 
-IMPORTANT — BATCH MODE: produce the FULL plan in this run as a single doc written to ~/.ai/wip/ (never committed, never written into a project repo). Do NOT iterate slice-by-slice with the user. The user will review the whole plan at the next pipeline checkpoint. The iterative-presentation pattern in the create-implementation-plan skill (its Critical Rule 2) is suspended for this batch invocation; write all slices at once.
+IMPORTANT — BATCH MODE: produce the FULL plan in this run as a single doc written to ~/.ai/wip/ (never committed, never written into a project repo). Do NOT iterate slice-by-slice with the user. The user will review the whole plan at the next pipeline checkpoint. The skill's interactive slice-by-slice presentation is suspended for this batch invocation; write all slices at once.
 
 If you would have asked the user for ack between slices, instead: write the slice, move on. If a slice depends on a real decision the user must make (e.g. "which API style?"), surface that as an open question at the bottom of the plan doc rather than blocking.
 
