@@ -1,10 +1,10 @@
 # Retry Logic Details
 
-This file owns the full retry algorithm for both the micro-agent step and the validation step in `SKILL.md` Phase 3. The SKILL.md blocks are pointer-only stubs — every decision lives here.
+This file owns the full retry algorithm for both the micro-agent step and the validation step in `SKILL.md` Phase 2. The SKILL.md blocks are pointer-only stubs — every decision lives here. Every git operation below is a `commit-agent` dispatch; the orchestrator has no `bash`.
 
 ## Micro Agent Retry
 
-Use this flow when the micro-tdd-agent or micro-refactor-agent invocation in Phase 3 Step 1 fails.
+Use this flow when the micro-tdd-agent, micro-refactor-agent or micro-chore-agent invocation in Phase 2 Step 1 fails.
 
 ### First failure: retry once with context
 
@@ -36,7 +36,7 @@ Use this flow when the micro-tdd-agent or micro-refactor-agent invocation in Pha
 
 ## Validation Retry
 
-Use this flow when `tdd-validation-agent` fails in Phase 3 Step 3.
+Use this flow when `tdd-validation-agent` fails in Phase 2 Step 3.
 
 ### First validation failure: categorize, then fix or reset
 
@@ -62,18 +62,17 @@ If **any** substantial issue is present, go straight to Step C. Do not try to fi
 #### Step B: Fix path (only when every issue is trivial)
 
 **For commit message issues only:**
-1. Soft reset: `git reset --soft HEAD~1`
+1. Delegate to `commit-agent`: "reset `--soft` to `<previous commit hash>`" (the hash you tracked before this cycle's commit).
 2. Delegate to `commit-agent` to create a new commit.
 3. Track the new commit hash.
 4. Re-validate with the new commit hash (include the same slice context).
-5. If validation passes → continue to Phase 3 Step 4.
+5. If validation passes → continue to Phase 2 Step 4.
 6. If validation fails → fall through to Step C.
 
 **For code issues (with or without commit message issues):**
 1. Delegate to `micro-fix-agent` with the validation report path.
 2. If `micro-fix-agent` succeeds:
-   - Amend commit: `git commit --amend --no-edit`
-   - Capture the new commit hash (`git rev-parse HEAD`) — `--amend` always creates a new SHA, even with `--no-edit`.
+   - Delegate to `commit-agent`: "amend HEAD with the staged changes". It returns the new commit hash (`--amend` always creates a new SHA, even with `--no-edit`).
    - Re-validate with the **new** commit hash (include the same slice context).
    - If validation passes → continue.
    - If validation fails → fall through to Step C.
@@ -83,7 +82,7 @@ If **any** substantial issue is present, go straight to Step C. Do not try to fi
 
 1. Read the validation report to understand the issues.
 2. Formulate context: `"Previous attempt didn't meet quality standards: [issues from validation report]"`.
-3. Revert the commit: `git reset --hard HEAD~1`
+3. Delegate to `commit-agent`: "reset `--hard` to `<previous commit hash>`".
 4. Delegate to the **same agent type** (micro-tdd or micro-refactor) with: original description + validation feedback.
 5. If the agent succeeds, call `commit-agent` to create a new commit.
 6. Re-validate with the new commit hash (include the same slice context).
