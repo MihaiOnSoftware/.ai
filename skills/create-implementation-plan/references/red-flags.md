@@ -23,3 +23,6 @@ A PR bundle ending with `coverage.ts` kept only as a formatter awaiting its rena
 
 ## Late Closing Items
 "Do the PR admin once the PRs are up." Every bundle above the one you touch then needs a restack. Put the chore in the bundle's last slice.
+
+## Layer Cut
+Slice 1 "schema", Slice 2 "mutation", Slice 3 "handler, the first slice a client can observe". Every slice is green and nothing works until the last one. See [../examples/layer-cut-vs-vertical.md](../examples/layer-cut-vs-vertical.md).

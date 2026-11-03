@@ -60,6 +60,7 @@ Before creating a plan, you need:
 - For an example of a multi-slice plan with pattern analysis, see [examples/iterm-profile-generation.md](examples/iterm-profile-generation.md)
 - For an example using the SIMPLE/COMPLEX pattern, see [examples/schema-hash-cache-keys.md](examples/schema-hash-cache-keys.md)
 - For the format of a single slice (goal/approach/tests), see [examples/presenting-a-slice.md](examples/presenting-a-slice.md)
+- For one feature cut by layer and cut vertically, side by side, see [examples/layer-cut-vs-vertical.md](examples/layer-cut-vs-vertical.md)
 
 ## Key Principles
 
@@ -73,7 +74,7 @@ Use the decision tree in [references/flowchart.md](references/flowchart.md) to p
 
 ### 2. Think About What Validates the Approach
 
-Slice 1 must prove the core concept works. List the assumption that, if false, kills the whole approach - and design Slice 1 to test it. If Slice 1 fails, the whole approach fails. This is intentional - fail fast.
+Slice 1 must prove the core concept works. List the assumption that, if false, kills the whole approach - and design Slice 1 to test it. If Slice 1 fails, the whole approach fails. This is intentional - fail fast. Prove it through the smallest usable behaviour at the task's intended boundary, not through an unwired component: the riskiest mechanism in isolation is not the proof.
 
 See [examples/thought-process.md](examples/thought-process.md) for the Q&A framing.
 
@@ -83,18 +84,20 @@ Ask for each slice:
 - **What does this prove?** (learning/risk mitigation)
 - **What value does it deliver?** (even if incomplete)
 - **Can I test this?** (verify it works)
-- **Does it stand alone?** (could stop here if needed)
+- **Does it stand alone?** A slice stands alone when the behaviour the task promises works through the boundary that uses it, with no later slice needed to wire it in. The boundary is whatever the task delivers: a route, a command, a service or library contract with no in-repo caller yet. Compiling and passing its own unit tests is not standing alone; a helper awaiting its consumer is a layer, not a slice.
+
+Three kinds of slice are exempt and say so in the plan: a **spike** (names the uncertainty and the decision it settles, ships no behaviour), a **mechanical** move or refactor (proves preserved behaviour), and a **contract-only task** whose whole deliverable is a producer with no consumer in scope.
 
 ### 4. Build Complexity Incrementally
 
-Order slices by increasing complexity. Typical axes to layer along:
+Order slices by increasing complexity. Typical axes to widen along:
 
 - **Scope of data**: one case → a few common cases → the full set
 - **Edge cases**: happy path → known edge cases → recursive / nested / cyclic shapes
 - **Automation**: hard-coded list → discovered automatically
-- **Surrounding infrastructure**: bare function → wired into config / initialization / hot reload
+- **Entry points**: one way to reach the behaviour → every way (manual trigger → automatic on initialization → hot reload)
 
-Each slice adds exactly one new concept. Don't combine two axes (e.g. "handle nested types" plus "add automatic discovery") in the same slice.
+Each slice adds exactly one new concept, and a concept is a capability or rule, not an architectural layer. Don't combine two axes (e.g. "handle nested types" plus "add automatic discovery") in the same slice.
 
 See [examples/schema-hash-cache-keys.md](examples/schema-hash-cache-keys.md) for a six-slice plan that layers exactly one new concept per slice across these axes.
 
@@ -134,11 +137,11 @@ The implementer will figure out the exact syntax. Your job is to clearly explain
 
 Some work must happen in order. Common shapes:
 
-- A consumer can't be exercised until the producer it reads from exists (e.g. can't test a route handler until the request parser it depends on exists)
+- A consumer can't be exercised until the producer it reads from exists (e.g. a route handler needs the request parser it depends on)
 - A recursive case can't be exercised until the base case works
 - A composite type (Array, Union, nested record) can't be handled until its element types are handled
 
-Order slices so each builds on previous work.
+Dependencies order the work *inside* a slice: the slice that introduces a consumer carries the minimum producer it needs, as ordered items the implementer builds first. A dependency on its own never justifies a separate slice; a producer-only slice is a layer (Principle 3). Order slices by dependencies between complete behaviours, so each builds on previous work. Consult [examples/layer-cut-vs-vertical.md](examples/layer-cut-vs-vertical.md) if you need to see the same feature cut both ways.
 
 ### 8. Acknowledge Untestable Slices
 
@@ -170,7 +173,7 @@ Ask: What's the absolute minimum that validates this approach?
 
 ### Step 3: Map the Path from Simple to Complete
 
-List every concept that has to be added on top of the proof of concept to reach the end goal, along the axes in Principle 4. Order them by dependency (Principle 7) and complexity (Principle 4). For a finished plan that came out of this kind of mapping, see [examples/iterm-profile-generation.md](examples/iterm-profile-generation.md).
+List every behaviour or rule that has to be added on top of the proof of concept to reach the end goal, along the axes in Principle 4; layers an implementer builds on the way are items inside those slices, not entries in this list. Order the slices by dependency between complete behaviours (Principle 7) and complexity (Principle 4). For a finished plan that came out of this kind of mapping, see [examples/iterm-profile-generation.md](examples/iterm-profile-generation.md).
 
 ### Step 4: Make Each Step Testable
 

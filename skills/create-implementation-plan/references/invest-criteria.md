@@ -6,7 +6,7 @@ Each slice should satisfy INVEST (from the story splitting framework):
 
 **N - Negotiable**: Could discuss different approaches to achieve the slice's goal. Not so detailed that implementation is prescribed.
 
-**V - Valuable**: Delivers learning, risk mitigation, or actual functionality. Ask "what do we gain from completing this slice?"
+**V - Valuable**: Delivers a behaviour observable at the task's boundary, or is a declared spike that names the uncertainty and the decision it settles. "Needed by a later slice" is not value; a green, unit-tested layer that nothing uses yet fails this criterion. Ask "what works after this slice that did not before?"
 
 **E - Estimable**: Can understand and assess the scope and complexity. If you can't gauge the complexity or understand what's involved, the slice is too vague or depends on unknown complexity.
 
