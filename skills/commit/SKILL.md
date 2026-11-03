@@ -8,17 +8,11 @@ metadata:
 
 Read current changes and create a proper commit following commit message rules and writing style guidelines.
 
-## What This Command Does
-
-**Input**: None (examines current git state)
-
-**Output**: A commit with a properly formatted message
-
 **Does NOT**:
 - Run tests
 - Run cleanup commands
 - Modify code
-- Stage files (assumes files are already staged or will stage all changes)
+- Stage selectively (uses what is staged; stages everything when nothing is)
 
 ## Workflow
 
@@ -38,19 +32,7 @@ Apply these commit message rules:
 
 ### Step 2: Examine Changes
 
-Run these git commands to understand what's being committed:
-
-1. **Check status**: `git status`
-   - See what files are staged/unstaged
-   - Understand overall scope of changes
-
-2. **View diff**: `git diff HEAD` or `git diff --cached` (if files are staged)
-   - See actual changes being committed
-   - Understand what was added, modified, or removed
-
-3. **Check recent commits**: `git log -3 --oneline`
-   - Understand commit message style in this repo
-   - See what's been done recently for context
+`git status`, then `git diff --cached` (or `git diff HEAD` when nothing is staged), then `git log -3 --oneline` for the repo's message style. If there is nothing to commit, stop and report "nothing to commit".
 
 ### Step 3: Determine What to Stage
 
@@ -62,23 +44,13 @@ Run these git commands to understand what's being committed:
 
 ### Step 4: Draft Commit Message
 
-Following the commit message rules above and `6_writing_style.md`:
+Apply the Step 1 rules and `6_writing_style.md` (active voice, plain words):
 
-**Structure**:
 ```
 [First line: concise description of what changed]
 
 [Optional body: additional context if needed]
 ```
-
-**Rules to follow**:
-- **First line**: Short, direct, describes final state (not process)
-- **Active voice**: "Add feature" not "Added feature" or "Feature was added"
-- **Focus on what changed**: Only mention differences from last commit
-- **No process details**: Don't mention "first tried X, then Y"
-- **Simple language**: Use common words, be direct (per `6_writing_style.md`)
-- **No buzzwords**: No corporate speak or passive voice
-- **Body optional**: Only add if explaining why or if not easily inferred
 
 ### Step 5: Create Commit
 
@@ -95,14 +67,14 @@ EOF
 
 ## Orchestrator instructions
 
-Orchestrators that have no `bash` (`tdd-slice-agent`, `solve-this-problem-agent`) send every branch or history change here instead of running git themselves. `commit` is the default when the task names no instruction. Each other instruction carries the SHA it expects; on any mismatch stop, report the actual SHAs, and change nothing.
+Orchestrators without `bash` send every branch or history change here. `commit` is the default when the task names no instruction. Every other instruction carries the HEAD it expects; when `HEAD` differs, or a required SHA is missing, stop, return the actual SHAs (and `git status --porcelain` when the tree is dirty), and change nothing.
 
 | Instruction | Task wording | What you do |
 |---|---|---|
-| `commit` | (none) | Steps 1 to 5 above |
-| `prepare branch` | "prepare branch `<name>` at `<sha>`" | Require a clean tree (`git status --porcelain` empty). If `<name>` does not exist: require `HEAD` == `<sha>`, then `git switch -c <name>`. If it exists: require its tip == `<sha>`, then `git switch <name>`. Return `branch: <name>, tip: <sha>`. |
-| `amend` | "amend HEAD with the staged changes" | `git commit --amend --no-edit`. Return the new SHA (`--amend` always makes one). |
-| `reset` | "reset `--soft`\|`--hard` to `<sha>`" | Require `<sha>` to be an ancestor of `HEAD` (`git merge-base --is-ancestor`). Run the reset. Return `HEAD` after. Refuse when no SHA is given. |
+| `commit` | (none) | Steps 1 to 5 above. Return `commit: <sha> <first line>`. |
+| `prepare branch` | "prepare branch `<name>` at `<sha>`" | Require a clean tree. If `<name>` does not exist: require `HEAD` == `<sha>`, then `git switch -c <name>`. If it exists: require its tip == `<sha>`, then `git switch <name>`. Return `branch: <name>, tip: <sha>`. |
+| `amend` | "amend `<head sha>` with the staged changes" | Require `HEAD` == `<head sha>`. `git commit --amend --no-edit`. Return the new SHA. |
+| `reset` | "reset `--soft`\|`--hard` from `<head sha>` to `<sha>`" | Require `HEAD` == `<head sha>` and `<sha>` an ancestor of it. Run the reset. Return `HEAD` after. |
 
 Never rebase, push, or touch a remote under any instruction.
 
@@ -112,8 +84,6 @@ Never rebase, push, or touch a remote under any instruction.
 - Make commits without examining the actual changes
 - Write vague messages like "update files" or "fix issues"
 - Bypass pre-commit hooks with `--no-verify`. If a hook fails, fix the cause (run the formatter/linter, e.g. `yarn purtyhere`) and commit again. See `~/.ai/rules/10_commit_standards.md`.
-
-For message-style rules (active voice, no buzzwords, focus on final state, etc.) trust the commit message rules and `~/.ai/rules/6_writing_style.md` — already covered in Step 1 — instead of restating them here.
 
 For a worked example session, see [examples/session.md](examples/session.md).
 

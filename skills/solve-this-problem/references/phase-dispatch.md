@@ -138,7 +138,7 @@ Return briefly.`,
 
 Before dispatching: the conductor must extract slice N from the plan into tdd-slice's documented input format (see `tdd-slice/SKILL.md` "Input Format" — it expects `# Slice [N]: [Name] / ## Goal / ## Bundle / ## Features / ## Tests to Write / ## Commit Message`). Fill the `## Bundle` section from the PR stack table (see `pr-stack.md`): branch, expected tip = the pre-slice SHA, position, slice gate, tip gate when the slice closes its bundle. Write the extracted slice spec to a scratch file (e.g. `~/.ai/wip/<feature>-pipeline-<date>-slice<N>-spec.md`) and pass that path to the dispatch.
 
-The **pre-slice SHA** is the previous slice's tip from its summary, or the bundle's base tip for a bundle's first slice. Record it in the wip file before dispatching; it is needed for the "Re-run slice N" checkpoint option. The conductor never runs git to learn it.
+The **pre-slice SHA** comes from the wip file per `pr-stack.md` § "Tracking"; record it before dispatching.
 
 ```js
 subagent({
@@ -193,7 +193,7 @@ Do not mark the PR ready, request reviewers, or merge. Return briefly.`,
 })
 ```
 
-Accept only when `remote_head_sha` equals the bundle's validated tip, `base_branch` matches the table, and `base_sha` equals `current base tip` (PR1) or the predecessor's validated tip. Anything else is surfaced, never recorded as published.
+Apply the acceptance rule in `pr-stack.md` § "Phase 6" before recording the bundle as published.
 
 ## Failure handling
 

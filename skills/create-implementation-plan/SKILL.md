@@ -65,8 +65,6 @@ Before creating a plan, you need:
 
 ### 1. Apply Story Splitting Patterns
 
-Multiple patterns exist for breaking down large stories. Choose the one that best fits your situation:
-
 For the full list of patterns (WORKFLOW STEPS, OPERATIONS, BUSINESS RULES, VARIATIONS IN DATA, SIMPLE/COMPLEX, DEFER PERFORMANCE, MAJOR EFFORT), see [references/story-splitting-patterns.md](references/story-splitting-patterns.md).
 
 ### Choosing the Right Pattern
@@ -172,25 +170,15 @@ Ask: What's the absolute minimum that validates this approach?
 
 ### Step 3: Map the Path from Simple to Complete
 
-List every concept that has to be added on top of the proof of concept to reach the end goal. Concepts typically fall into a few buckets:
-
-- Broader data scope (more inputs, more types, more cases)
-- Edge cases (nesting, recursion, cycles, nulls, empty collections)
-- Surrounding infrastructure (config, initialization, hot reload, persistence)
-- Automation (discovery, defaults, cleanup) replacing hand-maintained lists
-
-Order them by dependency (Principle 7) and complexity (Principle 4). For a finished plan that came out of this kind of mapping, see [examples/iterm-profile-generation.md](examples/iterm-profile-generation.md).
+List every concept that has to be added on top of the proof of concept to reach the end goal, along the axes in Principle 4. Order them by dependency (Principle 7) and complexity (Principle 4). For a finished plan that came out of this kind of mapping, see [examples/iterm-profile-generation.md](examples/iterm-profile-generation.md).
 
 ### Step 4: Make Each Step Testable
 
-For each concept, write specific test requirements (Principle 5):
-
-- ❌ "discovery works"
-- ✅ "discovers the expected number of items", "output includes the known fixture item that motivated the work"
+Apply Principle 5 to each concept: name the property you can check.
 
 ### Step 5: Verify Each Slice with INVEST Criteria
 
-Each slice should satisfy INVEST (Independent, Negotiable, Valuable, Estimable, Small, Testable). If a slice violates INVEST, split it further or reorder.
+Each slice should satisfy INVEST (Independent, Negotiable, Valuable, Estimable, Small, Testable).
 
 For the full breakdown and an applied example, see [references/invest-criteria.md](references/invest-criteria.md).
 
@@ -198,6 +186,4 @@ For common red flags in plans (too large, not testable, unordered dependencies, 
 
 ### Step 6: Cut the PR Stack
 
-Walk the ordered slices and mark each admissible seam (Principle 9). Write the PR stack table, name each bundle's branch, give each bundle a one-sentence headline and a "stands alone because" argument, list its tip gate, and move its closing items into its last slice. Add `**Bundle:** PRn (first | middle | last | only)` to every slice header.
-
-Done when every slice belongs to exactly one bundle, every bundle's last slice carries its closing items, and the first bundle's base names a branch and a SHA.
+Mark the admissible seams (Principle 9), write the PR stack table, and tag every slice with its bundle. Done when every slice belongs to exactly one bundle, every bundle's last slice carries its closing items, and the first bundle's base names a branch and a SHA.

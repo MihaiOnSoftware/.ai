@@ -1,6 +1,6 @@
 # Retry Logic Details
 
-This file owns the full retry algorithm for both the micro-agent step and the validation step in `SKILL.md` Phase 2. The SKILL.md blocks are pointer-only stubs — every decision lives here. Every git operation below is a `commit-agent` dispatch; the orchestrator has no `bash`.
+This file owns the full retry algorithm for both the micro-agent step and the validation step in `SKILL.md` Phase 2. The SKILL.md blocks are pointer-only stubs — every decision lives here. Every git operation below is a `commit-agent` dispatch (see the `commit` skill's orchestrator table); `<head>` is the commit hash you tracked for the current cycle.
 
 ## Micro Agent Retry
 
@@ -26,13 +26,13 @@ Use this flow when the micro-tdd-agent, micro-refactor-agent or micro-chore-agen
 ### Second failure: stop and report
 
 1. Analyze what went wrong across both attempts (errors, code state, test output).
-2. Write a failure analysis report using the `write-agent-report` skill (format in `failure-report-format.md`, sibling to this file). Include:
+2. Return a failure analysis report as your final message (format in `failure-report-format.md`, sibling to this file; you have no `write`). Include:
    - Slice info
    - Failed item
    - Both attempts (prompts + outcomes)
    - Error details
    - Possible causes
-3. Return the failure report path and **STOP**. Do not start a third attempt.
+3. **STOP**. Do not start a third attempt.
 
 ## Validation Retry
 
@@ -62,7 +62,7 @@ If **any** substantial issue is present, go straight to Step C. Do not try to fi
 #### Step B: Fix path (only when every issue is trivial)
 
 **For commit message issues only:**
-1. Delegate to `commit-agent`: "reset `--soft` to `<previous commit hash>`" (the hash you tracked before this cycle's commit).
+1. Delegate to `commit-agent`: "reset `--soft` from `<head>` to `<previous commit hash>`".
 2. Delegate to `commit-agent` to create a new commit.
 3. Track the new commit hash.
 4. Re-validate with the new commit hash (include the same slice context).
@@ -72,7 +72,7 @@ If **any** substantial issue is present, go straight to Step C. Do not try to fi
 **For code issues (with or without commit message issues):**
 1. Delegate to `micro-fix-agent` with the validation report path.
 2. If `micro-fix-agent` succeeds:
-   - Delegate to `commit-agent`: "amend HEAD with the staged changes". It returns the new commit hash (`--amend` always creates a new SHA, even with `--no-edit`).
+   - Delegate to `commit-agent`: "amend `<head>` with the staged changes". It returns the new commit hash.
    - Re-validate with the **new** commit hash (include the same slice context).
    - If validation passes → continue.
    - If validation fails → fall through to Step C.
@@ -82,8 +82,8 @@ If **any** substantial issue is present, go straight to Step C. Do not try to fi
 
 1. Read the validation report to understand the issues.
 2. Formulate context: `"Previous attempt didn't meet quality standards: [issues from validation report]"`.
-3. Delegate to `commit-agent`: "reset `--hard` to `<previous commit hash>`".
-4. Delegate to the **same agent type** (micro-tdd or micro-refactor) with: original description + validation feedback.
+3. Delegate to `commit-agent`: "reset `--hard` from `<head>` to `<previous commit hash>`".
+4. Delegate to the **same agent type** (micro-tdd, micro-refactor or micro-chore) with: original description + validation feedback.
 5. If the agent succeeds, call `commit-agent` to create a new commit.
 6. Re-validate with the new commit hash (include the same slice context).
 
@@ -107,5 +107,4 @@ The investigator will:
 - Include: slice info, item description, both validation reports, quality issues, fix attempts.
 - Include: investigator report path and key findings.
 - Include: investigator's root cause analysis and recommendations.
-- Write the report using the `write-agent-report` skill.
-- Return the report path and **STOP**. Do not start a third validation cycle.
+- Return it as your final message and **STOP**. Do not start a third validation cycle.

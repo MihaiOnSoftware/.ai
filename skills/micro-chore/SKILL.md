@@ -6,7 +6,7 @@ metadata:
   category: tdd
 ---
 
-Perform a single chore exactly as instructed and leave it staged. A chore is a PR-level artifact the repo requires for a mergeable PR: a changelog entry, a CODEOWNERS line, a docs paragraph, a regenerated file. It changes no production or test behaviour.
+Perform a single chore exactly as instructed and leave it staged.
 
 **Input**: One chore instruction, for example "add a changelog entry for `@mx-tooling/rest-graphql-coverage` describing the engine leaf module move, Linear API-911".
 
@@ -16,9 +16,9 @@ Perform a single chore exactly as instructed and leave it staged. A chore is a P
 
 1. **Read the rules**: use skill `load-rules`.
 2. **Find the repo's own tooling for the chore** before writing anything by hand: a changelog CLI (`yarn changelog-add`, with `--list-projects` for the project name), a CODEOWNERS convention visible in the file, a generator script in `package.json`. The closest `AGENTS.md` names them when they exist. Use the tool; hand-edit only when no tool exists.
-3. **Do exactly the one chore.** Touch nothing else. If the instruction turns out to need a code or test change, stop and report that instead.
+3. **Do exactly the one chore.** Touch nothing else.
 4. **Check**: run the repo's formatter and lint on the touched paths, and any validator the chore has (`yarn changelog-validate` or equivalent). Fix what they flag inside the touched files.
-5. **Stage** the touched files with `git add <paths>`. Do not commit; the caller does.
+5. **Stage** the touched files with `git add <paths>`.
 6. **Report** with the `write-agent-report` skill (`agent_name: micro-chore-agent`): the instruction, the tool or file used, the paths staged, the checks run with their results, status. Return only the report path.
 
 ## Stop and report instead of improvising when

@@ -7,8 +7,8 @@ When stopping due to repeated failures, use this format:
 
 ## Failure Context
 - Slice: [N] - [Name]
-- Failed item: [Test/Refactor] [Description]
-- Agent used: [micro-tdd-agent or micro-refactor-agent]
+- Failed item: [Test/Refactor/Chore] [Description]
+- Agent used: [micro-tdd-agent, micro-refactor-agent or micro-chore-agent]
 - Failure type: [Micro execution / Validation]
 - Attempt count: 2
 

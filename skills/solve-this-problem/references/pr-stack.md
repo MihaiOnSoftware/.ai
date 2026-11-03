@@ -1,6 +1,6 @@
 # PR stack mechanics
 
-How the conductor tracks bundles, handles a restack, and opens the stack. The conductor has no `bash`: every SHA below comes from a specialist's return or the plan, and every git or remote operation is a dispatch or a recipe handed to the user.
+How the conductor tracks bundles, handles a restack, and opens the stack. Every SHA below comes from the plan or a specialist's summary; every git or remote operation is a dispatch or a recipe handed to the user.
 
 ## Tracking
 
@@ -27,7 +27,13 @@ When extracting slice N from the plan, fill in:
 
 ## Re-run slice N
 
-Same guard rails as before (clean tree, only slice N's commits since the pre-slice SHA, record abandoned commits), but the reset is a dispatch: `commit-agent`, task "reset `--hard` to `<pre-slice SHA>`". It refuses when the SHA is not an ancestor of HEAD; treat a refusal as "later commits exist" and surface it.
+Slice N already produced micro commits, so before re-dispatching `tdd-slice`:
+
+1. Confirm with the user that the working tree is clean; a hard reset discards uncommitted changes.
+2. Verify from the wip file that the only commits since the pre-slice SHA are slice N's. If later slices have also been committed, a reset to the pre-slice SHA erases them too: either confirm with the user that those slices are invalidated and reset further back, or abort the re-run.
+3. Record the commits about to be discarded (SHAs + summaries) under "Abandoned commits" in the wip file.
+4. Dispatch `commit-agent`: "reset `--hard` from `<slice N tip>` to `<pre-slice SHA>`". A refusal means HEAD is not where the wip file says; surface it.
+5. Reset the slice row to `pending` and clear its commit list; the new run replaces it.
 
 ## A later slice needs a change in an earlier bundle K
 
@@ -53,7 +59,7 @@ On resume, from the user's new tips:
 1. Record new tips per bundle; keep the old ones in the row for forensics.
 2. Mark every slice row in the rewritten bundles `rewritten`. Their SHAs are no longer on the live branches; "Re-run slice N" is only available for slices after this point. A defect in a rewritten slice is a repair slice, never a reset.
 3. Set the next slice's pre-slice SHA to the current bundle's new tip.
-4. Re-run the tip gate of each rewritten bundle (dispatch `tdd-validation-agent` with the boundary-validation prompt, expected HEAD = new tip) before continuing.
+4. Re-run the tip gate of each rewritten bundle, bottom-up: dispatch `commit-agent` "prepare branch `<bundle branch>` at `<new tip>`", then `tdd-validation-agent` with the boundary-validation prompt from `tdd-slice` (expected HEAD = new tip, slice gate "none", the bundle's tip gate). Only one branch can be checked out at a time, so the prepare step is what makes each gate run against the right tree.
 5. Republish every already-published bundle whose tip changed (below) before publishing anything above it. A published bundle whose remote head differs from its validated tip is `stale` and blocks completion.
 
 ## Phase 6: open the stack

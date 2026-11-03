@@ -1,50 +1,24 @@
 ---
 name: tdd-slice
-description: Implement a complete TDD slice with multiple micro-tdd cycles and validation, on the slice's PR bundle branch, ending with a boundary validation of the slice (and of the bundle tip on its last slice)
+description: Implement a complete TDD slice on its PR bundle branch by orchestrating micro cycles (test, refactor, chore), validating each commit, and ending with a boundary validation of the slice and, on a bundle's last slice, of the bundle tip. Use when given a slice requirements document with several items; not for a single behaviour (micro-tdd) or a single refactor (micro-refactor).
 license: MIT
 metadata:
   category: tdd
 ---
 
-Implement a complete slice by orchestrating multiple micro-tdd-agent cycles, validating each cycle, and aggregating results.
+Implement a complete slice by orchestrating specialist cycles, validating each commit, and aggregating results. You have no `bash` and no `write`: every git operation is a `commit-agent` dispatch, and your final message is the report.
 
 ## Subagents Used
 
-This command delegates work to subagents:
-- `micro-tdd-agent` - for test behaviors
-- `micro-refactor-agent` - for refactorings
-- `commit-agent` - commits, and every branch, amend or reset (you have no `bash`; never assume you can run git)
+- `micro-tdd-agent` - one test behavior
+- `micro-refactor-agent` - one refactoring
+- `micro-chore-agent` - one chore
+- `commit-agent` - commits, and every branch, amend or reset
 - `tdd-validation-agent` - per-commit validation and the boundary validation
-- `micro-fix-agent` - for fixing trivial validation issues
-- `micro-chore-agent` - for chores (a bundle's closing items: changelog, CODEOWNERS, docs)
-- `investigator-agent` - for analyzing repeated validation failures
+- `micro-fix-agent` - trivial validation fixes
+- `investigator-agent` - root cause after a second validation failure
 
-## What This Command Does
-
-**Input**: Slice requirements document containing:
-- Slice number and name
-- Slice goal
-- Bundle: which PR bundle the slice belongs to, its branch, the expected tip to start from, the slice's position, the slice gate, and the tip gate when the slice closes the bundle
-- Features to implement
-- Tests to write (list of test behaviors, refactors and chores)
-- Commit message (for reference, not used - micro commits kept)
-
-**Output**: The tdd-slice report, returned as your final message (your orchestrator binds it to a file; you have no `write`)
-
-**Does**:
-- Prepare the bundle branch through commit-agent before any work
-- Analyze requirements and create execution plan
-- Call micro-tdd-agent for test behaviors
-- Call micro-refactor-agent for refactorings
-- Call micro-chore-agent for chores (closing items such as a changelog entry)
-- Call commit-agent to create commits for each cycle
-- Validate each commit with tdd-validation-agent
-- Run the boundary validation (slice gate, plus the bundle tip gate on the bundle's last slice) through tdd-validation-agent
-- Attempt to fix trivial validation issues (commit message, comments, one-liners) with micro-fix-agent
-- Retry failed steps with context (full reset if fixes fail or issues are substantial)
-- Call investigator-agent after second validation failure to determine root cause
-- Analyze and report on repeated failures with investigation findings
-- Create summary report with references to child reports
+**Input**: the slice requirements document below. **Output**: the tdd-slice report (Phase 4).
 
 **Does NOT**:
 - Write tests or code directly (delegates to agents)
@@ -83,8 +57,6 @@ Slice requirements should be provided as:
 [Reference message - not used, micro commits kept]
 ```
 
-**Note**: Items may be prefixed with "Refactor:" or "Chore:" to indicate their type, but the agent will analyze each item: a behavioral change is a test, a structural change is a refactor, and a PR-level artifact with no behavior and no test (changelog, CODEOWNERS, docs, regenerated files) is a chore.
-
 ## Workflow
 
 ### Phase 1: Analyze & Plan
@@ -111,11 +83,10 @@ Post "✅ Codebase analyzed"
 
 **Step 3: Create execution plan**
 - Review items from "Tests to Write" section
-- For each item, analyze whether it's a behavioral change or structural change:
-  - **Test behavior** (use micro-tdd-agent): Adds new functionality, changes behavior, adds assertions about system behavior
-  - **Refactoring** (use micro-refactor-agent): Improves code structure without changing behavior (extract method, rename, reorganize)
-  - **Chore** (use micro-chore-agent): A PR-level artifact with no behavior and no test: changelog entry, CODEOWNERS line, docs, regenerated files
-  - Items explicitly prefixed with "Refactor:" or "Chore:" carry their type, but also identify refactorings and chores without the prefix
+- Classify each item; a "Refactor:" or "Chore:" prefix states the type, but classify unprefixed items too:
+  - **Test behavior** (micro-tdd-agent): adds or changes behavior, adds assertions about system behavior
+  - **Refactoring** (micro-refactor-agent): improves structure without changing behavior (extract method, rename, reorganize)
+  - **Chore** (micro-chore-agent): a PR-level artifact with no behavior and no test (changelog entry, CODEOWNERS line, docs, regenerated file)
 - Ensure test behaviors are specific and atomic (one behavior per test)
 - Ensure refactorings are specific and atomic (one structural change)
 - If items are too broad, break them down further
@@ -138,7 +109,7 @@ Delegate to `micro-tdd-agent` with the test behavior description.
 Delegate to `micro-refactor-agent` with the refactoring description (remove "Refactor:" prefix if present).
 
 **If item is a chore:**
-Delegate to `micro-chore-agent` with the chore instruction (remove "Chore:" prefix if present). It does the chore with the repo's tooling and stages it; it does not commit.
+Delegate to `micro-chore-agent` with the chore instruction (remove "Chore:" prefix if present). It stages; it does not commit.
 
 Track:
 - Attempt number (1 or 2)
@@ -188,10 +159,6 @@ Track:
 
 Post "✅ Validation [N/Total] passed: [test name]"
 
-**Step 4: Continue to next test behavior**
-
-Repeat Steps 1-3 for each item in the execution plan.
-
 ### Phase 3: Boundary Validation
 
 After the last micro cycle, delegate to `tdd-validation-agent` once more:
@@ -200,11 +167,16 @@ After the last micro cycle, delegate to `tdd-validation-agent` once more:
 Boundary validation for slice [N]: [Slice Name]
 
 Expected HEAD: [last commit hash]
-Slice gate: [from the Bundle section, or "default"]
-Tip gate: [from the Bundle section when Position is last or only; otherwise "none"]
+Slice gate: [commands from the Bundle section, or "default": the repo's typecheck, lint and tests for the touched workspaces]
+Tip gate: [commands from the Bundle section when Position is last or only; otherwise "none"]
+
+Before running anything: confirm HEAD equals the expected SHA and `git status --porcelain` is empty; otherwise FAIL.
+Run every gate command and record each command with its exit code.
+After the gates: confirm HEAD is unchanged and the tree is still clean. Any tracked file a gate rewrote is a FAIL; list the files.
+Verdict: PASS only when every command exited 0 and both checks held. Return the verdict, the command/exit-code list, and the report path.
 ```
 
-It confirms HEAD and a clean tree before and after running the gates, and returns PASS or FAIL with the commands and exit codes. A tracked file rewritten by a gate is a FAIL. On FAIL: stop, report the slice as failed with the validation report, and do not retry the gate; the orchestrator decides (a repair item, a re-run, or a pause). The next bundle never starts on a failed tip.
+On FAIL: stop, report the slice as failed with the validation report, and do not retry the gate; the orchestrator decides (a repair item, a re-run, or a pause).
 
 Post "✅ Boundary validation passed: slice gate[, tip gate]"
 
@@ -218,7 +190,7 @@ After the boundary validation passes:
 
 **Step 2: Return the summary report**
 
-Your final message is the report below. You have no `write` tool; the orchestrator binds your final message to a file with the dispatch's `output:` path.
+Your final message is the report below.
 
 ```markdown
 # TDD Slice Report - Slice [N]: [Slice Name]
@@ -273,31 +245,14 @@ All quality standards come from `~/.ai/rules/*` and are enforced by:
 
 The tdd-slice skill's job is orchestration, not quality enforcement.
 
-## Success Criteria
-
-- ✅ Branch prepared before the first cycle; every commit is on the bundle branch
-- ✅ All items from slice requirements implemented (tests + refactors + chores)
-- ✅ Each micro cycle completed successfully with appropriate agent
-- ✅ Each commit validated and passed
-- ✅ Boundary validation passed (slice gate, and tip gate on the bundle's last slice)
-- ✅ Summary report returned with child report references and the slice tip SHA
-- ✅ All micro commits preserved in history
-- ✅ Retries attempted when appropriate
-- ✅ Clear failure analysis if stopped early
-
 For a worked example session showing cycles with retries and fixes, see [examples/session.md](examples/session.md).
 
 ## Anti-Patterns to AVOID
 
 **DO NOT**:
 
-- Write tests or code directly (use micro agents)
-- Run git yourself; every branch, commit, amend or reset is a `commit-agent` dispatch
 - Skip validation steps, including the boundary validation
 - Give up after first failure without retry
 - Copy contents of child reports into summary
-- Squash or modify micro commits
-- Run cleanup commands (micro agents do this)
 - Make assumptions about failure causes without analysis
-- Use micro-tdd-agent for refactorings (use micro-refactor-agent) or for chores (use micro-chore-agent)
 - Dispatch `tdd-slice-agent` or any orchestrator, or hand the whole slice / a group of items to one subagent. Dispatch one specialist per item only.
