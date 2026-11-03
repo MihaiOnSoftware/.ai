@@ -1,6 +1,6 @@
 ---
 name: create-implementation-plan
-description: Break a large task into incremental slices using story splitting patterns. Use when planning a feature, breaking down a complex task, or turning an investigation document into a slice-by-slice plan.
+description: Break a large task into incremental slices using story splitting patterns and group the slices into PR bundles that each stand alone. Use when planning a feature, breaking down a complex task, or turning an investigation document into a slice-by-slice plan that ends in a stack of PRs.
 license: MIT
 metadata:
   category: planning
@@ -8,7 +8,7 @@ metadata:
 
 # Create Implementation Plan Command
 
-You are tasked with creating an excellent implementation plan that breaks down a large task into small, incremental slices.
+You are tasked with creating an excellent implementation plan that breaks down a large task into small, incremental slices, grouped into PR bundles so the implementation ends in a stack of independently reviewable PRs.
 
 ## Your Role
 
@@ -35,7 +35,7 @@ You are tasked with creating an excellent implementation plan that breaks down a
    - Wait for user approval or feedback
    - Once approved, present **Slice 2**
    - Repeat until all slices are approved
-   - After all slices approved, provide a summary of the complete plan
+   - After all slices approved, propose the PR stack (Principle 9) and provide a summary of the complete plan
 
 ---
 
@@ -51,6 +51,7 @@ Before creating a plan, you need:
 2. **Story splitting framework** - Patterns for breaking down large stories
 3. **Concrete example** - A reference plan showing desired style and granularity
 4. **End goal clarity** - Know exactly what "done" looks like
+5. **The base** - The branch and commit the plan is written against (the default branch, or another ticket's branch when the work stacks on it). Record the SHA; the implementer's first branch starts there.
 
 ## Reference Examples
 
@@ -147,6 +148,14 @@ Some behavior can't be fully automated - boot-time code, hot-reload paths, anyth
 
 When a slice falls into this bucket, state it explicitly in the slice's plan and document the manual verification steps the implementer should run. Don't pretend a half-test covers it.
 
+### 9. Group Slices into PR Bundles
+
+The plan ends in a stack of PRs, one per **bundle** of consecutive slices. Cut a seam only where the tree at that slice stands alone green, leaves nothing half-moved, has one reason to exist, is worth its own review, and depends only on the bundles below it. No admissible seam means one bundle; never force a split.
+
+Each bundle's last slice carries the bundle's **closing items** (changelog entry, CODEOWNERS, docs, regenerated files) as chore items, so no PR-level work is left for after the branches exist.
+
+The plan records a PR stack table before the slices and tags every slice with its bundle and position. Consult [references/pr-bundles.md](references/pr-bundles.md) if you need the admissibility rules in full, the table columns, or the API-911 example.
+
 ## The Planning Process
 
 ### Step 1: Understand the Solution Architecture
@@ -186,3 +195,9 @@ Each slice should satisfy INVEST (Independent, Negotiable, Valuable, Estimable, 
 For the full breakdown and an applied example, see [references/invest-criteria.md](references/invest-criteria.md).
 
 For common red flags in plans (too large, not testable, unordered dependencies, etc.), see [references/red-flags.md](references/red-flags.md).
+
+### Step 6: Cut the PR Stack
+
+Walk the ordered slices and mark each admissible seam (Principle 9). Write the PR stack table, name each bundle's branch, give each bundle a one-sentence headline and a "stands alone because" argument, list its tip gate, and move its closing items into its last slice. Add `**Bundle:** PRn (first | middle | last | only)` to every slice header.
+
+Done when every slice belongs to exactly one bundle, every bundle's last slice carries its closing items, and the first bundle's base names a branch and a SHA.

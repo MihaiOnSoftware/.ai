@@ -17,3 +17,9 @@ Wrong order - can't recurse before handling direct children.
 
 ## Multiple Concepts
 "Add recursion and handle sealed subclasses" - Split into two slices.
+
+## Half-Moved Seam
+A PR bundle ending with `coverage.ts` kept only as a formatter awaiting its rename, or `entityViolations.ts` left as a conversion-only residual. The reviewer needs the next PR to understand this one. Move the seam.
+
+## Late Closing Items
+"Add the changelog entries once the PRs are up." Every bundle above the one you touch then needs a restack. Put the chore in the bundle's last slice.
