@@ -74,7 +74,7 @@ Add **Recommendations** when the findings point to a next action.
 
 ## Optional sections
 
-- **Suggested slice boundaries**: a short ordered list when the natural seams are obvious. Input to `create-implementation-plan`, not a plan.
+- **Suggested slice boundaries**: a short ordered list when the natural seams are obvious. Input to `create-implementation-plan`, not a plan. When a seam would also make a PR that stands alone (green by itself, nothing half-moved, one reason to exist), say so; the plan turns those into PR bundles.
 - **Interactions with in-flight work**: stacked branches, parallel PRs, rebase risk.
 - **Prototype or spike status**: what was run, what it proved, what's still stubbed.
 - **Reproduction notes** (designs): as in the investigation shape.
