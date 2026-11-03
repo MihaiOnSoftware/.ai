@@ -16,7 +16,7 @@ This skill is loaded by `solve-this-problem-agent` only. It is not self-selected
 
 The pipeline assumes the problem produces a design doc and a slice-by-slice plan grouped into PR bundles (both in `~/.ai/wip/`, never committed), and ends at **a stack of draft PRs** opened by a PR-submission specialist, or at "stack ready to open" with a per-bundle recipe when the harness has no such specialist. It never marks PRs ready, requests review, or merges. Those are the user's.
 
-**Prerequisite**: the conductor runs at delegation depth 0 (a top-level session or fleet worker), or the harness's nesting limit is at least 3. `tdd-slice` dispatches specialists of its own; under the default cap of 2, a conductor that is itself a subagent cannot reach them.
+**Prerequisites**: the conductor runs at delegation depth 0 (a top-level session or fleet worker), or the harness's nesting limit is at least 3, because `tdd-slice` dispatches specialists of its own. The repo clone has the `gh stack` extension installed (`references/pr-stack.md` lists the checks); the stack's branches, restacks and PRs all go through it.
 
 ## Pipeline
 
@@ -161,7 +161,7 @@ When all slices are done, go to Phase 6.
 
 ## Phase 6: Open the stack
 
-Dispatch the PR-submission specialist once per unpublished bundle, bottom-up, with the contract in `references/pr-stack.md` § "Phase 6"; apply its acceptance rule, its check-status handling, and its final refresh before declaring completion. When the harness has no specialist implementing the contract, write the per-bundle recipe into the final summary and end at "stack ready to open".
+Dispatch the PR-submission specialist once for the stack with the contract in `references/pr-stack.md` § "Phase 6" (`gh stack submit --auto`, then titles and bodies per PR); apply its acceptance rule, its check-status handling, and its final refresh before declaring completion. When the harness has no specialist implementing the contract, write the per-bundle recipe into the final summary and end at "stack ready to open".
 
 Then update the wip file with "pipeline complete" and surface a final summary: the stack in merge order (bundle, PR URL, base, tip), the merge-cascade recipe from `references/pr-stack.md`, human steps (ready flips, manual gates), total commits, total tests, deferred follow-ups from all phases.
 

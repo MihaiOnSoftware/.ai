@@ -4,7 +4,7 @@
 
 **Execution**:
 1. Parses requirements: Slice 1, 4 items, branch `feature/pr1` expected at `base123`
-2. Delegates to `commit-agent` "prepare branch `feature/pr1` at `base123`" → branch created, tip `base123`
+2. Delegates to `commit-agent` "prepare branch `feature/pr1` at `base123`, base `main`" → branch created, tip `base123`
 3. Analyzes codebase
 4. Creates execution plan: 2 tests, 1 refactor, 1 chore
 

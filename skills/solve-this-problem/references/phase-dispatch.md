@@ -164,36 +164,35 @@ You cannot write files. Your final message IS the summary; it is bound to <wip-s
 })
 ```
 
-## Phase 6 — Open the stack (one dispatch per bundle, bottom-up)
+## Phase 6 — Open the stack (one dispatch for the whole stack)
 
-Precondition: the harness has a PR-submission specialist implementing the contract in `pr-stack.md`. Without one, write the per-bundle recipe into the final summary and stop at "stack ready to open".
+Precondition: the harness has a PR-submission specialist that runs `gh stack` against the remote (contract in `pr-stack.md` § "Phase 6"). Without one, write the recipe from that section into the final summary and stop at "stack ready to open".
 
 ```js
 subagent({
   agent: "<pr-submission-specialist>",
-  task: `Open or update a DRAFT pull request for one bundle of a stacked series.
+  task: `Publish or refresh a stacked series of DRAFT pull requests with gh stack.
 
-Head branch: <branch>            (push this branch; --force-with-lease if the remote differs)
-Expected head SHA: <validated tip>
-Base branch: <base branch>       (gh pr create --base; for an existing PR, confirm the base)
-Title: <bundle headline>
-Body inputs: headline, slices <list>, stands alone because <argument>, tip-gate evidence <summary>, stack position "PR <n> of <total>, base is <PR n-1 | base branch>; merge bottom-up".
+Repo: <absolute path>, currently on branch <top bundle branch>.
+PR stack table (bottom-up): <bundle, branch, validated tip, headline, body inputs: headline, slices, stands alone because, tip-gate evidence, stack position "PR n of total, base is …; merge bottom-up">
 Pipeline state file: <wip-path>
 
-Trigger the repo's review bot, wait for checks to settle, then write a summary to <wip-summary-path> with:
-- pr_url
-- remote_head_sha
-- base_branch, base_sha (as the remote reports them)
-- checks: green | red [failing check names] | waiting on <manual gate>
+1. gh stack submit --auto   (drafts; on exit 9 fall back to gh stack push, then gh pr create --draft --head <branch> --base <base> per bundle, bottom-up)
+2. gh pr edit <number> --title "<headline>" --body "<body>" for every bundle
+3. Trigger the repo's review bot on each PR, wait for checks to settle.
+
+Write a summary to <wip-summary-path> with:
+- stack: the output of gh stack view --json
+- checks per PR: green | red [failing check names] | waiting on <manual gate>
 - status: complete | failed
 
-Do not mark the PR ready, request reviewers, or merge. Return briefly.`,
+Do not mark any PR ready, request reviewers, or merge. Return briefly.`,
   output: "<wip-summary-path>",
   outputMode: "file-only"
 })
 ```
 
-Apply the acceptance rule in `pr-stack.md` § "Phase 6" before recording the bundle as published.
+Apply the acceptance rule in `pr-stack.md` § "Phase 6" (heads = validated tips, bases = predecessors, nothing `needsRebase`) before recording bundles as published.
 
 ## Failure handling
 

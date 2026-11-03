@@ -73,14 +73,17 @@ EOF
 
 Orchestrators without `bash` send every branch or history change here. `commit` is the default when the task names no instruction. Every other instruction carries the HEAD it expects; when `HEAD` differs, or a required SHA is missing, stop, return the actual SHAs (and `git status --porcelain` when the tree is dirty), and change nothing.
 
+Stack branches are managed with `gh stack` (GitHub CLI extension; `gh extension install github/gh-stack`, Git 2.36+, `git config rerere.enabled true`). Always use the non-interactive forms below; `gh stack view --json` is how you read the stack.
+
 | Instruction | Task wording | What you do |
 |---|---|---|
 | `commit` | (none) | Steps 1 to 5 above. Return `commit: <sha> <first line>`. |
-| `prepare branch` | "prepare branch `<name>` at `<sha>`" | Require a clean tree. If `<name>` does not exist: require `HEAD` == `<sha>`, then `git switch -c <name>`. If it exists: require its tip == `<sha>`, then `git switch <name>`. Return `branch: <name>, tip: <sha>`. |
+| `prepare branch` | "prepare branch `<name>` at `<sha>`, base `<base branch>`" | Require a clean tree. If `<name>` is already in the stack: `gh stack checkout <name>`, require its tip == `<sha>`. Else if no stack exists: require `HEAD` == `<sha>`, then `gh stack init <name>` (add `--base <base branch>` when it is not the default branch). Else: require `HEAD` == `<sha>` and that it is the stack's top, then `gh stack add <name>`. Return `branch: <name>, tip: <sha>`. |
 | `amend` | "amend `<head sha>` with the staged changes" | Require `HEAD` == `<head sha>`. `git commit --amend --no-edit`. Return the new SHA. |
 | `reset` | "reset `--soft`\|`--hard` from `<head sha>` to `<sha>`" | Require `HEAD` == `<head sha>` and `<sha>` an ancestor of it. Run the reset. Return `HEAD` after. |
+| `restack` | "restack above `<branch>` at `<head sha>`" | Require the current branch == `<branch>` and `HEAD` == `<head sha>`. `gh stack rebase --upstack --no-trunk`. On exit 3 (conflict): `gh stack rebase --abort`, return the conflicting files, change nothing else. On success return `gh stack view --json`. |
 
-Never rebase, push, or touch a remote under any instruction.
+Never push, open PRs, or touch a remote under any instruction (`gh stack rebase --no-trunk` does not fetch).
 
 ## Anti-Patterns to AVOID
 

@@ -38,6 +38,7 @@ Slice requirements should be provided as:
 ## Bundle
 - Bundle: PR2 "[headline]"
 - Branch: [branch name]
+- Base: [the user-supplied base branch for the first bundle; the previous bundle's branch otherwise]
 - Expected tip: [SHA the branch must be at before this slice: the previous slice's last commit, or the base SHA]
 - Position: first | middle | last | only
 - Slice gate: [commands, or "default" for the repo's typecheck, lint and tests of the touched workspaces]
@@ -70,7 +71,7 @@ Post "✅ Slice requirements parsed: [slice name]"
 
 **Step 1b: Prepare the bundle branch**
 
-Delegate to `commit-agent`: "prepare branch `<Branch>` at `<Expected tip>`". It creates the branch when it does not exist (HEAD must equal the expected tip), switches to it when it exists at that tip, and stops on any mismatch. If it stops, stop too and report the SHAs it returned; do not start a micro cycle on the wrong branch.
+Delegate to `commit-agent`: "prepare branch `<Branch>` at `<Expected tip>`, base `<Base>`". It creates the branch as the next stack layer when it does not exist (HEAD must equal the expected tip), checks it out when it exists at that tip, and stops on any mismatch. If it stops, stop too and report the SHAs it returned; do not start a micro cycle on the wrong branch.
 
 Post "✅ On branch [branch] at [tip]"
 

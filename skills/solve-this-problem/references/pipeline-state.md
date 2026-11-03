@@ -83,7 +83,7 @@ The pipeline's state lives in a single markdown file at `~/.ai/wip/<feature>-pip
 
 ## PR stack
 
-- **Current base tip**: <the plan's base SHA; advanced only after a base restack>
+- **Current base tip**: <the plan's base SHA; refreshed from `gh stack view --json` after a sync or re-root>
 - **Base branch**: <default branch, or the upstream ticket branch PR1 sits on>
 
 | Bundle | Headline | Branch | Base | Slices | Validated tip | Tip gate | PR URL | Remote head | Base SHA (remote) | Checks | Status |
