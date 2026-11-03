@@ -16,7 +16,7 @@ Stack order is plan order. Do not reorder slices to create parallel seams; that 
 
 ## Closing items
 
-The artifacts a PR needs to be mergeable on its own: changelog entry, CODEOWNERS line, docs, regenerated files. They are **chore items in the bundle's last slice**, never a post-pipeline step. Adding them after the branches exist forces a restack of every bundle above.
+Any administrative work PRs in this repo require (e.g. changelogs, CODEOWNERS, docs, regenerated files). They are **chore items in the bundle's last slice**, never a post-pipeline step. Adding them after the branches exist forces a restack of every bundle above.
 
 ## What the plan records
 
@@ -30,19 +30,19 @@ Before the slices, a **PR stack** table:
 | Base | the user-supplied base for PR1 (branch and SHA); `PR(N-1) branch` otherwise |
 | Slices | the consecutive slice numbers |
 | Stands alone because | the admissibility argument for this tip |
-| Tip gate | checks beyond the slice gate: full build and tests for the touched workspaces, lockfile immutability, parity oracles, changelog or docs checks the repo enforces. The last bundle's tip gate covers the union of every bundle's touched workspaces and their consumers |
-| Closing items | which chores the last slice carries |
+| Tip gate | checks beyond the slice gate: full build and tests for the touched workspaces, lockfile immutability, parity oracles, whatever PR-level checks the repo enforces. The last bundle's tip gate covers the union of every bundle's touched workspaces and their consumers |
+| Closing items | the administrative work the last slice carries |
 
 Under the table, the **slice gate** every slice must pass (the repo's typecheck, lint and tests for the touched workspaces unless the plan says otherwise) and the **base SHA** the plan was written against.
 
 Each slice header gets one line: `**Bundle:** PR2 (first | middle | last | only)`.
 
-## Example (API-911, 16 slices, 3 bundles)
+## Example (extracting an engine into its own package: 16 slices, 3 bundles)
 
 | Bundle | Headline | Branch | Base | Slices | Stands alone because | Tip gate | Closing items |
 |---|---|---|---|---|---|---|---|
-| PR1 | Scaffold the coverage package and move the shared reconciler utilities | `api-911-extract-rest-graphql-coverage-engine` | API-910 stack top `9b83f93b` | 1–3 | package builds and tests alone; backend-rest imports the moved utilities; byte-identical report | standard gate, charter grep, `yarn install --immutable` | changelog (slice 3) |
-| PR2 | Move the engine leaf modules and comparators into the package | `api-911-pr2-engine-leaves` | PR1 branch | 4–9 | every moved module's importers are migrated; report builder still in backend-rest imports the package, a legal direction | standard gate, charter grep, `yarn install --immutable`, design-writer parity | changelog (slice 9) |
-| PR3 | Move the report builder, regeneration and formatter; backend-rest keeps consumer wiring | `api-911-pr3-engine-core` | PR2 branch | 10–16 | final package inventory; end-to-end byte parity | cumulative: all gates, both workspaces, full parity | changelog (slice 16) |
+| PR1 | Scaffold the package and move the shared utilities | `extract-engine-scaffold` | `main` @ `<sha>` | 1–3 | the package builds and its tests pass alone; the app imports the moved utilities; output is byte-identical | package build and tests, app typecheck, lockfile check | repo admin for a new package (slice 3) |
+| PR2 | Move the leaf modules into the package | `extract-engine-leaves` | PR1 branch | 4–9 | every moved module's importers are migrated; the core still in the app imports the package, a legal direction | PR1's gate plus the app's full test suite | repo admin (slice 9) |
+| PR3 | Move the core and keep the app as a thin consumer | `extract-engine-core` | PR2 branch | 10–16 | final package inventory; end-to-end output parity | cumulative: every gate above, both workspaces, full parity | repo admin (slice 16) |
 
-In the real run the changelog entries were added after all three branches existed, which forced one new commit on PR1 and a restack of PR2 and PR3. With the chores in slices 3, 9 and 16 that restack does not happen.
+No seam inside PR2 earns its own review: each slice is one leaf move, and six PRs of leaf moves would be six approvals for one idea.

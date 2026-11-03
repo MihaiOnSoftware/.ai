@@ -22,4 +22,4 @@ Wrong order - can't recurse before handling direct children.
 A PR bundle ending with `coverage.ts` kept only as a formatter awaiting its rename, or `entityViolations.ts` left as a conversion-only residual. The reviewer needs the next PR to understand this one. Move the seam.
 
 ## Late Closing Items
-"Add the changelog entries once the PRs are up." Every bundle above the one you touch then needs a restack. Put the chore in the bundle's last slice.
+"Do the PR admin once the PRs are up." Every bundle above the one you touch then needs a restack. Put the chore in the bundle's last slice.

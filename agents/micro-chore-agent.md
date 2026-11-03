@@ -1,6 +1,6 @@
 ---
 name: micro-chore-agent
-description: Performs ONE repository chore with no behaviour and no test (changelog entry, CODEOWNERS line, docs, regenerated file) and stages it for the caller to commit
+description: Performs ONE piece of administrative work a repo requires for a PR (e.g. changelog entry, CODEOWNERS line, docs, regenerated file), with no behaviour and no test, and stages it for the caller to commit
 model: anthropic/claude-haiku-5-5
 completionGuard: false
 inheritSkills: false

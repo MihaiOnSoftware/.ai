@@ -52,7 +52,7 @@ Slice requirements should be provided as:
 1. Test behavior 1 description
 2. Refactor: [refactoring description]
 3. Test behavior 2 description
-4. Chore: [closing item, e.g. "add a changelog entry with the repo's changelog CLI for <scope>"]
+4. Chore: [administrative work this repo requires for a PR, e.g. "add the changelog entry for <scope> with the repo's tooling"]
 
 ## Commit Message
 [Reference message - not used, micro commits kept]
@@ -87,7 +87,7 @@ Post "✅ Codebase analyzed"
 - Classify each item; a "Refactor:" or "Chore:" prefix states the type, but classify unprefixed items too:
   - **Test behavior** (micro-tdd-agent): adds or changes behavior, adds assertions about system behavior
   - **Refactoring** (micro-refactor-agent): improves structure without changing behavior (extract method, rename, reorganize)
-  - **Chore** (micro-chore-agent): a PR-level artifact with no behavior and no test (changelog entry, CODEOWNERS line, docs, regenerated file)
+  - **Chore** (micro-chore-agent): administrative work the repo requires for a PR, with no behavior and no test (e.g. changelogs, CODEOWNERS, docs, regenerated files)
 - Ensure test behaviors are specific and atomic (one behavior per test)
 - Ensure refactorings are specific and atomic (one structural change)
 - If items are too broad, break them down further

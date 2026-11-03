@@ -121,7 +121,7 @@ Same shape as Phase 2 but pointed at the plan doc. Pass the design doc as ground
 ```js
 subagent({
   agent: "adversarial-review-loop-agent",
-  task: `Run the adversarial-review-loop against the plan at <plan-doc-path>. The plan must serve the design at <design-doc-path>; deviations from the design are a load-bearing finding. So are the PR bundle seams: a bundle that would be red on its own, leaves a half-moved module at its tip, has no one-sentence reason to exist, or lacks its closing items (changelog, CODEOWNERS, docs) in its last slice is a defect in the plan.
+  task: `Run the adversarial-review-loop against the plan at <plan-doc-path>. The plan must serve the design at <design-doc-path>; deviations from the design are a load-bearing finding. So are the PR bundle seams: a bundle that would be red on its own, leaves a half-moved module at its tip, has no one-sentence reason to exist, or lacks its closing items (the administrative work PRs in this repo require, e.g. changelogs, CODEOWNERS) in its last slice is a defect in the plan.
 
 Ground truth: design doc at <design-doc-path> + <any other ground-truth pointers>.
 Pipeline state file: <wip-path>.

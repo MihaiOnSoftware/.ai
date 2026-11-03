@@ -150,9 +150,9 @@ When a slice falls into this bucket, state it explicitly in the slice's plan and
 
 The plan ends in a stack of PRs, one per **bundle** of consecutive slices. Cut a seam only where the tree at that slice stands alone green, leaves nothing half-moved, has one reason to exist, is worth its own review, and depends only on the bundles below it. No admissible seam means one bundle; never force a split.
 
-Each bundle's last slice carries the bundle's **closing items** (changelog entry, CODEOWNERS, docs, regenerated files) as chore items, so no PR-level work is left for after the branches exist.
+Each bundle's last slice carries the bundle's **closing items**, any administrative work PRs in this repo require (e.g. changelogs, CODEOWNERS), as chore items, so none of it is left for after the branches exist.
 
-The plan records a PR stack table before the slices and tags every slice with its bundle and position. Consult [references/pr-bundles.md](references/pr-bundles.md) if you need the admissibility rules in full, the table columns, or the API-911 example.
+The plan records a PR stack table before the slices and tags every slice with its bundle and position. Consult [references/pr-bundles.md](references/pr-bundles.md) if you need the admissibility rules in full, the table columns, or the worked example.
 
 ## The Planning Process
 
