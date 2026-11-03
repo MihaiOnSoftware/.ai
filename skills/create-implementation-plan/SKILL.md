@@ -4,7 +4,8 @@ description: >-
   Breaks a settled design or investigation document into vertical slices
   grouped into PR bundles, so implementation ends in a stack of PRs. Use when
   the approach is settled and the work needs cutting before code exists:
-  "plan this feature", "slice this design", "break this down". Not for ticket
+  "plan this feature", "turn this design into slices", "what are the PRs for
+  this". Not for ticket
   intake from Linear or Jira (plan-linear-issue, plan-ticket), for creating
   Linear sub-issues (slice-issue), or for re-splitting a change that already
   exists as a branch or PR (stacking-prs).
@@ -15,29 +16,32 @@ metadata:
 
 # Create Implementation Plan
 
-You turn a settled design into small, incremental slices that someone else implements, grouped into PR bundles so the work lands as a stack of independently reviewable PRs. Plans describe algorithms and approaches in natural language; the implementer chooses the syntax.
+You turn a settled design into small, incremental slices that someone else implements, grouped into PR bundles so the work lands as a stack of independently reviewable PRs.
 
 ## Modes
 
-- **Interactive**: a live user is present. Present one slice at a time and wait for approval before the next.
-- **Batch**: dispatched without a user. Write the whole plan in one pass; decisions you would have asked about go under "Open questions" at the bottom.
+- **Interactive**: a live user is present. Present one slice at a time in the conversation and wait for approval before the next.
+- **Batch**: dispatched without a user. Write the whole plan in one pass to the path the caller names and return that path; decisions you would have asked about go under "Open questions" at the bottom.
 
 ## Stop and ask when
 
-- There is no design or investigation document to plan from; a ticket title is not enough. Batch: return without a plan and say what is missing.
-- The base is unknown: the branch and commit the plan is written against (the default branch, or another ticket's branch when the work stacks on it). The first slice starts there. Batch: keep any branch the task names and record the missing SHA as an assumption; fall back to the default branch's current head only when no base is named at all.
+- There is no design or investigation document to plan from, or the document states no outcome to plan toward; a ticket title is not enough. Batch: return without a plan and say what is missing.
+- The base is unknown: the branch and commit the plan is written against (the default branch, or another ticket's branch when the work stacks on it). The first slice starts there. Batch: use the named branch's current head as the SHA and record it as an assumption; when no base is named, use the default branch's head; when the named branch cannot be resolved, return without a plan and name it.
 - A slice hinges on a decision the user has not made (which API shape, which storage). Interactive: ask before presenting that slice. Batch: record it and plan on the stated assumption.
 - The user rejects a presented slice: revise and re-present it before moving on; if the rejection changes the proof slice (Principle 2), restart from it.
 
 ## Process
 
-1. **Read the inputs.** The design or investigation document in full, the base branch and SHA, and what "done" looks like. Done when you can state the base branch and SHA and list the acceptance criteria in one line each, derived from the document's Problem, Design and Scope sections, or from whichever section states the intended outcome when those are absent (for an investigation, the deliverable the plan produces); anything you can't state goes to Stop and ask, and in Batch the derived criteria are recorded as assumptions.
-2. **Find the proof slice** (Principle 2). Done when you have written the one assumption that, if false, kills the approach, and either the boundary behaviour the proof slice uses to test it or, when a spike must come first, the decision that spike settles.
-3. **Map the path to complete.** List every behaviour or rule to add on top of the proof slice along the axes in Principle 4, applying Principle 3 to each entry. Order by dependencies between complete behaviours (Principle 7), then complexity. Done when every acceptance criterion from step 1 maps to the proof slice or to at least one listed behaviour; a design the proof slice satisfies on its own is a one-slice plan. [examples/iterm-profile-generation.md](examples/iterm-profile-generation.md) is a plan that came out of this mapping.
-4. **Write each slice** as goal, approach in words, and tests, in the shape of [examples/presenting-a-slice.md](examples/presenting-a-slice.md). Check it against INVEST ([references/invest-criteria.md](references/invest-criteria.md)) and the [references/red-flags.md](references/red-flags.md); split or reorder what fails. Done when the slice passes every INVEST criterion, trips no red flag, and lists its pattern, goal, approach in words, and the tests or evidence Principle 5 asks of its kind. Interactive: present it and wait. Batch: move on.
-5. **Cut the PR stack.** Once the slices are settled, mark the admissible seams, assign each slice to a bundle with its position (first, middle, last, only), and move each bundle's closing items into its last slice. The written plan opens with the PR stack table and tags every slice header with `**Bundle:** PRn (position)`; Interactive: propose the table after the last slice is approved, then place it at the top. Done when each seam you rejected names the admissibility test it fails and each bundle names its base.
+1. **Read the inputs.** The design or investigation document in full, the base, and what "done" looks like. Done when:
+   - the base branch and SHA are stated;
+   - the acceptance criteria are listed one line each, taken from the document's Problem, Design and Scope sections, or from whichever section states the intended outcome (for an investigation, what it recommends building);
+   - in Batch, the derived criteria and any assumed SHA are recorded as assumptions.
+2. **Find the proof slice** (Principle 2). Done when you have written the assumption that, if false, kills the approach, and the boundary behaviour the proof slice uses to test it; when a spike must come first, also the decision that spike settles; for an all-mechanical plan, the parity check that stands in for a proof slice.
+3. **Map the path to complete.** List the spike when there is one, the proof slice, and every behaviour or rule to add after it along the axes in Principle 4, applying Principle 3 to each entry. Order by dependencies between complete behaviours (Principle 7), then complexity. Done when every acceptance criterion from step 1 maps to at least one entry; a design the proof slice satisfies on its own needs no further entries. [examples/iterm-profile-generation.md](examples/iterm-profile-generation.md) is a plan that came out of this mapping.
+4. **Write each slice** as goal, approach in words, and tests, in the shape of [examples/presenting-a-slice.md](examples/presenting-a-slice.md). Check it against INVEST ([references/invest-criteria.md](references/invest-criteria.md), with Principle 3's exemptions) and the [references/red-flags.md](references/red-flags.md); split or reorder what fails. Done when the slice passes INVEST, trips no red flag, and lists its goal, approach in words, and the tests or evidence Principle 5 asks of its kind. Interactive: present it and wait. Batch: move on.
+5. **Cut the PR stack** (Principle 9). The written plan opens with the PR stack table and tags every slice header with `**Bundle:** PRn (position)`; Interactive: propose the table after the last slice is approved, then place it at the top. Done when each seam you rejected names the admissibility test it fails and each bundle names its base.
 
-Done when steps 1 to 5 have each met their condition and the plan names the pattern it used with one sentence of reasoning (Principle 1).
+Done when steps 1 to 5 have each met their condition and the plan names its pattern (Principle 1).
 
 ## Principles
 
@@ -69,7 +73,7 @@ Say what is built and how it works in words: the logical steps, the key data str
 
 ### 7. Dependencies order work inside a slice
 
-A consumer needs its producer, a recursive case needs its base case, a composite type needs its element types. These order the items *inside* a slice (Principle 3): the slice that introduces a consumer carries the minimum producer it needs, built first. Slice order is step 3's job. Consult [examples/layer-cut-vs-vertical.md](examples/layer-cut-vs-vertical.md) to see one feature cut both ways.
+A consumer needs its producer, a recursive case needs its base case, a composite type needs its element types. These order the items *inside* a slice (Principle 3): the slice that introduces a consumer carries the minimum producer it needs, built first. Consult [examples/layer-cut-vs-vertical.md](examples/layer-cut-vs-vertical.md) to see one feature cut both ways.
 
 ### 8. Say when a slice can't be automated
 
