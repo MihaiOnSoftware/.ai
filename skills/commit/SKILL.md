@@ -36,11 +36,15 @@ Apply these commit message rules:
 
 ### Step 3: Determine What to Stage
 
-**If files are already staged**:
-- Use staged files as-is
+Guard first: never commit agent scratch artifacts (`~/.ai/rules/11_agent_artifacts.md`). Plans, design docs, specs, agent reports, prior-art scans and investigation scratchpads belong in `~/.ai/wip/`, never in a project repo:
 
-**If no files are staged**:
-- Stage all modified/new files: `git add -A`
+```bash
+git status --short | grep -iE '(^|/)(wip|plans?|design|research)/|\.report\.md$|-(plan|prior-art)-[0-9]{4}' || echo "no scratch artifacts detected"
+```
+
+On a match, stop and surface it; the file should be moved to `~/.ai/wip/` and left untracked. Proceed only when the tree is free of scratch artifacts, or the user confirms a match is a legitimate repo file.
+
+Then: if files are already staged, use them as-is; otherwise `git add -A` and re-run the guard against `git diff --cached --name-only`.
 
 ### Step 4: Draft Commit Message
 
