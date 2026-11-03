@@ -31,13 +31,13 @@ You turn a settled design into small, incremental slices that someone else imple
 
 ## Process
 
-1. **Read the inputs.** The design or investigation document in full, the base branch and SHA, and what "done" looks like. Done when you can state the base branch and SHA and list the acceptance criteria in one line each, derived from the document's Problem, Design and Scope sections (for an investigation, the deliverable the plan produces); anything you can't state goes to Stop and ask, and in Batch the derived criteria are recorded as assumptions.
-2. **Find the proof slice.** The smallest behaviour at the task's boundary that validates the approach (Principle 2). Done when you have written the one assumption that, if false, kills the approach, and either the boundary behaviour the proof slice uses to test it or, when a spike must come first, the decision that spike settles.
+1. **Read the inputs.** The design or investigation document in full, the base branch and SHA, and what "done" looks like. Done when you can state the base branch and SHA and list the acceptance criteria in one line each, derived from the document's Problem, Design and Scope sections, or from whichever section states the intended outcome when those are absent (for an investigation, the deliverable the plan produces); anything you can't state goes to Stop and ask, and in Batch the derived criteria are recorded as assumptions.
+2. **Find the proof slice** (Principle 2). Done when you have written the one assumption that, if false, kills the approach, and either the boundary behaviour the proof slice uses to test it or, when a spike must come first, the decision that spike settles.
 3. **Map the path to complete.** List every behaviour or rule to add on top of the proof slice along the axes in Principle 4, applying Principle 3 to each entry. Order by dependencies between complete behaviours (Principle 7), then complexity. Done when every acceptance criterion from step 1 maps to the proof slice or to at least one listed behaviour; a design the proof slice satisfies on its own is a one-slice plan. [examples/iterm-profile-generation.md](examples/iterm-profile-generation.md) is a plan that came out of this mapping.
-4. **Write each slice** as goal, approach in words, and tests, in the shape of [examples/presenting-a-slice.md](examples/presenting-a-slice.md). Check it against INVEST ([references/invest-criteria.md](references/invest-criteria.md)) and the [references/red-flags.md](references/red-flags.md); split or reorder what fails. Interactive: present it and wait. Batch: move on.
+4. **Write each slice** as goal, approach in words, and tests, in the shape of [examples/presenting-a-slice.md](examples/presenting-a-slice.md). Check it against INVEST ([references/invest-criteria.md](references/invest-criteria.md)) and the [references/red-flags.md](references/red-flags.md); split or reorder what fails. Done when the slice passes every INVEST criterion, trips no red flag, and lists its pattern, goal, approach in words, and the tests or evidence Principle 5 asks of its kind. Interactive: present it and wait. Batch: move on.
 5. **Cut the PR stack.** Once the slices are settled, mark the admissible seams, assign each slice to a bundle with its position (first, middle, last, only), and move each bundle's closing items into its last slice. The written plan opens with the PR stack table and tags every slice header with `**Bundle:** PRn (position)`; Interactive: propose the table after the last slice is approved, then place it at the top. Done when each seam you rejected names the admissibility test it fails and each bundle names its base.
 
-Done when every slice has a pattern, a goal, the tests or evidence Principle 5 asks of its kind, and a bundle; every bundle's last slice carries its closing items; and the first bundle's base names a branch and a SHA.
+Done when steps 1 to 5 have each met their condition and the plan names the pattern it used with one sentence of reasoning (Principle 1).
 
 ## Principles
 
@@ -69,7 +69,7 @@ Say what is built and how it works in words: the logical steps, the key data str
 
 ### 7. Dependencies order work inside a slice
 
-A consumer needs its producer, a recursive case needs its base case, a composite type needs its element types. These order the items *inside* a slice (Principle 3): the slice that introduces a consumer carries the minimum producer it needs, built first. Order slices by dependencies between complete behaviours. Consult [examples/layer-cut-vs-vertical.md](examples/layer-cut-vs-vertical.md) to see one feature cut both ways.
+A consumer needs its producer, a recursive case needs its base case, a composite type needs its element types. These order the items *inside* a slice (Principle 3): the slice that introduces a consumer carries the minimum producer it needs, built first. Slice order is step 3's job. Consult [examples/layer-cut-vs-vertical.md](examples/layer-cut-vs-vertical.md) to see one feature cut both ways.
 
 ### 8. Say when a slice can't be automated
 
