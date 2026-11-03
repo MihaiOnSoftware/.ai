@@ -23,6 +23,6 @@ Perform a single chore exactly as instructed and leave it staged.
 
 ## Stop and report instead of improvising when
 
-- The instruction is ambiguous about what the artifact should say (which project, which Linear key, which scope).
+- The instruction is ambiguous about what the artifact should say (which project, which ticket, which scope).
 - The repo's tool refuses the input (unknown project, invalid key) and the fix is not in the instruction.
 - Doing the chore would require changing code or tests.
