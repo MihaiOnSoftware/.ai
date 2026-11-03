@@ -25,15 +25,15 @@ You turn a settled design into small, incremental slices that someone else imple
 ## Stop and ask when
 
 - There is no design or investigation document to plan from; a ticket title is not enough. Batch: return without a plan and say what is missing.
-- The base is unknown: the branch and commit the plan is written against (the default branch, or another ticket's branch when the work stacks on it). The first slice starts there. Batch: plan against the default branch's current head and record the assumption.
+- The base is unknown: the branch and commit the plan is written against (the default branch, or another ticket's branch when the work stacks on it). The first slice starts there. Batch: keep any branch the task names and record the missing SHA as an assumption; fall back to the default branch's current head only when no base is named at all.
 - A slice hinges on a decision the user has not made (which API shape, which storage). Interactive: ask before presenting that slice. Batch: record it and plan on the stated assumption.
 - The user rejects a presented slice: revise and re-present it before moving on; if the rejection changes the proof slice (Principle 2), restart from it.
 
 ## Process
 
-1. **Read the inputs.** The design or investigation document in full, the base branch and SHA, and what "done" looks like. Done when you can state the base branch and SHA and list the design's acceptance criteria in one line each; anything you can't state goes to Stop and ask.
-2. **Find the proof slice.** The smallest behaviour at the task's boundary that validates the approach (Principle 2). Done when you have written the one assumption that, if false, kills the approach, and the boundary behaviour the proof slice uses to test it.
-3. **Map the path to complete.** List every behaviour or rule to add on top of the proof slice along the axes in Principle 4, applying Principle 3 to each entry. Order by dependencies between complete behaviours (Principle 7), then complexity. Done when every acceptance criterion from step 1 maps to at least one listed behaviour. [examples/iterm-profile-generation.md](examples/iterm-profile-generation.md) is a plan that came out of this mapping.
+1. **Read the inputs.** The design or investigation document in full, the base branch and SHA, and what "done" looks like. Done when you can state the base branch and SHA and list the acceptance criteria in one line each, derived from the document's Problem, Design and Scope sections (for an investigation, the deliverable the plan produces); anything you can't state goes to Stop and ask, and in Batch the derived criteria are recorded as assumptions.
+2. **Find the proof slice.** The smallest behaviour at the task's boundary that validates the approach (Principle 2). Done when you have written the one assumption that, if false, kills the approach, and either the boundary behaviour the proof slice uses to test it or, when a spike must come first, the decision that spike settles.
+3. **Map the path to complete.** List every behaviour or rule to add on top of the proof slice along the axes in Principle 4, applying Principle 3 to each entry. Order by dependencies between complete behaviours (Principle 7), then complexity. Done when every acceptance criterion from step 1 maps to the proof slice or to at least one listed behaviour; a design the proof slice satisfies on its own is a one-slice plan. [examples/iterm-profile-generation.md](examples/iterm-profile-generation.md) is a plan that came out of this mapping.
 4. **Write each slice** as goal, approach in words, and tests, in the shape of [examples/presenting-a-slice.md](examples/presenting-a-slice.md). Check it against INVEST ([references/invest-criteria.md](references/invest-criteria.md)) and the [references/red-flags.md](references/red-flags.md); split or reorder what fails. Interactive: present it and wait. Batch: move on.
 5. **Cut the PR stack.** Once the slices are settled, mark the admissible seams, assign each slice to a bundle with its position (first, middle, last, only), and move each bundle's closing items into its last slice. The written plan opens with the PR stack table and tags every slice header with `**Bundle:** PRn (position)`; Interactive: propose the table after the last slice is approved, then place it at the top. Done when each seam you rejected names the admissibility test it fails and each bundle names its base.
 
@@ -47,7 +47,7 @@ Pick the pattern that fits the work and name it in the plan with one sentence of
 
 ### 2. The proof slice
 
-Slice 1 is the proof slice. Name the assumption that, if false, kills the whole approach, and design the proof slice to test it, so a bad approach fails fast. Prove it through the smallest usable behaviour at the task's intended boundary, not through an unwired component: the riskiest mechanism in isolation is not the proof. [examples/thought-process.md](examples/thought-process.md) shows the framing.
+The first behaviour slice is the proof slice. Name the assumption that, if false, kills the whole approach, and design the proof slice to test it, so a bad approach fails fast. When that assumption needs a spike before any behaviour can be built, the spike is slice 1 and the proof slice follows it. Prove it through the smallest usable behaviour at the task's intended boundary, not through an unwired component: the riskiest mechanism in isolation is not the proof. [examples/thought-process.md](examples/thought-process.md) shows the framing.
 
 ### 3. Each slice stands alone
 
