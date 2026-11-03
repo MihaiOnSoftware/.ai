@@ -20,7 +20,7 @@ Any administrative work PRs in this repo require (e.g. changelogs, CODEOWNERS, d
 
 ## What the plan records
 
-The written plan opens with a **PR stack** table (filled in once the slices are settled; in an interactive session, proposed after the last slice is approved):
+The written plan opens with a **PR stack** table (filled in once the slices are settled; interactive: proposed after the last slice is approved):
 
 | Column | Content |
 |---|---|
