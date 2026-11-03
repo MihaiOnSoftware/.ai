@@ -9,7 +9,7 @@ A seam after slice k is admissible when the tree at slice k's last commit:
 1. **Stands alone green**: passes the bundle's tip gate against its base with nothing from later bundles.
 2. **Leaves nothing half-moved**: no module kept only as temporary scaffolding or a conversion-only residual, no owner under a stale name whose rename is pending, no dangling import. A reviewer must not have to read the next PR to understand why a file exists.
 3. **Has one reason to exist**: the headline is one sentence a reviewer can verify, and it maps to a design section or a known reviewer concern. Keep a behaviour change out of a bundle that is mostly moves; isolate it in its own bundle.
-4. **Is worth a review**: each bundle costs a CI run, an approval, and a restack whenever anything below it changes. Pure moves (renames, spec relocation) weigh less than logic when judging size. If a bundle would not earn its approval, merge it into a neighbour.
+4. **Is worth a review, and about the same size as its neighbours**: each bundle costs a CI run, an approval, and a restack whenever anything below it changes. Size is the number of tests the bundle's slices write or change (their "Tests to Write" lists), not lines of code; do not estimate code. Bundles of similar test counts are the target. One with a fraction of its neighbours' tests is not earning its approval, merge it; one with several times theirs is hiding a seam, look again.
 5. **Depends only downward**: bundle N+1 may build on bundles ≤ N; nothing in bundle N needs bundle N+1 to be correct.
 
 Stack order is plan order. Do not reorder slices to create parallel seams; that produces trees nobody validated.
