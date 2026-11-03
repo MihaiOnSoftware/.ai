@@ -78,10 +78,10 @@ Stack branches are managed with `gh stack` (GitHub CLI extension; `gh extension 
 | Instruction | Task wording | What you do |
 |---|---|---|
 | `commit` | (none) | Steps 1 to 5 above. Return `commit: <sha> <first line>`. |
-| `prepare branch` | "prepare branch `<name>` at `<sha>`, base `<base branch>`" | Require a clean tree. If `<name>` is already in the stack: `gh stack checkout <name>`, require its tip == `<sha>`. Else if no stack exists: require `HEAD` == `<sha>`, then `gh stack init <name>` (add `--base <base branch>` when it is not the default branch). Else: require `HEAD` == `<sha>` and that it is the stack's top, then `gh stack add <name>`. Return `branch: <name>, tip: <sha>`. |
+| `prepare branch` | "prepare branch `<name>` at `<sha>`, base `<base branch>`" | Require a clean tree. If `<name>` is already in the stack: `gh stack checkout <name>`. Else if no stack exists: require `HEAD` == `<sha>`, then `gh stack init <name>` (add `--base <base branch>` when it is not the default branch). Else: require `HEAD` == `<sha>` and that it is the stack's top, then `gh stack add <name>`. In every case, afterwards require the current branch == `<name>` and `HEAD` == `<sha>` (`init` and `add` adopt a pre-existing branch of that name, which may sit elsewhere). Return `branch: <name>, tip: <sha>`. |
 | `amend` | "amend `<head sha>` with the staged changes" | Require `HEAD` == `<head sha>`. `git commit --amend --no-edit`. Return the new SHA. |
 | `reset` | "reset `--soft`\|`--hard` from `<head sha>` to `<sha>`" | Require `HEAD` == `<head sha>` and `<sha>` an ancestor of it. Run the reset. Return `HEAD` after. |
-| `restack` | "restack above `<branch>` at `<head sha>`" | Require the current branch == `<branch>` and `HEAD` == `<head sha>`. `gh stack rebase --upstack --no-trunk`. On exit 3 (conflict): `gh stack rebase --abort`, return the conflicting files, change nothing else. On success return `gh stack view --json`. |
+| `restack` | "restack above `<branch>` at `<head sha>`; old tips `<branch: sha, …>`" | Require the current branch == `<branch>` and `HEAD` == `<head sha>`. `gh stack rebase --upstack --no-trunk`. On exit 3 (conflict): `gh stack rebase --abort`, return the conflicting files, change nothing else. On success return `gh stack view --json` and, per rewritten branch, `git range-diff <old parent tip>..<old tip> <new parent tip>..<new tip>` so the caller can see which commits changed (`=`) or did not. |
 
 Never push, open PRs, or touch a remote under any instruction (`gh stack rebase --no-trunk` does not fetch).
 

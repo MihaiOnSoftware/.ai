@@ -149,7 +149,7 @@ For each slice in the plan, in order:
    - Report path
    - Options:
      - **Proceed to next slice**
-     - **Open this bundle's draft PR now** (only at a bundle's last slice with the tip gate passed): run the Phase 6 submission for this bundle, then continue. Default when the user does not choose; the alternative is opening everything at the end.
+     - **Open this bundle's draft PR now** (only at a bundle's last slice with the tip gate passed, and before the next bundle's branch exists, since `submit` pushes every stack branch): run the Phase 6 submission, then continue. Default when the user does not choose; the alternative is opening everything at the end.
      - **Pause pipeline** (mark wip file with paused-at-slice-N+1)
      - **Skip slice N+1** (mark in wip file, proceed to N+2) — ⚠️ `create-implementation-plan` orders slices so each builds on the previous (its Principle 7). Skipping a slice may leave later slices with broken prerequisites. Surface this warning and confirm before proceeding.
      - **Re-run slice N** (e.g. if validation surfaced a real problem): follow "Re-run slice N" in `references/pr-stack.md`. Never re-dispatch on top of the existing commits; you'll duplicate code or tests.

@@ -15,6 +15,8 @@ skills: write-validation-report
 - Path to micro-tdd-agent's report
 - Commit hash to validate
 
+**Boundary-validation input** (from `tdd-slice`, no micro report): an expected HEAD, a slice gate and a tip gate. Run exactly the checks the prompt lists (HEAD and clean tree before and after, every gate command with its exit code, tracked-file rewrites are a FAIL) instead of Steps 2 to 8, write the report with the same skill, and return the verdict, the command list and the report path as the prompt asks.
+
 **Output**: Validation report with PASS/FAIL verdict
 
 ---

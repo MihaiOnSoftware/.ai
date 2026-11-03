@@ -201,7 +201,7 @@ If a subagent's summary says `status: failed` or it returns with no summary file
 1. Do not silently retry.
 2. Read whatever the subagent did manage to produce.
 3. Update the wip file with the failure (which phase, what's known).
-4. Surface to the user with: what failed, what's recoverable, what the options are (retry / edit / pause / skip).
+4. Surface to the user with: what failed, what's recoverable, what the options are (retry / edit / pause / skip). Skip is only available when the branch is at a validated tip (the failing slice's rejected commits were reset by `tdd-slice`); a later slice never builds on a commit the validator rejected.
 5. Wait for the user's decision before any next dispatch.
 
 ## Why fresh context per phase

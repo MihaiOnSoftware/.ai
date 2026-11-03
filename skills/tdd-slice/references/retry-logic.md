@@ -107,4 +107,5 @@ The investigator will:
 - Include: slice info, item description, both validation reports, quality issues, fix attempts.
 - Include: investigator report path and key findings.
 - Include: investigator's root cause analysis and recommendations.
+- Delegate to `commit-agent`: "reset `--hard` from `<head>` to `<previous commit hash>`" so the branch ends at its last validated commit; a rejected commit never stays in history for a later slice to build on. Record the discarded SHA in the report.
 - Return it as your final message and **STOP**. Do not start a third validation cycle.
