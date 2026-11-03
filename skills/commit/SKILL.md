@@ -1,6 +1,6 @@
 ---
 name: commit
-description: Create a commit following message rules and writing style guidelines
+description: Create a commit following message rules and writing style guidelines. Also the single place an orchestrator without bash sends branch, amend and reset instructions.
 license: MIT
 metadata:
   category: git
@@ -92,6 +92,19 @@ git commit -m "$(cat <<'EOF'
 EOF
 )"
 ```
+
+## Orchestrator instructions
+
+Orchestrators that have no `bash` (`tdd-slice-agent`, `solve-this-problem-agent`) send every branch or history change here instead of running git themselves. `commit` is the default when the task names no instruction. Each other instruction carries the SHA it expects; on any mismatch stop, report the actual SHAs, and change nothing.
+
+| Instruction | Task wording | What you do |
+|---|---|---|
+| `commit` | (none) | Steps 1 to 5 above |
+| `prepare branch` | "prepare branch `<name>` at `<sha>`" | Require a clean tree (`git status --porcelain` empty). If `<name>` does not exist: require `HEAD` == `<sha>`, then `git switch -c <name>`. If it exists: require its tip == `<sha>`, then `git switch <name>`. Return `branch: <name>, tip: <sha>`. |
+| `amend` | "amend HEAD with the staged changes" | `git commit --amend --no-edit`. Return the new SHA (`--amend` always makes one). |
+| `reset` | "reset `--soft`\|`--hard` to `<sha>`" | Require `<sha>` to be an ancestor of `HEAD` (`git merge-base --is-ancestor`). Run the reset. Return `HEAD` after. Refuse when no SHA is given. |
+
+Never rebase, push, or touch a remote under any instruction.
 
 ## Anti-Patterns to AVOID
 

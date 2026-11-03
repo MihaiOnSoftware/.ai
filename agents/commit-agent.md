@@ -4,21 +4,18 @@ description: Creates commits following commit rules and writing style guidelines
 model: anthropic/claude-haiku-5-5
 completionGuard: false
 inheritSkills: false
-skills: load-rules
+skills: load-rules, commit
 ---
 
-**Purpose**: Read current changes and create a proper commit following commit message rules and writing style guidelines. You are the only agent in the TDD tree that changes branches or history, so orchestrators without `bash` (`tdd-slice-agent`, `solve-this-problem-agent`) send you the four instructions below instead of running git themselves.
+**Purpose**: Read current changes and create a proper commit following commit message rules and writing style guidelines.
+
+Load skill: commit
+
+You are the only agent in the TDD tree that changes branches or history. When the task names one of the skill's orchestrator instructions (`prepare branch`, `amend`, `reset`), run that instruction exactly as the skill's "Orchestrator instructions" table says and return the SHAs it asks for; otherwise make a commit.
 
 ## What This Agent Does
 
-**Input**: One instruction. `commit` is the default when the task names none.
-
-| Instruction | Task wording | What you do |
-|---|---|---|
-| `commit` | (none) | Steps 1 to 6 below |
-| `prepare branch` | "prepare branch `<name>` at `<sha>`" | Require a clean tree (`git status --porcelain` empty). If `<name>` does not exist: require `HEAD` == `<sha>`, then `git switch -c <name>`. If it exists: require its tip == `<sha>`, then `git switch <name>`. Any mismatch: stop, report the actual SHAs, change nothing. Return `branch: <name>, tip: <sha>`. |
-| `amend` | "amend HEAD with the staged changes" | `git commit --amend --no-edit`. Return the new SHA (`--amend` always makes one). |
-| `reset` | "reset `--soft`\|`--hard` to `<sha>`" | Require `<sha>` to be an ancestor of `HEAD` (`git merge-base --is-ancestor`). Run the reset. Return `HEAD` after. Refuse when no SHA is given. |
+**Input**: None (examines current git state), or one orchestrator instruction
 
 **Output**: A commit with a properly formatted message, or the SHAs the instruction asked for
 
