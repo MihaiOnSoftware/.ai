@@ -4,7 +4,7 @@ Concrete `subagent({...})` call shapes for each phase. The conductor's job is to
 
 ## Shared conventions
 
-- **Use the dedicated phase agent** for each phase (`explore-and-design-agent`, `adversarial-review-loop-agent`, `create-implementation-plan-agent`, `tdd-slice-agent`). Each agent wraps its skill, pins its model, and carries the `subagent` tool so inner loops run as real fresh-context dispatches.
+- **Use the dedicated phase agent** for each phase (`explore-and-design-agent`, `adversarial-review-loop-agent`, `create-implementation-plan-agent`, `tdd-slice-agent`, and the harness's PR-submission specialist for Phase 6). Each agent wraps its skill, pins its model, and carries the `subagent` tool so inner loops run as real fresh-context dispatches.
 - **No `context:` override needed.** User agents default to fresh context. Omit `context: "fresh"` — it was only required for `worker`, which defaulted to fork.
 - **Always `outputMode: "file-only"`**. The conductor's context shouldn't absorb the subagent's full output; the summary file is the handoff. (With `outputMode: "file-only"`, the call returns only a concise file reference — so the conductor MUST then `read` the summary file to learn the artifact path and key fields.)
 - **Always pass the wip file path** so the subagent can read prior phases' notes.
@@ -95,12 +95,16 @@ IMPORTANT — BATCH MODE: produce the FULL plan in this run as a single doc writ
 
 If you would have asked the user for ack between slices, instead: write the slice, move on. If a slice depends on a real decision the user must make (e.g. "which API style?"), surface that as an open question at the bottom of the plan doc rather than blocking.
 
+The plan must include the PR stack table (bundle id, headline, branch, base branch and SHA, slices, stands-alone argument, tip gate, closing items) and a `**Bundle:**` line on every slice. One bundle is a valid answer when no seam is admissible.
+
 Output the plan to ~/.ai/wip/<topic>-plan-<date>.md.
 
 When done, write a summary to <wip-summary-path> with:
 - plan_doc_path: <path>
+- base: { branch, sha }
+- bundles: [{ id, headline, branch, base, slices, tip_gate, closing_items }]
 - slice_count: <N>
-- slices: [{ id, one_line_description, depends_on_previous }]
+- slices: [{ id, one_line_description, bundle, position, depends_on_previous }]
 - open_questions_for_user (if any)
 - status: complete
 
@@ -117,7 +121,7 @@ Same shape as Phase 2 but pointed at the plan doc. Pass the design doc as ground
 ```js
 subagent({
   agent: "adversarial-review-loop-agent",
-  task: `Run the adversarial-review-loop against the plan at <plan-doc-path>. The plan must serve the design at <design-doc-path>; deviations from the design are a load-bearing finding.
+  task: `Run the adversarial-review-loop against the plan at <plan-doc-path>. The plan must serve the design at <design-doc-path>; deviations from the design are a load-bearing finding. So are the PR bundle seams: a bundle that would be red on its own, leaves a half-moved module at its tip, has no one-sentence reason to exist, or lacks its closing items (changelog, CODEOWNERS, docs) in its last slice is a defect in the plan.
 
 Ground truth: design doc at <design-doc-path> + <any other ground-truth pointers>.
 Pipeline state file: <wip-path>.
@@ -132,9 +136,9 @@ Return briefly.`,
 
 ## Phase 5 — TDD per slice (one dispatch per slice)
 
-Before dispatching: the conductor must extract slice N from the plan into tdd-slice's documented input format (see `tdd-slice/SKILL.md` "Input Format" — it expects `# Slice [N]: [Name] / ## Goal / ## Features / ## Tests to Write / ## Commit Message`). Write the extracted slice spec to a scratch file (e.g. `~/.ai/wip/<feature>-pipeline-<date>-slice<N>-spec.md`) and pass that path to the dispatch.
+Before dispatching: the conductor must extract slice N from the plan into tdd-slice's documented input format (see `tdd-slice/SKILL.md` "Input Format" — it expects `# Slice [N]: [Name] / ## Goal / ## Bundle / ## Features / ## Tests to Write / ## Commit Message`). Fill the `## Bundle` section from the PR stack table (see `pr-stack.md`): branch, expected tip = the pre-slice SHA, position, slice gate, tip gate when the slice closes its bundle. Write the extracted slice spec to a scratch file (e.g. `~/.ai/wip/<feature>-pipeline-<date>-slice<N>-spec.md`) and pass that path to the dispatch.
 
-Also: capture the current branch HEAD SHA as the **pre-slice SHA** and record it in the wip file before dispatching — needed for the "Re-run slice N" checkpoint option.
+The **pre-slice SHA** is the previous slice's tip from its summary, or the bundle's base tip for a bundle's first slice. Record it in the wip file before dispatching; it is needed for the "Re-run slice N" checkpoint option. The conductor never runs git to learn it.
 
 ```js
 subagent({
@@ -144,22 +148,52 @@ Full plan doc (for cross-slice context): <plan-doc-path>
 Design doc (for context only; omit if not supplied at resume): <design-doc-path or "n/a">
 Pipeline state file: <wip-path>
 
-Run the tdd-slice protocol. It will dispatch micro-tdd-agent, micro-refactor-agent, commit-agent, tdd-validation-agent, micro-fix-agent, and investigator-agent per item. It commits per its own conventions.
+Run the tdd-slice protocol. It prepares the bundle branch through commit-agent, dispatches micro-tdd-agent, micro-refactor-agent, micro-chore-agent, commit-agent, tdd-validation-agent, micro-fix-agent, and investigator-agent per item, and ends with the boundary validation. It commits per its own conventions.
 
-When done, write a summary to <wip-summary-path> with:
-- tdd_slice_report_path: <path>
+You cannot write files. Your final message IS the summary; it is bound to <wip-summary-path>. Include:
 - commits: [{ sha, one_line_summary }]
+- slice_tip: <sha of the last commit>
+- branch: <bundle branch>
 - tests_added: <N>
 - tests_total: <N>
-- gates_status: { tsc: ok|fail, lint: ok|fail, tests: ok|fail }
+- boundary_validation: { slice_gate: pass|fail, tip_gate: pass|fail|n/a, report_path }
 - notes (anything tdd-slice surfaced: deferred refactors, brief deviations, etc.)
-- status: complete | failed | partial
-
-Return briefly.`,
+- status: complete | failed | partial`,
   output: "<wip-summary-path>",
   outputMode: "file-only"
 })
 ```
+
+## Phase 6 — Open the stack (one dispatch per bundle, bottom-up)
+
+Precondition: the harness has a PR-submission specialist implementing the contract in `pr-stack.md`. Without one, write the per-bundle recipe into the final summary and stop at "stack ready to open".
+
+```js
+subagent({
+  agent: "<pr-submission-specialist>",
+  task: `Open or update a DRAFT pull request for one bundle of a stacked series.
+
+Head branch: <branch>            (push this branch; --force-with-lease if the remote differs)
+Expected head SHA: <validated tip>
+Base branch: <base branch>       (gh pr create --base; for an existing PR, confirm the base)
+Title: <bundle headline>
+Body inputs: headline, slices <list>, stands alone because <argument>, tip-gate evidence <summary>, stack position "PR <n> of <total>, base is <PR n-1 | base branch>; merge bottom-up".
+Pipeline state file: <wip-path>
+
+Trigger the repo's review bot, wait for checks to settle, then write a summary to <wip-summary-path> with:
+- pr_url
+- remote_head_sha
+- base_branch, base_sha (as the remote reports them)
+- checks: green | red [failing check names] | waiting on <manual gate>
+- status: complete | failed
+
+Do not mark the PR ready, request reviewers, or merge. Return briefly.`,
+  output: "<wip-summary-path>",
+  outputMode: "file-only"
+})
+```
+
+Accept only when `remote_head_sha` equals the bundle's validated tip, `base_branch` matches the table, and `base_sha` equals `current base tip` (PR1) or the predecessor's validated tip. Anything else is surfaced, never recorded as published.
 
 ## Failure handling
 

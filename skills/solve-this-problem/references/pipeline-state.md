@@ -81,13 +81,25 @@ The pipeline's state lives in a single markdown file at `~/.ai/wip/<feature>-pip
 
 ---
 
+## PR stack
+
+- **Current base tip**: <the plan's base SHA; advanced only after a base restack>
+- **Base branch**: <default branch, or the upstream ticket branch PR1 sits on>
+
+| Bundle | Headline | Branch | Base | Slices | Validated tip | Tip gate | PR URL | Remote head | Base SHA (remote) | Checks | Status |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| PR1 | <one sentence> | <branch> | <base branch> | 1–3 | <sha when last slice passed its tip gate> | <pass\|fail\|pending> | <url or empty> | <sha> | <sha> | <green\|red [checks]\|waiting on <gate>> | <building\|validated\|published\|stale\|merged> |
+| PR2 | … | … | PR1 branch | 4–8 | … | … | … | … | … | … | … |
+
+`stale` = remote head differs from the validated tip after a restack; republish before publishing anything above. Old tips from a restack stay in the row as `(was <sha>)` for forensics.
+
 ## Phase 5 — TDD per slice (`tdd-slice`)
 
-| # | Slice | Status | Pre-slice SHA | Commits (SHAs) | Tests added | Ran mode | Report path | Checkpoint decision |
-|---|---|---|---|---|---|---|---|---|
-| 1 | <slice 1 name> | <pending\|in-progress\|done\|skipped\|paused> | <pre-slice HEAD SHA, captured before dispatch — used for Re-run revert> | <SHA1,SHA2,…> | <N> | <real_subagents\|inline_simulation> | <path> | <Proceed\|Skip next\|Pause\|Re-run> |
-| 2 | <slice 2 name> | … | … | … | … | … | … | … |
-| … | | | | | | | | |
+| # | Slice | Bundle | Status | Pre-slice SHA | Commits (SHAs) | Slice tip | Boundary validation | Tests added | Ran mode | Report path | Checkpoint decision |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | <slice 1 name> | PR1 (first) | <pending\|in-progress\|done\|skipped\|paused\|rewritten> | <previous slice tip, or the bundle's base tip — used for Re-run reset> | <SHA1,SHA2,…> | <last SHA> | <slice gate pass\|fail; tip gate pass\|fail\|n/a> | <N> | <real_subagents\|inline_simulation> | <path> | <Proceed\|Open PR now\|Skip next\|Pause\|Re-run\|Repair bundle K> |
+| 2 | <slice 2 name> | PR1 (middle) | … | … | … | … | … | … | … | … | … |
+| … | | | | | | | | | | | |
 
 ---
 
@@ -98,17 +110,26 @@ The pipeline's state lives in a single markdown file at `~/.ai/wip/<feature>-pip
 
 ---
 
+## Phase 6 — Open the stack
+
+- **Status**: <not started | partial (PRs opened at bundle close) | complete | stack ready to open (no submission specialist)>
+- **Final refresh**: <timestamp; all PRs re-read and accepted>
+- **Merge order and cascade**: PR1 → PR2 → …; after each merge restack every remaining bundle predecessor-by-predecessor (`pr-stack.md`)
+- **Human steps**: <ready flips, manual gates such as approval-only checks>
+
 ## Completion
 
 - **Pipeline status**: <Active | Paused at Phase X | Complete>
 - **Completed at**: <YYYY-MM-DD HH:MM, when done>
 - **Total commits**: <N>
 - **Total tests added**: <N>
+- **Stack**: <N> bundles, <N> draft PRs
 ```
 
 ## Update discipline
 
 - Write the file once at pipeline start (with Phase 1 marked "in progress" or "skipped").
+- Copy the plan's PR stack table in when Phase 3 completes; update a bundle's row when its last slice passes the tip gate, when it is published, and after any restack.
 - After each subagent returns, before any checkpoint: fill in the phase block.
 - After each user checkpoint: fill in the checkpoint block + advance the Status block.
 - **One update per phase boundary.** Don't accumulate batches of updates.
