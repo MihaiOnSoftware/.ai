@@ -13,7 +13,7 @@ The pipeline's state lives in a single markdown file at `~/.ai/wip/<feature>-pip
 - **Started**: <YYYY-MM-DD>
 - **Last update**: <YYYY-MM-DD HH:MM>
 - **Wip file**: <path to self>
-- **Mid-phase user-input mode**: <via-supervisor | direct> — `via-supervisor` if the dispatched agent lacks `ask_user_question` and must escalate via `contact_supervisor`; `direct` if the agent variant includes `ask_user_question`.
+- **Mid-phase user-input mode**: via-supervisor (dispatched phases ask their spawning supervisor through `contact_supervisor`; tool presence does not imply an interactive user channel).
 
 ## Feature
 

@@ -42,7 +42,7 @@ You are the conductor. **You do not do design / plan / implementation yourself.*
 
 **Purpose-built agent per phase.** Each phase has a dedicated agent (explore-and-design, adversarial-review-loop, create-implementation-plan, tdd-slice). Dispatch your harness's purpose-built agent for that phase — never a generic, unnamed, or general-purpose subagent. A dedicated phase agent carries a pinned model, its own skill, and phase-specific framing; a generic subagent silently drops all three and breaks the fresh-context guarantee the pipeline depends on. If a phase's agent is missing from your harness, stop and surface to the user rather than falling back to a generic subagent (same rule as the Engineering manager principle).
 
-**Mid-phase user input.** Phase agents have `ask_user_question` available (they don't restrict their tool set), so when a skill says "ask the user" the agent asks directly. Set the pipeline state file's "Mid-phase user-input mode" field to `direct`.
+**User decisions.** Dispatched phase agents route questions through `contact_supervisor`; record the pipeline state's "Mid-phase user-input mode" as `via-supervisor`. At every checkpoint or failure path below, "ask the user" means the conductor forwards the question and options to its spawning supervisor when nested/headless, or uses `ask_user_question` in an interactive top-level session. A tool's presence alone does not establish a live user channel. Preserve explicit user approvals through the relay.
 
 When a subagent returns, **read its summary file**, **merge the key fields into the pipeline state file**, surface at the checkpoint if there is one, then proceed. See `references/phase-dispatch.md` for the summary-file convention and the merge step.
 
@@ -91,7 +91,7 @@ Dispatch `adversarial-review-loop-agent`. Pass: design doc path, problem stateme
 After it returns:
 1. Read review log + termination reason.
 2. Update wip file: Phase 2 complete; review log at `<path>`; accept/reject/repeat counts; termination reason.
-3. **CHECKPOINT.** Surface to user via `ask_user_question`:
+3. **CHECKPOINT.** Request the user's decision through the channel defined under "User decisions":
    - Design doc path + 3-5 sentence summary
    - Review termination reason + counts (e.g. "5 iters, 18 accepts, hard-cap")
    - 1-3 notable findings the review accepted

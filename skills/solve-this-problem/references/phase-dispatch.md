@@ -4,10 +4,11 @@ Concrete `subagent({...})` call shapes for each phase. The conductor's job is to
 
 ## Shared conventions
 
-- **Use the dedicated phase agent** for each phase (`explore-and-design-agent`, `adversarial-review-loop-agent`, `create-implementation-plan-agent`, `tdd-slice-agent`, and the harness's PR-submission specialist for Phase 6). Each agent wraps its skill, pins its model, and carries the `subagent` tool so inner loops run as real fresh-context dispatches.
+- **Use the dedicated phase agent** for each phase (`explore-and-design-agent`, `adversarial-review-loop-agent`, `create-implementation-plan-agent`, `tdd-slice-agent`, and the harness's PR-submission specialist for Phase 6). Each agent wraps its skill and pins its model. Agents whose phases delegate inner reviews or specialist cycles also need fanout and two-way supervisor capabilities; planning and submission leaves do not need delegation.
 - **No `context:` override needed.** User agents default to fresh context. Omit `context: "fresh"` — it was only required for `worker`, which defaulted to fork.
 - **Always `outputMode: "file-only"`**. The conductor's context shouldn't absorb the subagent's full output; the summary file is the handoff. (With `outputMode: "file-only"`, the call returns only a concise file reference — so the conductor MUST then `read` the summary file to learn the artifact path and key fields.)
 - **Always pass the wip file path** so the subagent can read prior phases' notes.
+- **Route phase questions through the owner.** Include in every phase task: "When the skill requires user input or approval, ask your spawning supervisor through contact_supervisor, not the headless TUI. If supervisor contact is unavailable or times out, return BLOCKED once with the unresolved question." The conductor relays the question through its own checkpoint channel.
 - **No skill-path injection needed.** The agent's own system prompt loads its skill. Don't repeat "Load the skill at..." in the task.
 - **Always ask for a structured summary** with the artifact path, status, and key numbers — that's what you merge into the pipeline state file.
 
@@ -38,7 +39,7 @@ subagent({
 
 Pipeline state file: <wip-path>
 
-Investigate, scope, and produce a design doc at ~/.ai/wip/<topic>-<date>.md (never committed to a project repo). Talk to the user when the skill says to.
+Investigate, scope, and produce a design doc at ~/.ai/wip/<topic>-<date>.md (never committed to a project repo). Route required user input through your spawning supervisor.
 
 When done, write a summary to <wip-summary-path> with:
 - design_doc_path: <path>

@@ -2,7 +2,7 @@
 
 How the conductor tracks bundles, handles a restack, and opens the stack. Every SHA below comes from the plan or a specialist's summary; every git or remote operation is a dispatch. The stack itself is managed with `gh stack` (GitHub's CLI extension, `github/gh-stack`): `commit-agent` runs the local commands (see the `commit` skill's orchestrator table), the PR-submission specialist runs the remote ones.
 
-Prerequisites, checked once before Phase 5 by dispatching `commit-agent` "report `gh stack --version` and `gh stack view --json`": the extension is installed, Git is 2.36+, and `remote.pushDefault` is set when the repo has several remotes. `gh stack submit` also needs Stacked PRs enabled on the GitHub repository (it exits 9 otherwise); the fallback is under Phase 6.
+Prerequisites, checked once before Phase 5 by dispatching `commit-agent` "report `gh stack --version` and `gh stack view --json`": the extension is available in that child's PATH, Git is 2.36+, and `remote.pushDefault` is set when the repo has several remotes. If unavailable, stop for prerequisite setup, then retry the normal `prepare branch` instruction; do not substitute plain git or branch-verification-only mode. `gh stack submit` also needs Stacked PRs enabled on the GitHub repository (it exits 9 otherwise); the fallback is under Phase 6.
 
 ## Tracking
 

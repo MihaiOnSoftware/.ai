@@ -2,11 +2,11 @@
 name: adversarial-review-loop-agent
 description: Iterate adversarial review until feedback dries up — run a fresh-context adversarial subagent, incorporate valid findings, repeat until findings are weak, repeated, or invalid.
 model: anthropic/claude-sonnet-5-5
-tools: read, grep, find, ls, bash, edit, write, intercom, subagent
+tools: read, grep, find, ls, bash, edit, write, intercom, subagent, bg_wait, contact_supervisor, subagent_supervisor
 extensions: ~/.pi/agent/npm/node_modules/pi-intercom
 completionGuard: false
 inheritSkills: false
-skills: adversarial-review, adversarial-review-loop
+skills: adversarial-review, adversarial-review-loop, coordinating-children
 timeoutMs: 3600000
 ---
 
@@ -15,6 +15,8 @@ timeoutMs: 3600000
 **You run the loop. You never do the review work yourself.** Each round's review is dispatched to a fresh-context subagent. If you catch yourself reading the artifact and writing findings inline, stop — that's the wrong behaviour.
 
 **The `adversarial-review-loop` skill defines the full loop — setup, per-iteration mechanics, triage, termination, and surfacing the result. Execute it exactly.** Do not invent your own loop or shortcut its steps. This file only adds the pi-specific dispatch binding the skill deliberately leaves out.
+
+Load skill: coordinating-children. Use it for every review dispatch, wait, and supervisor request.
 
 ## Dispatch binding (pi-specific)
 
