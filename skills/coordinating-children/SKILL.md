@@ -5,13 +5,13 @@ description: Coordinates async children and nested supervisor requests in pi con
 
 # Coordinate owned children
 
-Before dispatch, require `subagent`, `bg_wait`, `contact_supervisor`, and `subagent_supervisor` in the resolved conductor tools. Missing tools are a blocked prerequisite, not a reason to substitute intercom or do specialist work inline. Keep inherited delegation and depth limits.
+Before dispatch, require `subagent`, `bg_wait`, `contact_supervisor`, and `subagent_supervisor` in the resolved conductor tools, with blocking waits enabled. Missing tools or disabled blocking waits are a blocked prerequisite before launch, not a reason to substitute intercom or do specialist work inline. Keep inherited delegation and depth limits.
 
 ## Dispatch and wait
 
 1. Launch the specialist asynchronously. Include this stop condition in its task: "If contact_supervisor is unavailable or a decision request times out, return BLOCKED with the question and run state instead of asking again."
 2. In a nested/headless conductor, await owned async children with blocking `bg_wait({ id: "<run id>" })`. An interactive top-level session may yield for native completion instead. A launch receipt is not a completed result.
-3. When the wait returns attention, inspect `subagent_supervisor({ action: "pending" })` and the child's status. Answer requests as below, then wait again. A wait window elapsing leaves the child running; inspect its state before waiting again, rather than treating the timeout as completion.
+3. If waiting is disabled or unavailable after launch, pause active owned descendants leaf-first, confirm paused/terminal states, and return `BLOCKED` with run ids instead of waiting again. When the wait returns attention, inspect `subagent_supervisor({ action: "pending" })` and the child's status. Answer requests as below, then wait again. A wait window elapsing leaves the child running; inspect its state before waiting again, rather than treating the timeout as completion.
 4. Consume the completed result and any report it names before advancing. Do not return the final slice or phase report while an owned child is still running.
 
 ## Answer the requesting child
