@@ -107,7 +107,7 @@ Dispatch `create-implementation-plan-agent`. Pass: design doc path, wip file pat
 
 **Important — batch mode:** Tell the agent to produce the *full plan in this run* as a single doc written to `~/.ai/wip/` (never committed), not iterate slice-by-slice with the user. The user will review the whole plan at the next checkpoint. Iterative-per-slice presentation is for direct user invocations of `create-implementation-plan`; from here, the agent's only "user" is the wip file.
 
-A plan without the PR stack table is incomplete; send it back.
+A plan without the PR stack table is incomplete; send it back. A one-row table on a plan of four or more slices is a question for the Phase 4 checkpoint: name the candidate stack the plan rejected and the test it failed, so the user can overrule.
 
 After it returns:
 1. Read plan doc path.

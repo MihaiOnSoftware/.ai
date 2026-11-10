@@ -1,6 +1,6 @@
 # PR Bundles
 
-A **bundle** is an ordered, consecutive run of slices that becomes exactly one PR on its own branch. The **stack** is the ordered list of bundles: bundle 1 sits on the base the user supplied (the default branch, or another ticket's branch), bundle N+1 sits on bundle N's branch. A plan with no admissible seam is one bundle; a stack of one is a valid outcome. One bundle is the right answer when no seam is admissible.
+A **bundle** is an ordered, consecutive run of slices that becomes exactly one PR on its own branch. The **stack** is the ordered list of bundles: bundle 1 sits on the base the user supplied (the default branch, or another ticket's branch), bundle N+1 sits on bundle N's branch. A plan with no admissible seam is one bundle; a stack of one is a valid outcome once the candidate stack below has been tried and rejected.
 
 ## Seam admissibility
 
@@ -13,6 +13,12 @@ A seam after slice k is admissible when the tree at slice k's last commit:
 5. **Depends only downward**: bundle N+1 may build on bundles ≤ N; nothing in bundle N needs bundle N+1 to be correct.
 
 Stack order is plan order. Do not reorder slices to create parallel seams; that produces trees nobody validated.
+
+The slice rule and the bundle rule differ. A producer with no consumer is a layer, not a slice (Principle 3), because nothing observable works after it. A bundle that ends on a producer the next bundle consumes is a normal seam: the reviewer of PR1 sees a complete, tested client or module with one reason to exist, and PR2 sits right above it. "No caller yet" rejects a slice; on its own it does not reject a seam.
+
+## Candidate stack
+
+Before settling on the bundle count, name the best cut with two or more bundles and score each of its seams against the five tests above. Keep it when every seam passes. When one fails, say which test and why, then try the next best cut. Land on one bundle only after the best candidate has been written down and rejected on a named test; "one bundle" is a conclusion the plan shows, not a default it starts from. Record the candidate and its verdict under the PR stack table.
 
 ## Closing items
 
