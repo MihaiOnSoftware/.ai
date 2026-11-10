@@ -6,7 +6,7 @@ A **bundle** is an ordered, consecutive run of slices that becomes exactly one P
 
 A seam after slice k is admissible when the tree at slice k's last commit:
 
-1. **Stands alone green**: passes the bundle's tip gate against its base with nothing from later bundles.
+1. **Stands alone green, and better than the base**: passes the bundle's tip gate against its base with nothing from later bundles, and leaves the system better than it was for the cases the task is about. It does not have to be complete. Walking-skeleton style: a bundle that fixes the common path and leaves an edge case for the bundle above is admissible, as long as the gap is named in the plan and that next bundle closes it. Judge a seam by "better than before", not by "as good as the finished design"; the design's rejection of a partial state as the final state is not a rejection of it as an interim one.
 2. **Leaves nothing half-moved**: no module kept only as temporary scaffolding or a conversion-only residual, no owner under a stale name whose rename is pending, no dangling import. A reviewer must not have to read the next PR to understand why a file exists.
 3. **Has one reason to exist**: the headline is one sentence a reviewer can verify, and it maps to a design section or a known reviewer concern. Keep a behaviour change out of a bundle that is mostly moves; isolate it in its own bundle.
 4. **Is worth a review, and about the same size as its neighbours**: each bundle costs a CI run, an approval, and a restack whenever anything below it changes. Size is the number of tests the bundle's slices write or change (their "Tests to Write" lists), not lines of code; do not estimate code. Bundles of similar test counts are the target. One with a fraction of its neighbours' tests is not earning its approval, merge it; one with several times theirs is hiding a seam, look again.
@@ -14,7 +14,7 @@ A seam after slice k is admissible when the tree at slice k's last commit:
 
 Stack order is plan order. Do not reorder slices to create parallel seams; that produces trees nobody validated.
 
-The slice rule and the bundle rule differ. A producer with no consumer is a layer, not a slice (Principle 3), because nothing observable works after it. A bundle that ends on a producer the next bundle consumes is a normal seam: the reviewer of PR1 sees a complete, tested client or module with one reason to exist, and PR2 sits right above it. "No caller yet" rejects a slice; on its own it does not reject a seam.
+The slice rule and the bundle rule differ. A producer with no consumer is a layer, not a slice (Principle 3), because nothing observable works after it. A bundle that ends on a producer the next bundle consumes is a normal seam: the reviewer of PR1 sees a complete, tested client or module with one reason to exist, and PR2 sits right above it. "No caller yet" rejects a slice; on its own it does not reject a seam. Likewise "the design chose a stronger guarantee" rejects a final state, not a seam: a bundle that stops recipes before deleting but does not yet verify they stopped is a seam when the verification is the next bundle.
 
 ## Candidate stack
 
