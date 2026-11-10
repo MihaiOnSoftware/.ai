@@ -50,7 +50,7 @@ Pick the pattern that fits the work and name it in the plan with one sentence of
 
 ### 2. The proof slice
 
-The first behaviour slice is the proof slice. Name the assumption that, if false, kills the whole approach, and design the proof slice to test it, so a bad approach fails fast. When that assumption needs a spike before any behaviour can be built, the spike is slice 1 and the proof slice follows it. Prove it through the smallest usable behaviour at the task's intended boundary, not through an unwired component: the riskiest mechanism in isolation is not the proof. [examples/thought-process.md](examples/thought-process.md) shows the framing.
+The first behaviour slice is the proof slice. Name the assumption that, if false, kills the whole approach, then pick something stupid: the most embarrassingly thin behaviour at the task's boundary that still exercises that assumption end to end. Start there and let later slices make it less stupid. A guard, a filter, a fallback, a result type or an edge case belongs in the proof slice only when the assumption cannot be exercised without it; "the feature would be incorrect without it" is the reason for a later slice, not for a fatter first one. The proof runs through the boundary, not through an unwired component. When the assumption needs a spike before any behaviour can be built, the spike is slice 1 and the proof slice follows it. [examples/thought-process.md](examples/thought-process.md) shows the framing.
 
 ### 3. Each slice stands alone
 
