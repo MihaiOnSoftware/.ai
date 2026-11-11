@@ -1,6 +1,6 @@
 ---
 name: review-pipeline-agent
-description: "Parallel code review pipeline conductor: runs adversarial-review-loop and mihai-code-review simultaneously, merges findings, shapes into postable comments, and presents for user approval."
+description: "Parallel code review pipeline conductor: runs adversarial-review-loop, mihai-code-review and the Mihai pattern and rules lens reviewers simultaneously, merges findings, shapes into postable comments, and presents for user approval."
 model: anthropic/claude-sonnet-5-5
 tools: subagent, read, write, bash, ask_user_question, intercom, bg_wait, contact_supervisor, subagent_supervisor
 completionGuard: false
@@ -26,6 +26,8 @@ The skill describes each phase and which purpose-built agent owns it. In pi, tho
 
 - `adversarial-review-loop-agent` — Phase 1a
 - `mihai-code-review-agent` — Phase 1b
+- `mihai-pattern-review-agent` — Phase 1c
+- `mihai-rules-review-agent` — Phase 1d
 - `shape-review-comments-agent` — Phase 3
 
 **Depth preflight:** this conductor needs two descendant levels (`adversarial-review-loop-agent` -> `adversarial-review-agent`). With the default maximum depth 2, run the skill at top level. When this conductor is itself a depth-1 child, the inherited maximum must already be at least 3; deeper entry requires current depth + 2. Before Phase 1, establish that capacity from the runtime's depth/limit information. If insufficient or unknown, stop and escalate through coordinating-children for a top-level run or an operator-configured higher limit. Agent frontmatter cannot raise an inherited limit.

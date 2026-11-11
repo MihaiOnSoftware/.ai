@@ -8,7 +8,7 @@ Concrete `subagent({...})` call shapes for each phase. The conductor dispatches;
 
 - **Use the dedicated phase agent** for each phase. Each agent wraps its skill, pins its model, and carries the right tool set.
 - **No `context:` override needed.** User agents default to fresh context.
-- **Phase 1 runs both subagents async and concurrently.** Do not await one before launching the other.
+- **Phase 1 runs all four subagents async and concurrently.** Launch 1a–1d in one turn; do not await one before launching the next.
 - **Phase 3 runs in a fresh subagent** — never in the conductor's own context.
 - **Leaf agents have no user channel.** Never write "ask the user" or "present to the user" into a leaf task; they return output to you, and you talk to the user.
 
@@ -48,7 +48,7 @@ subagent({
   task: `Review the code changes in <branch-or-diff> using the mihai-code-review skill.
 
 Repo root: <absolute-path>
-Diff: <path-or-branch> at commit <head-sha> (same commit as the parallel reviewer)
+Diff: <path-or-branch> at commit <head-sha> (same commit as the parallel reviewers)
 PR description: <resolved-text-or-path>
 
 Run all three passes in order: mechanical sweeps → precedent diff → adversarial hunt.
@@ -58,9 +58,48 @@ Return as your output: verdict, summary, line comments, and sweep log appendix.`
 })
 ```
 
+## Phase 1c — Mihai pattern lens
+
+```js
+subagent({
+  agent: "mihai-pattern-review-agent",
+  async: true,
+  task: `Review the code changes in <branch-or-diff> through the patterns-and-conventions lens.
+
+Repo root: <absolute-path>
+Diff: <path-or-branch> at commit <head-sha> (same commit as the parallel reviewers)
+PR description: <resolved-text-or-path>
+
+Answer the three questions: does it use existing patterns, does it introduce new ones,
+does it cleave closely to existing conventions. Return as your output: verdict, answers,
+line comments, and the conformance table appendix.`,
+  output: "<home>/.ai/wip/review-pipeline-<slug>-<YYYY-MM-DD>-patterns-output.md",
+  outputMode: "file-only"
+})
+```
+
+## Phase 1d — Mihai rules lens
+
+```js
+subagent({
+  agent: "mihai-rules-review-agent",
+  async: true,
+  task: `Review the code changes in <branch-or-diff> through the quality, testing and cleanup rules lens.
+
+Repo root: <absolute-path>
+Diff: <path-or-branch> at commit <head-sha> (same commit as the parallel reviewers)
+PR description: <resolved-text-or-path>
+
+Check the diff against every rule in the three rule files. Return as your output: verdict,
+summary, line comments citing the rule each one breaks, and the rule log appendix.`,
+  output: "<home>/.ai/wip/review-pipeline-<slug>-<YYYY-MM-DD>-rules-output.md",
+  outputMode: "file-only"
+})
+```
+
 ## Phase 2 — Merge (conductor, not a subagent)
 
-Read both output files. Apply the skill's merge rules. Write to:
+Read all four output files. Apply the skill's merge rules. Write to:
 
 ```
 ~/.ai/wip/review-pipeline-<slug>-<YYYY-MM-DD>-merged-draft.md

@@ -1,6 +1,6 @@
 ---
 name: review-pipeline
-description: "Parallel code review pipeline: run adversarial-review-loop and mihai-code-review simultaneously, merge their findings, shape into postable comments, and present for user approval. Trigger on 'review pipeline', 'full review', 'pipeline review', or when the user asks for both adversarial and Mihai-style review of a branch or PR."
+description: "Parallel code review pipeline: run adversarial-review-loop, mihai-code-review and two lens-scoped Mihai reviewers (patterns, rules) simultaneously, merge their findings, shape into postable comments, and present for user approval. Trigger on 'review pipeline', 'full review', 'pipeline review', or when the user asks for both adversarial and Mihai-style review of a branch or PR."
 license: MIT
 metadata:
   category: review
@@ -8,7 +8,7 @@ metadata:
 
 # Review Pipeline
 
-End-to-end code review orchestration. Two independent reviewers run in parallel — one adversarial, one Mihai-style — so neither anchors on the other's framing. Their findings merge into a single draft, shaped by a fresh-context comment shaper, then presented to the user for approval before anything is posted.
+End-to-end code review orchestration. Four independent reviewers run in parallel so none anchors on another's framing: one adversarial, one full Mihai-style review, and two Mihai reviewers that each look through a single lens (patterns and conventions; Mihai's quality, testing and cleanup rules). A broad reviewer spreads its budget across everything; a lens reviewer spends all of it on one question, so it catches what the broad passes skim. Their findings merge into a single draft, shaped by a fresh-context comment shaper, then presented to the user for approval before anything is posted.
 
 ## Scope
 
@@ -22,7 +22,7 @@ Before dispatching any subagents, confirm you have:
 
 1. **Target** — a branch name, PR number, or diff path. If missing, ask the user before proceeding.
 2. **Repo root** — the absolute path to the checked-out repo. Needed by reviewers for `git grep`, `git show`, and precedent lookups.
-3. **Head commit SHA** — resolve it yourself from the target (e.g. `git rev-parse`). Both reviewers must review the same pinned commit, and the shaper needs it to verify lines and build links.
+3. **Head commit SHA** — resolve it yourself from the target (e.g. `git rev-parse`). All reviewers must review the same pinned commit, and the shaper needs it to verify lines and build links.
 4. **PR description as text** — the reviewers work offline and must not fetch URLs. If the user gives a PR URL or number, resolve it to text yourself (e.g. `gh pr view`) before dispatching. If nothing is available, tell the reviewers to treat the commit messages as the description.
 5. **Run slug** — a short identifier for this run (branch name or PR number). All wip file names include it so two same-day runs don't collide.
 
@@ -34,7 +34,9 @@ If any of these is missing and cannot be inferred, stop and ask the user. Do not
 target (branch / PR / diff)
   → [Phase 1a] adversarial-review-loop     (parallel, async)  → adversarial findings
   → [Phase 1b] mihai-code-review           (parallel, async)  → mihai findings + sweep log
-  → wait for both to complete
+  → [Phase 1c] Mihai pattern lens          (parallel, async)  → patterns findings + conformance table
+  → [Phase 1d] Mihai rules lens            (parallel, async)  → rules findings + rule log
+  → wait for all four to complete
   → [Phase 2]  merge findings              (conductor)        → raw merged draft
   → [Phase 3]  shape-review-comments       (fresh subagent)   → shaped comments
   → PRESENT to user — wait for approval before doing anything else
@@ -42,7 +44,7 @@ target (branch / PR / diff)
 
 ## Phase 1: Parallel Review Dispatch
 
-Dispatch **both** reviewers simultaneously as async, fresh-context subagents. Do not wait for one to finish before launching the other.
+Dispatch **all four** reviewers simultaneously as async, fresh-context subagents. Do not wait for one to finish before launching the next.
 
 ### Phase 1a — Adversarial review loop
 
@@ -63,23 +65,40 @@ Dispatch the mihai-code-review reviewer. Pass:
 
 Expect back: verdict, summary, line comments, and sweep log appendix.
 
+### Phase 1c — Mihai pattern lens
+
+Dispatch the Mihai pattern reviewer. It looks only at fit with the codebase: does the diff use existing patterns, does it introduce new ones, does it cleave closely to existing conventions (documented and unwritten). Pass the same three inputs as Phase 1b.
+
+Expect back: verdict, answers to the three questions, line comments with precedent links, and a conformance table appendix (every construct classified FOLLOWS / DEVIATES / NEW).
+
+### Phase 1d — Mihai rules lens
+
+Dispatch the Mihai rules reviewer. It looks only for violations of Mihai's code quality, testing and cleanup rules (`~/.ai/rules`, the rules his `AGENTS.md` is built from). Pass the same three inputs as Phase 1b.
+
+Expect back: verdict, summary, line comments each citing the rule it breaks, and a rule log appendix (every rule with its findings or why it is clean).
+
 ### Async discipline
 
-Both subagents run concurrently. The conductor must not begin Phase 2 until both have returned. If one fails or times out, stop, surface the failure to the user, and ask how to proceed — do not continue with only one reviewer's output.
+All four subagents run concurrently. The conductor must not begin Phase 2 until all four have returned. If any fails or times out, stop, surface the failure to the user, and ask how to proceed — do not continue with a partial set of reviewer outputs.
 
 ## Phase 2: Merge Findings (Conductor Work)
 
-Read both outputs. Produce a single raw draft in this format for every surviving finding:
+Read all four outputs. Produce a single raw draft in this format for every surviving finding:
 
 ```
-`path/to/file.ts:LINE` — severity: finding text (source: adversarial | mihai | both)
+`path/to/file.ts:LINE` — severity: finding text (source: adversarial | mihai | patterns | rules)
 ```
+
+The source is every reviewer that raised the finding, comma-separated (e.g. `source: mihai, rules`).
 
 Merge rules:
-- **Both reviewers flag the same issue**: collapse into one entry, mark source as `both`, use the sharper phrasing.
+- **Several reviewers flag the same issue**: collapse into one entry, list every source, use the sharper phrasing.
 - **Only one reviewer flags it**: keep as-is, note the source.
-- **Adversarial finding is a superset of a mihai finding on the same line**: keep the adversarial text, note source as `both`.
+- **One finding is a superset of another on the same line**: keep the fuller text, list both sources.
+- **Keep the evidence a lens attached**: a patterns finding keeps its precedent `file:line`; a rules finding keeps the rule it cites.
 - **Contradicting verdicts on severity**: use the higher severity; note the disagreement in the finding text.
+
+After the findings, add the four reviewers' verdicts (Phase 1a termination reason, Phase 1b–1d verdicts) so the shaper sees where they disagree. The sweep log, conformance table and rule log stay in the reviewer output files; reference their paths instead of copying them in.
 
 Do not triage or drop findings at this step — that is the shaper's job. Pass everything through.
 
@@ -99,7 +118,7 @@ The shaper is a leaf subagent with no user channel: for it, "present for approva
 
 After Phase 3 completes, the conductor surfaces to the user:
 - The shaped comments (or a path to them if the shaper wrote a file)
-- The verdicts from both reviewers (Phase 1a termination reason + Phase 1b verdict)
+- The verdicts from all four reviewers (Phase 1a termination reason + Phase 1b, 1c and 1d verdicts)
 - A brief summary: total findings going in, how many survived triage, source breakdown
 
 **Stop here.** Wait for explicit user direction before doing anything else. The user decides whether to post, revise, or discard.
@@ -116,7 +135,7 @@ After Phase 3 completes, the conductor surfaces to the user:
 
 ## Anti-Patterns
 
-- **Sequential review dispatch.** The whole point of parallel dispatch is that neither reviewer anchors on the other's framing. Never wait for Phase 1a before starting Phase 1b.
+- **Sequential review dispatch.** The whole point of parallel dispatch is that no reviewer anchors on another's framing. Launch Phases 1a–1d together; never wait for one before starting the next.
 - **Conductor doing review work.** If you find yourself reading the diff and writing findings, stop — that belongs to the phase subagents.
 - **Conductor doing shaping work.** Triage and voice decisions belong to the shaper. Pass the full merged draft; let the shaper drop what isn't worth saying.
 - **Posting without user approval.** The pipeline ends at "present for approval." Posting is always the user's call.
