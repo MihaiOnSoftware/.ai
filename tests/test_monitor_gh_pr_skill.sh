@@ -55,6 +55,10 @@ when "documented_approval_is_bodyless_and_pinned"
     abort "approve is not pinned to a commit: #{line}" unless line.include?("commit_id=")
     abort "approve carries a body or comments: #{line}" if line =~ /body|comments/
   end
+when "self_healing_tests_exist"
+  tests = section(skill, "## When the Watcher Misbehaves").scan(%r{tests/[\w.]+\.sh}).uniq
+  abort "self-healing names no tests" if tests.empty?
+  tests.each { |test| abort "#{test} does not exist" unless File.file?(File.join(root, test)) }
 when "conductor_skills_resolve"
   conductor = File.read(File.join(root, "agents", "review-pipeline-agent.md"))
   skills = conductor[/^skills: (.*)$/, 1] or abort "conductor lists no skills"
@@ -101,6 +105,7 @@ plant_missing_reference() { rm "$1/$REREVIEW_MD"; }
 plant_undocumented_mode() { replace_in "$1/$REREVIEW_MD" '`--rereview auto-approve`' '`--rereview auto`'; }
 plant_approval_with_body() { replace_in "$1/$REREVIEW_MD" '-f event=APPROVE' '-f event=APPROVE -f body=LGTM'; }
 plant_unpinned_approval() { replace_in "$1/$REREVIEW_MD" ' -f commit_id=<sha>' ''; }
+plant_missing_test() { rm "$1/tests/test_monitor_gh_pr_review.sh"; }
 plant_unlisted_skill() { replace_in "$1/agents/review-pipeline-agent.md" ', monitor-gh-pr' ''; }
 
 # ── Test 1: every reviewer option and mode is documented ──────────────────────
@@ -121,7 +126,12 @@ assert "the documented approval has no body or comments and is pinned" check doc
 assert "planted approval with a body is rejected" planted_check_fails plant_approval_with_body documented_approval_is_bodyless_and_pinned
 assert "planted unpinned approval is rejected" planted_check_fails plant_unpinned_approval documented_approval_is_bodyless_and_pinned
 
-# ── Test 4: the review-pipeline conductor can load the skill ──────────────────
+# ── Test 4: the self-healing brief points at real tests ───────────────────────
+
+assert "the self-healing section names tests that exist" check self_healing_tests_exist "$REPO_ROOT"
+assert "planted missing test file is rejected" planted_check_fails plant_missing_test self_healing_tests_exist
+
+# ── Test 5: the review-pipeline conductor can load the skill ──────────────────
 
 assert "the conductor lists monitor-gh-pr and its skills resolve" check conductor_skills_resolve "$REPO_ROOT"
 assert "planted conductor without monitor-gh-pr is rejected" planted_check_fails plant_unlisted_skill conductor_skills_resolve

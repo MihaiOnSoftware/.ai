@@ -67,6 +67,23 @@ Off by default. With `--rereview`, every report ends with a `## Re-review` block
 
 Read [references/rereview.md](references/rereview.md) before arming it and on every wake. It covers the arming rules, the resolution check, the gate, how the confirmation reaches him, posting, and dismissed approvals. You may mention the option when you start a plain reviewer watch; never arm it unasked.
 
+## When the Watcher Misbehaves
+
+The scripts are the evidence your report rests on, so a broken script is worth fixing at the source, not working around. Suspect a bug when:
+
+- The output carries a raw API body (`{"message": ...}`, `Not Found`, HTML) or a jq or bash error.
+- The script exits non-zero with no usage message, or dies mid-poll.
+- A report disagrees with live state: `gh pr view <n> --repo <repo>` and the API show something the script missed, or it fires on something that did not happen.
+
+Then:
+
+1. **Confirm it** with one read-only `gh` call that shows the disagreement. Keep watching only if the rest of the output is still trustworthy; otherwise stop the monitor.
+2. **Tell the user** what broke, the evidence, and the impact on the current watch.
+3. **Propose a fix by a fresh subagent**, using whatever delegation your harness has (a subagent, a task agent, a background worker). Without one, offer the brief below for the user to hand off. Start it only on the user's yes.
+4. **Brief it** with: the symptom and the evidence; the skill's source repo, found by resolving the installed skill directory (`cd <skill dir> && pwd -P && git rev-parse --show-toplevel`); the script and its stubbed-`gh` test (`tests/test_monitor_gh_pr.sh` or `tests/test_monitor_gh_pr_review.sh` in that repo); and the rules: work on a new branch or worktree, write a failing test that reproduces the symptom first, fix, run both test files and `shellcheck`, commit locally, do not push or install, and report the commit.
+
+Never patch the installed copy in place, and never fold a workaround into your own report as if the script had produced it.
+
 ## Notes
 
 - **State is stored** in `/tmp/monitor-gh-pr-<slug>-<pr>/` (author) and `/tmp/monitor-gh-pr-review-<slug>-<pr>/` (reviewer, including the reviewer's review states that dismissals are compared against); override the root with `MONITOR_GH_PR_STATE_ROOT`. Delete the directory to reset the baseline so the next run re-reports existing events.
