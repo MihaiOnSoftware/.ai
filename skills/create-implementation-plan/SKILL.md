@@ -35,12 +35,18 @@ You turn a settled design into small, incremental slices that someone else imple
    - the base branch and SHA are stated;
    - the acceptance criteria are listed one line each, taken from the document's Problem, Design and Scope sections, or from whichever section states the intended outcome (for an investigation, what it recommends building);
    - in Batch, the derived criteria and any assumed SHA are recorded as assumptions.
-2. **Find the proof slice** (Principle 2). Done when you have written the assumption that, if false, kills the approach, and the boundary behaviour the proof slice uses to test it; when a spike must come first, also the decision that spike settles; for an all-mechanical plan, the parity check that stands in for a proof slice.
-3. **Map the path to complete.** List the spike when there is one, the proof slice (for an all-mechanical plan, the parity check that stands in for it), and every behaviour, rule or mechanical change to add after it along the axes in Principle 4, applying Principle 3 to each entry. Order by dependencies between complete behaviours (Principle 7), then complexity. Done when every acceptance criterion from step 1 maps to at least one entry; a design the proof slice satisfies on its own needs no further entries. [examples/iterm-profile-generation.md](examples/iterm-profile-generation.md) is a plan that came out of this mapping.
+2. **Find the proof slice** (Principle 2). Done when you have written the assumption that, if false, kills the approach, and the boundary behaviour the proof slice uses to test it; when a spike must come first, also the decision that spike settles.
+3. **Map the path to the acceptance criteria.** List the spike when there is one, the proof slice, and every behaviour, rule or mechanical change to add after it along the axes in Principle 4, applying Principle 3 to each entry. Order by dependencies between standalone behaviours (Principle 7), then complexity. Done when every acceptance criterion from step 1 maps to at least one entry; a design the proof slice satisfies on its own needs no further entries. [examples/iterm-profile-generation.md](examples/iterm-profile-generation.md) is a plan that came out of this mapping.
 4. **Write each slice** as goal, approach in words, and tests, in the shape of [examples/presenting-a-slice.md](examples/presenting-a-slice.md). Check it against INVEST ([references/invest-criteria.md](references/invest-criteria.md), with Principle 3's exemptions) and the [references/red-flags.md](references/red-flags.md); split or reorder what fails. Done when the slice passes INVEST, trips no red flag, and lists its goal, approach in words, and the tests or evidence Principle 5 asks of its kind. Interactive: present it and wait. Batch: move on.
-5. **Cut the PR stack** (Principle 9). The written plan opens with the PR stack table and tags every slice header with `**Bundle:** PRn (position)`; Interactive: propose the table after the last slice is approved, then place it at the top. Done when the candidate stack is written down with its verdict, each seam you rejected names the admissibility test it fails, and each bundle names its base.
+5. **Cut the PR stack** (Principle 9).
+   1. Name the best cut with two or more bundles.
+   2. Test each of its seams against the admissibility list in Principle 9; move or drop a seam that fails, and settle on one bundle only after the candidate has failed a named test.
+   3. Add each bundle's closing items to its last slice.
+   4. Write the PR stack table at the top of the plan and tag every slice header with `**Bundle:** PRn (position)`.
 
-Done when steps 1 to 5 have each met their condition and the plan names its pattern (Principle 1).
+   Interactive: propose the table after the last slice is approved, then place it at the top. Done when the candidate stack is written down with its verdict, each rejected seam names the test it fails, and each bundle names its base.
+
+The plan also names its splitting pattern (Principle 1).
 
 ## Principles
 
@@ -50,13 +56,13 @@ Pick the pattern that fits the work and name it in the plan with one sentence of
 
 ### 2. The proof slice
 
-The first behaviour slice is the proof slice. Name the assumption that, if false, kills the whole approach, then pick something stupid: the most embarrassingly thin behaviour at the task's boundary that still exercises that assumption end to end. Start there and let later slices make it less stupid. A guard, a filter, a fallback, a result type or an edge case belongs in the proof slice only when the assumption cannot be exercised without it; "the feature would be incorrect without it" is the reason for a later slice, not for a fatter first one. The proof runs through the boundary, not through an unwired component. When the assumption needs a spike before any behaviour can be built, the spike is slice 1 and the proof slice follows it. [examples/thought-process.md](examples/thought-process.md) shows the framing.
+The first behaviour slice is the proof slice. Name the assumption that, if false, kills the whole approach, then pick something stupid: the most embarrassingly thin behaviour at the task's boundary that still exercises that assumption end to end. Start there and let later slices make it less stupid. A guard, a filter, a fallback, a result type or an edge case belongs in the proof slice only when the assumption cannot be exercised without it; "the feature would be incorrect without it" is the reason for a later slice, not for a fatter first one. The proof runs through the boundary, not through an unwired component. When the assumption needs a spike before any behaviour can be built, the spike is slice 1 and the proof slice follows it. An all-mechanical plan has no proof slice; its parity check (Principle 3) stands in. [examples/thought-process.md](examples/thought-process.md) shows the framing.
 
 ### 3. Each slice stands alone
 
 A slice stands alone when the behaviour the task promises works through the boundary that uses it, with no later slice needed to wire it in. The boundary is whatever the task delivers: a route, a command, a service or library contract with no in-repo caller yet. Layers and producers are items inside a slice, never a slice of their own; compiling and passing its own unit tests is not standing alone.
 
-Three kinds of slice are exempt and say so in the plan: a **spike** (names the uncertainty and the decision it settles, ships no behaviour), a **mechanical** move or refactor (proves preserved behaviour), and a **contract-only task** whose whole deliverable is a producer with no consumer in scope.
+Three kinds of slice are exempt and say so in the plan: a **spike** (names the uncertainty and the decision it settles, ships no behaviour), a **mechanical** move or refactor (its parity check proves preserved behaviour), and a **contract-only task** whose whole deliverable is a producer with no consumer in scope.
 
 ### 4. One new concept per slice, ordered by complexity
 
@@ -80,4 +86,12 @@ Boot-time code, hot-reload paths, dev-only tooling, third-party UI flows: state 
 
 ### 9. Group slices into PR bundles
 
-The plan ends in a stack of PRs, one per **bundle** of consecutive slices. Cut a seam only where the tree at that slice stands alone green and better than the base (complete is not required; an edge case the next bundle closes is fine when the plan names it), leaves nothing half-moved by the end of the stack (interim shapes within it are fine), has one reason to exist, is worth its own review, and depends only on the bundles below it. Name the best cut with two or more bundles and test its seams before settling on fewer; a bundle that ends on a producer the next bundle consumes is a valid seam even though a producer-only slice is not. One bundle is the right answer only after that candidate fails a named test. Each bundle's last slice carries the bundle's **closing items**, the administrative work PRs in this repo require (e.g. changelogs, CODEOWNERS), as chore items; find them in the repo's PR template, contributing guide and recent merged PRs, and when there are none, the plan says so. Consult [references/pr-bundles.md](references/pr-bundles.md) if you need the admissibility rules in full, the table columns or a worked example.
+The plan ends in a stack of PRs, one per **bundle** of consecutive slices. A seam is admissible when the tree at that slice:
+
+- stands alone green, and better than the base; it need not be complete, and an edge case the next bundle closes is fine when the plan names it;
+- leaves nothing half-moved by the end of the stack; interim shapes within the stack are fine;
+- has one reason to exist;
+- is worth its own review;
+- depends only on the bundles below it.
+
+A bundle that ends on a producer the next bundle consumes is a valid seam even though a producer-only slice is not. Each bundle's last slice carries the bundle's **closing items**, the administrative work PRs in this repo require (e.g. changelogs, CODEOWNERS), as chore items; find them in the repo's PR template, contributing guide and recent merged PRs, and when there are none, the plan says so. Consult [references/pr-bundles.md](references/pr-bundles.md) if you need the admissibility rules in full, the table columns or a worked example.
