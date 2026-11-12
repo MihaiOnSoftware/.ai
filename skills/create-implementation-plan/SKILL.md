@@ -35,12 +35,12 @@ Someone else implements the slices you write; the plan has to carry everything t
    - the base branch and SHA are stated;
    - the acceptance criteria are listed one line each, taken from the document's Problem, Design and Scope sections, or from whichever section states the intended outcome (for an investigation, what it recommends building);
    - in Batch, the derived criteria and any assumed SHA are recorded as assumptions.
-2. **Find the proof slice** (Principle 2). Done when the killing assumption, the boundary behaviour that exercises it and, when a spike comes first, the decision the spike settles are written down.
+2. **Find the proof slice** (Principle 2). Done when the killing assumption, the boundary behaviour that exercises it and, when a spike comes first, the decision the spike settles are written down; for an all-mechanical plan, when the parity check that stands in for the proof slice is written down.
 3. **Map the path to the acceptance criteria.** List the spike when there is one, the proof slice, and every behaviour, rule or mechanical change to add after it along the axes in Principle 4, applying Principle 3 to each entry. Order by dependencies between standalone behaviours (Principle 7), then complexity. Done when every acceptance criterion from step 1 maps to at least one entry and the plan names its splitting pattern (Principle 1); a design the proof slice satisfies on its own needs no further entries. [examples/iterm-profile-generation.md](examples/iterm-profile-generation.md) is a plan that came out of this mapping.
 4. **Write each slice** as goal, approach in words, and tests, in the shape of [examples/presenting-a-slice.md](examples/presenting-a-slice.md). Check it against INVEST ([references/invest-criteria.md](references/invest-criteria.md), with Principle 3's exemptions) and the [references/red-flags.md](references/red-flags.md); split or reorder what fails. Done when the slice passes INVEST, trips no red flag, and lists its goal, approach in words, and the tests or evidence Principle 5 asks of its kind. Interactive: present it and wait. Batch: move on.
 5. **Cut the PR stack** (Principle 9).
    1. Name the best cut with two or more bundles.
-   2. Test each of its seams against the admissibility list in Principle 9; move or drop a seam that fails, and settle on one bundle only after the candidate has failed a named test.
+   2. Test each of its seams against the admissibility list in Principle 9. When a seam fails, record the test it fails, then move or drop that seam and test the resulting cut; settle on one bundle only after the candidate has failed a named test.
    3. Add each bundle's closing items to its last slice.
    4. Write the PR stack table at the top of the plan and tag every slice header with `**Bundle:** PRn (position)`.
 

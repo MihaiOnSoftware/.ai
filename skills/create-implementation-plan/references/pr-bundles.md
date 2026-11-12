@@ -19,7 +19,13 @@ The slice rule and the bundle rule differ. A producer with no consumer is a laye
 
 ## Candidate stack
 
-Before settling on the bundle count, name the best cut with two or more bundles and score each of its seams against the four tests above. Keep it when every seam passes. When one fails, say which test and why, then try the next best cut. Land on one bundle only after the best candidate has been written down and rejected on a named test; "one bundle" is a conclusion the plan shows, not a default it starts from. Record the candidate and its verdict under the PR stack table.
+Before settling on the bundle count:
+
+1. Name the best cut with two or more bundles.
+2. Score each of its seams against the four tests above.
+3. When every seam passes, keep the cut. When a seam fails, record the test it fails and why, then move or drop that seam and score the resulting cut.
+4. Land on one bundle only after the best candidate has been written down and rejected on a named test; "one bundle" is a conclusion the plan shows, not a default it starts from.
+5. Record the candidate and its verdict under the PR stack table.
 
 ## Closing items
 
@@ -40,7 +46,7 @@ The written plan opens with a **PR stack** table (filled in once the slices are 
 | Tip gate | checks beyond the slice gate: full build and tests for the touched workspaces, lockfile immutability, parity oracles, whatever PR-level checks the repo enforces. The last bundle's tip gate covers the union of every bundle's touched workspaces and their consumers |
 | Closing items | the administrative work the last slice carries |
 
-Under the table, the **slice gate** every slice must pass (the repo's typecheck, lint and tests for the touched workspaces unless the plan says otherwise) and the **base SHA** the plan was written against.
+Under the table: the **candidate stack** and its verdict (the cut considered, and for each rejected seam the test it failed), the **slice gate** every slice must pass (the repo's typecheck, lint and tests for the touched workspaces unless the plan says otherwise), and the **base SHA** the plan was written against.
 
 Each slice header gets one line: `**Bundle:** PR2 (first | middle | last | only)`.
 
@@ -52,4 +58,4 @@ Each slice header gets one line: `**Bundle:** PR2 (first | middle | last | only)
 | PR2 | Move the leaf modules into the package | `extract-engine-leaves` | PR1 branch | 4–9 | every moved module's importers are migrated; the core still in the app imports the package, a legal direction | PR1's gate plus the app's full test suite | repo admin (slice 9) |
 | PR3 | Move the core and keep the app as a thin consumer | `extract-engine-core` | PR2 branch | 10–16 | final package inventory; end-to-end output parity | cumulative: every gate above, both workspaces, full parity | repo admin (slice 16) |
 
-The seams inside PR2 are admissible but not taken: each slice is one leaf move, and six PRs of leaf moves would be six approvals for one idea.
+Candidate stack: four bundles, splitting PR3 after slice 12 (core moved, app still on its old imports). Rejected on test 2: the app would keep forwarding shims at the top of the stack unless slice 13 lands in the same PR. The three-bundle cut above passes every test. The seams inside PR2 are admissible but not taken: each slice is one leaf move, and six PRs of leaf moves would be six approvals for one idea.
