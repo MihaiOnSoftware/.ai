@@ -1,6 +1,6 @@
 ---
 name: monitor-gh-pr
-description: Monitor a GitHub PR for actionable events. Two scripts, picked by role — author mode (monitor-gh-pr.sh) watches CI results and new comments after you push; reviewer mode (monitor-gh-pr-review.sh) watches a PR you are reviewing for merge/close, new commits, re-review requests, dismissed reviews, and new comments, with an opt-in re-review mode that re-reviews pushes and proposes a re-approval. Trigger phrases include "watch my PR", "monitor PR #N", "notify me when CI is done", "background CI watch", "let me know if there are new comments", "watch this PR for re-requests", "tell me when they push changes", "re-review if changes come in", "re-approve if my comments are resolved".
+description: Monitor a GitHub PR for actionable events. Two scripts, picked by role — author mode (monitor-gh-pr.sh) watches CI results and new comments after you push; reviewer mode (monitor-gh-pr-review.sh) watches a PR you are reviewing for merge/close, new commits, re-review requests, dismissed reviews, and new comments, with an opt-in re-review watch that re-reviews pushes and proposes a re-approval. Trigger phrases include "watch my PR", "monitor PR #N", "notify me when CI is done", "background CI watch", "let me know if there are new comments", "watch this PR for re-requests", "tell me when they push changes", "re-review if changes come in", "re-approve if my comments are resolved".
 metadata:
   category: github
 ---
@@ -32,7 +32,7 @@ Either way the script handles the polling; your job is to run it in the backgrou
 | `PR_NUMBER` | both | PR number | `38873` |
 | `--interval N` | both | Poll interval in seconds (author default: 60; reviewer default: 300 — review turnarounds are slower than CI) | `--interval 120` |
 | `--reviewer LOGIN` | reviewer only | Login whose re-review requests and dismissed reviews get flagged prominently (default: the gh-authenticated user) | `--reviewer MihaiOnSoftware` |
-| `--rereview MODE` | reviewer only | Opt-in re-review mode, `confirm` or `auto-approve`; only when the reviewer asked for it on this PR (see Re-review watch) | `--rereview confirm` |
+| `--rereview MODE` | reviewer only | Re-review watch mode, `confirm` or `auto-approve`; only when the reviewer asked for it on this PR (see Re-review Watch) | `--rereview confirm` |
 
 ## Step 1 — Resolve REPO and PR_NUMBER
 
@@ -63,26 +63,19 @@ Tell the user:
 
 ## Optional: Re-review Watch (reviewer mode)
 
-Off by default. With `--rereview`, every report ends with a `## Re-review` block (the reviewer's last verdict and its commit, the range to re-review, the threads he opened) and you re-review on each wake, then propose a re-approval when his comments are resolved and the only new findings are nits or nothing. The script never posts; you post only on his explicit go, except the one bodyless approval that `auto-approve` allows on a clean gate.
+Off by default. With `--rereview`, every report ends with a `## Re-review` block (the reviewer's last verdict and its commit, the range to re-review, the threads the reviewer opened) and you re-review on each wake, then propose a re-approval when the reviewer's comments are resolved and the only new findings are nits or nothing. The script never posts; you post only on the reviewer's explicit go, except the one bodyless approval that `auto-approve` allows on a clean gate.
 
-Read [references/rereview.md](references/rereview.md) before arming it and on every wake. It covers the arming rules, the resolution check, the gate, how the confirmation reaches him, posting, and dismissed approvals. You may mention the option when you start a plain reviewer watch; never arm it unasked.
+Read [references/rereview.md](references/rereview.md) before arming the re-review watch and on every wake. It covers the arming rules, the resolution check, the gate, how the confirmation reaches the reviewer, posting, and dismissed approvals. You may mention the option when you start a plain reviewer watch, and arm it only when the reviewer asks for it.
 
 ## When the Watcher Misbehaves
 
-The scripts are the evidence your report rests on, so a broken script is worth fixing at the source, not working around. Suspect a bug when:
+Your report rests on the script's output, so a broken script gets fixed at its source. Suspect a bug when:
 
 - The output carries a raw API body (`{"message": ...}`, `Not Found`, HTML) or a jq or bash error.
 - The script exits non-zero with no usage message, or dies mid-poll.
 - A report disagrees with live state: `gh pr view <n> --repo <repo>` and the API show something the script missed, or it fires on something that did not happen.
 
-Then:
-
-1. **Confirm it** with one read-only `gh` call that shows the disagreement. Keep watching only if the rest of the output is still trustworthy; otherwise stop the monitor.
-2. **Tell the user** what broke, the evidence, and the impact on the current watch.
-3. **Propose a fix by a fresh subagent**, using whatever delegation your harness has (a subagent, a task agent, a background worker). Without one, offer the brief below for the user to hand off. Start it only on the user's yes.
-4. **Brief it** with: the symptom and the evidence; the skill's source repo, found by resolving the installed skill directory (`cd <skill dir> && pwd -P && git rev-parse --show-toplevel`); the script and its stubbed-`gh` test (`tests/test_monitor_gh_pr.sh` or `tests/test_monitor_gh_pr_review.sh` in that repo); and the rules: work on a new branch or worktree, write a failing test that reproduces the symptom first, fix, run both test files and `shellcheck`, commit locally, do not push or install, and report the commit.
-
-Never patch the installed copy in place, and never fold a workaround into your own report as if the script had produced it.
+Then confirm it with one read-only `gh` call that shows the disagreement, keep watching only if the rest of the output is still trustworthy, and tell the user what broke, the evidence and the impact on the watch. Offer to have a fresh subagent fix the script, and on the user's yes brief it from [references/fix-script.md](references/fix-script.md). Report only what the script and your `gh` check show.
 
 ## Notes
 

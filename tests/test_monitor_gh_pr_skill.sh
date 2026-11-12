@@ -56,8 +56,10 @@ when "documented_approval_is_bodyless_and_pinned"
     abort "approve carries a body or comments: #{line}" if line =~ /body|comments/
   end
 when "self_healing_tests_exist"
-  tests = section(skill, "## When the Watcher Misbehaves").scan(%r{tests/[\w.]+\.sh}).uniq
-  abort "self-healing names no tests" if tests.empty?
+  abort "self-healing does not point at fix-script.md" unless section(skill, "## When the Watcher Misbehaves").include?("references/fix-script.md")
+  brief = File.read(File.join(skill_dir, "references", "fix-script.md")) rescue abort("fix-script.md is missing")
+  tests = brief.scan(%r{tests/[\w.]+\.sh}).uniq
+  abort "the fix brief names no tests" if tests.empty?
   tests.each { |test| abort "#{test} does not exist" unless File.file?(File.join(root, test)) }
 when "conductor_skills_resolve"
   conductor = File.read(File.join(root, "agents", "review-pipeline-agent.md"))

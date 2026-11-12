@@ -28,6 +28,8 @@ Before dispatching any subagents, confirm you have:
 
 If any of these is missing and cannot be inferred, stop and ask the user. Do not start with incomplete inputs.
 
+On a `monitor-gh-pr` re-review wake (the request carries its `## Re-review` block), read [references/delta-rereview.md](references/delta-rereview.md) before Phase 1.
+
 ## Pipeline
 
 ```
@@ -123,18 +125,7 @@ After Phase 3 completes, the conductor surfaces to the user:
 
 **Stop here.** Wait for explicit user direction before doing anything else. The user decides whether to post, revise, or discard.
 
-Once the user's review is up, you may offer the `monitor-gh-pr` re-review watch (opt-in, its `references/rereview.md`). Never start it unasked.
-
-## Delta Re-review
-
-A `monitor-gh-pr` re-review wake runs this pipeline on the author's new commits only. What changes:
-
-- **Target** is the range `<reviewed-sha>..<head-sha>` from the watcher's `## Re-review` block. The reviewers review the delta and may read the whole PR at `<head-sha>` for context.
-- **Phase 1b also runs the resolution check.** It alone gets the reviewer's earlier comments with their replies, and returns one status per comment (ADDRESSED / ANSWERED / DEFERRED / OPEN, defined in `rereview.md`) with its evidence. The other reviewers do not see the earlier comments, so they do not anchor on them.
-- **Phase 2** appends the resolution table to the merged draft unchanged. The shaper drops findings the earlier review already made.
-- **The checkpoint** surfaces the resolution table, the shaped delta comments and the gate result from `rereview.md`, and asks for the go the way that file says. The empty-body approval is the default proposal on a passing gate.
-
-Everything else, including "nothing is posted without the user's go", is unchanged.
+Once the user's review is up, you may offer the `monitor-gh-pr` re-review watch (its `references/rereview.md`), and start it only when the user asks.
 
 ## Failure Handling
 
