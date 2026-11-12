@@ -9,8 +9,9 @@ A seam after slice k is admissible when the tree at slice k's last commit:
 1. **Stands alone green, and better than the base**: passes the bundle's tip gate against its base with nothing from later bundles, and leaves the system better than it was for the cases the task is about. It does not have to be complete. Walking-skeleton style: a bundle that fixes the common path and leaves an edge case for the bundle above is admissible, as long as the gap is named in the plan and that next bundle closes it. Judge a seam by "better than before", not by "as good as the finished design"; the design's rejection of a partial state as the final state is not a rejection of it as an interim one.
 2. **Leaves nothing half-moved by the end of the stack**: at the top bundle, no module kept only as temporary scaffolding or a conversion-only residual, no owner under a stale name whose rename is pending, no forwarding shim. Within the stack, interim shapes are fine: a bundle may ship a fail-fast version of a function the next bundle makes attempt-all, or a module the next bundle renames, as long as the bundle is green, has no dangling import, and its reviewer can see what it does without opening the next PR. A contract the next bundle extends is not half-moved.
 3. **Has one reason to exist**: the headline is one sentence a reviewer can verify, and it maps to a design section or a known reviewer concern. Keep a behaviour change out of a bundle that is mostly moves; isolate it in its own bundle.
-4. **Is worth a review**: each bundle costs a CI run, an approval, and a restack whenever anything below it changes, so a bundle has to carry a change a reviewer would want to approve on its own. Judge that by its reason to exist, not by size; do not estimate code. A bundle with several times its neighbours' tests (the slices' "Tests to Write" counts) is usually hiding a seam, look again.
-5. **Depends only downward**: bundle N+1 may build on bundles ≤ N; nothing in bundle N needs bundle N+1 to be correct.
+4. **Depends only downward**: bundle N+1 may build on bundles ≤ N; nothing in bundle N needs bundle N+1 to be correct.
+
+Admissibility says which seams are allowed, not which to take. Each bundle costs a CI run, an approval, and a restack whenever anything below it changes, so among admissible cuts prefer the one where every bundle carries a change a reviewer would want to approve on its own; several slices that repeat one idea (six leaf-module moves, say) are one bundle, not six. This is a preference for choosing between admissible cuts, never a named failure that forces a merge, and it is not a size rule: a small follow-on bundle with one reason is fine, and size is never estimated in code. A bundle with several times its neighbours' tests (the slices' "Tests to Write" counts) is usually hiding a seam, look again.
 
 Stack order is plan order. Do not reorder slices to create parallel seams; that produces trees nobody validated.
 
@@ -18,7 +19,7 @@ The slice rule and the bundle rule differ. A producer with no consumer is a laye
 
 ## Candidate stack
 
-Before settling on the bundle count, name the best cut with two or more bundles and score each of its seams against the five tests above. Keep it when every seam passes. When one fails, say which test and why, then try the next best cut. Land on one bundle only after the best candidate has been written down and rejected on a named test; "one bundle" is a conclusion the plan shows, not a default it starts from. Record the candidate and its verdict under the PR stack table.
+Before settling on the bundle count, name the best cut with two or more bundles and score each of its seams against the four tests above. Keep it when every seam passes. When one fails, say which test and why, then try the next best cut. Land on one bundle only after the best candidate has been written down and rejected on a named test; "one bundle" is a conclusion the plan shows, not a default it starts from. Record the candidate and its verdict under the PR stack table.
 
 ## Closing items
 
@@ -51,4 +52,4 @@ Each slice header gets one line: `**Bundle:** PR2 (first | middle | last | only)
 | PR2 | Move the leaf modules into the package | `extract-engine-leaves` | PR1 branch | 4–9 | every moved module's importers are migrated; the core still in the app imports the package, a legal direction | PR1's gate plus the app's full test suite | repo admin (slice 9) |
 | PR3 | Move the core and keep the app as a thin consumer | `extract-engine-core` | PR2 branch | 10–16 | final package inventory; end-to-end output parity | cumulative: every gate above, both workspaces, full parity | repo admin (slice 16) |
 
-No seam inside PR2 earns its own review: each slice is one leaf move, and six PRs of leaf moves would be six approvals for one idea.
+The seams inside PR2 are admissible but not taken: each slice is one leaf move, and six PRs of leaf moves would be six approvals for one idea.

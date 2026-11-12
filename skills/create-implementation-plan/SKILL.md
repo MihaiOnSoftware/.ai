@@ -89,7 +89,6 @@ The plan ends in a stack of PRs, one per **bundle** of consecutive slices. A sea
 - stands alone green, and better than the base; it need not be complete, and an edge case the next bundle closes is fine when the plan names it;
 - leaves nothing half-moved by the end of the stack; interim shapes within the stack are fine;
 - has one reason to exist;
-- is worth its own review;
 - depends only on the bundles below it.
 
-A bundle that ends on a producer the next bundle consumes is a valid seam even though a producer-only slice is not. Each bundle's last slice carries the bundle's **closing items**, the administrative work PRs in this repo require (e.g. changelogs, CODEOWNERS), as chore items; find them in the repo's PR template, contributing guide and recent merged PRs, and when there are none, the plan says so. Consult [references/pr-bundles.md](references/pr-bundles.md) if you need the admissibility rules in full, the table columns or a worked example.
+Among admissible cuts, prefer the one where each bundle carries a change a reviewer would approve on its own; slices that repeat one idea share a bundle. A bundle that ends on a producer the next bundle consumes is a valid seam even though a producer-only slice is not. Each bundle's last slice carries the bundle's **closing items**, the administrative work PRs in this repo require (e.g. changelogs, CODEOWNERS), as chore items; find them in the repo's PR template, contributing guide and recent merged PRs, and when there are none, the plan says so. Consult [references/pr-bundles.md](references/pr-bundles.md) if you need the admissibility rules in full, the table columns or a worked example.
