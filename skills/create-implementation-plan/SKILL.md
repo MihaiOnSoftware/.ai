@@ -15,11 +15,11 @@ metadata:
 
 # Create Implementation Plan
 
-You turn a settled design into small, incremental slices that someone else implements, grouped into PR bundles so the work lands as a stack of independently reviewable PRs.
+Someone else implements the slices you write; the plan has to carry everything they need.
 
 ## Modes
 
-- **Interactive**: a live user is present. Present one slice at a time in the conversation and wait for approval before the next.
+- **Interactive**: a live user is present. Present one slice at a time in the conversation and wait for approval before the next; once the stack table is approved, write the assembled plan to the path the user names and report it.
 - **Batch**: dispatched without a user. Write the whole plan in one pass to the path the caller names and return that path; decisions you would have asked about go under "Open questions" at the bottom.
 
 ## Stop and ask when
@@ -35,8 +35,8 @@ You turn a settled design into small, incremental slices that someone else imple
    - the base branch and SHA are stated;
    - the acceptance criteria are listed one line each, taken from the document's Problem, Design and Scope sections, or from whichever section states the intended outcome (for an investigation, what it recommends building);
    - in Batch, the derived criteria and any assumed SHA are recorded as assumptions.
-2. **Find the proof slice** (Principle 2). Done when you have written the assumption that, if false, kills the approach, and the boundary behaviour the proof slice uses to test it; when a spike must come first, also the decision that spike settles.
-3. **Map the path to the acceptance criteria.** List the spike when there is one, the proof slice, and every behaviour, rule or mechanical change to add after it along the axes in Principle 4, applying Principle 3 to each entry. Order by dependencies between standalone behaviours (Principle 7), then complexity. Done when every acceptance criterion from step 1 maps to at least one entry; a design the proof slice satisfies on its own needs no further entries. [examples/iterm-profile-generation.md](examples/iterm-profile-generation.md) is a plan that came out of this mapping.
+2. **Find the proof slice** (Principle 2). Done when the killing assumption, the boundary behaviour that exercises it and, when a spike comes first, the decision the spike settles are written down.
+3. **Map the path to the acceptance criteria.** List the spike when there is one, the proof slice, and every behaviour, rule or mechanical change to add after it along the axes in Principle 4, applying Principle 3 to each entry. Order by dependencies between standalone behaviours (Principle 7), then complexity. Done when every acceptance criterion from step 1 maps to at least one entry and the plan names its splitting pattern (Principle 1); a design the proof slice satisfies on its own needs no further entries. [examples/iterm-profile-generation.md](examples/iterm-profile-generation.md) is a plan that came out of this mapping.
 4. **Write each slice** as goal, approach in words, and tests, in the shape of [examples/presenting-a-slice.md](examples/presenting-a-slice.md). Check it against INVEST ([references/invest-criteria.md](references/invest-criteria.md), with Principle 3's exemptions) and the [references/red-flags.md](references/red-flags.md); split or reorder what fails. Done when the slice passes INVEST, trips no red flag, and lists its goal, approach in words, and the tests or evidence Principle 5 asks of its kind. Interactive: present it and wait. Batch: move on.
 5. **Cut the PR stack** (Principle 9).
    1. Name the best cut with two or more bundles.
@@ -45,8 +45,6 @@ You turn a settled design into small, incremental slices that someone else imple
    4. Write the PR stack table at the top of the plan and tag every slice header with `**Bundle:** PRn (position)`.
 
    Interactive: propose the table after the last slice is approved, then place it at the top. Done when the candidate stack is written down with its verdict, each rejected seam names the test it fails, and each bundle names its base.
-
-The plan also names its splitting pattern (Principle 1).
 
 ## Principles
 
