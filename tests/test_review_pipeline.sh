@@ -61,6 +61,11 @@ when "lens_reviewers_are_read_only_leaves"
       abort "#{name}: missing skill #{skill_name}" unless File.file?(File.join(root, "skills", skill_name, "SKILL.md"))
     end
   end
+when "lens_agents_list_their_skill"
+  ARGV.drop(2).each do |name|
+    skill_name = name.delete_suffix("-agent")
+    abort "#{name}: does not list #{skill_name}" unless list(frontmatter(File.join(root, "agents", "#{name}.md"))["skills"]).include?(skill_name)
+  end
 when "rules_globs_resolve"
   globs = File.read(File.join(root, "skills", "mihai-rules-review", "SKILL.md")).scan(%r{~/\.ai/rules/([^\s`]+\.md)}).flatten.uniq
   abort "rules reviewer names no rule files" if globs.empty?
@@ -99,7 +104,8 @@ replace_in() {
 
 plant_missing_agent() { rm "$1/agents/mihai-rules-review-agent.md"; }
 plant_writing_lens() { replace_in "$1/agents/mihai-pattern-review-agent.md" 'tools: read' 'tools: write, read'; }
-plant_missing_lens_skill() { replace_in "$1/agents/mihai-rules-review-agent.md" 'skills: mihai-code-review' 'skills: no-such-skill'; }
+plant_missing_lens_skill() { replace_in "$1/agents/mihai-rules-review-agent.md" 'skills: mihai-rules-review, mihai-code-review' 'skills: mihai-rules-review, no-such-skill'; }
+plant_unskilled_lens() { replace_in "$1/agents/mihai-pattern-review-agent.md" 'mihai-pattern-review, ' ''; }
 plant_dangling_rule() { rm "$1/rules/"*_testing.md; }
 plant_ambiguous_rule() { cp "$1/rules/"*_cleanup.md "$1/rules/99_cleanup.md"; }
 
@@ -113,6 +119,8 @@ assert "planted missing agent file is rejected" planted_check_fails plant_missin
 assert "lens reviewers cannot write or delegate" check lens_reviewers_are_read_only_leaves "$REPO_ROOT" "${LENS_REVIEWERS[@]}"
 assert "planted lens reviewer with write is rejected" planted_check_fails plant_writing_lens lens_reviewers_are_read_only_leaves "${LENS_REVIEWERS[@]}"
 assert "planted lens reviewer with a missing skill is rejected" planted_check_fails plant_missing_lens_skill lens_reviewers_are_read_only_leaves "${LENS_REVIEWERS[@]}"
+assert "each lens reviewer lists its own skill" check lens_agents_list_their_skill "$REPO_ROOT" "${LENS_REVIEWERS[@]}"
+assert "planted lens reviewer without its own skill is rejected" planted_check_fails plant_unskilled_lens lens_agents_list_their_skill "${LENS_REVIEWERS[@]}"
 
 # ── Test 3: the rules reviewer points at real rule files ──────────────────────
 
