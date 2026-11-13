@@ -62,7 +62,7 @@ when "lens_reviewers_are_read_only_leaves"
     end
   end
 when "rules_globs_resolve"
-  globs = File.read(File.join(root, "agents", "mihai-rules-review-agent.md")).scan(%r{~/\.ai/rules/([^\s`]+\.md)}).flatten.uniq
+  globs = File.read(File.join(root, "skills", "mihai-rules-review", "SKILL.md")).scan(%r{~/\.ai/rules/([^\s`]+\.md)}).flatten.uniq
   abort "rules reviewer names no rule files" if globs.empty?
   globs.each do |glob|
     matches = Dir.glob(File.join(root, "rules", glob)).select { |path| File.file?(path) && !File.symlink?(path) }
