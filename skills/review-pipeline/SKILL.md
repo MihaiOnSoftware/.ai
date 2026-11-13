@@ -20,8 +20,8 @@ The four reviewers, by the names used throughout:
 |---|---|---|---|---|
 | 1a | adversarial loop | `adversarial-review-loop` | `adversarial` | termination reason |
 | 1b | Mihai review | `mihai-code-review`, full | `mihai` | APPROVE / APPROVE-WITH-COMMENTS / CHANGES_REQUESTED |
-| 1c | pattern lens | `mihai-code-review`, patterns and conventions only | `patterns` | same as 1b |
-| 1d | rules lens | `mihai-code-review`, Mihai's quality, testing and cleanup rules only | `rules` | same as 1b |
+| 1c | pattern lens | `mihai-pattern-review` | `patterns` | same as 1b |
+| 1d | rules lens | `mihai-rules-review` | `rules` | same as 1b |
 
 "The four verdicts" below means that last column. [references/phase-dispatch.md](references/phase-dispatch.md) has the dispatch call for each phase.
 
