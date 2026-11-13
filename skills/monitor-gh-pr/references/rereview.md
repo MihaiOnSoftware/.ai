@@ -39,9 +39,9 @@ Read the `## Re-review` block the script appends. Merged or closed: stop and rep
      | OPEN | No change and no reply | none |
 
      GitHub's resolved flag only says the author thinks it is done. A resolved thread with no change behind it is ANSWERED or OPEN, never ADDRESSED. An outdated thread only means its line moved; check the code.
-   - b. **Delta review.** Review only `<old>..<new>`, the full PR open for context, with the process behind the original review: the review pipeline's delta re-review (`review-pipeline` skill, `references/delta-rereview.md`) when you are its conductor, otherwise one `mihai-code-review` pass over the range. He can name a lighter or heavier process when he turns the watch on.
+   - b. **Delta review.** Rerun your review over `<old>..<new>`, the full PR open for context, using the same process that produced the original review. He can name a lighter or heavier process when he turns the watch on.
    - c. **Rebases.** When the commit list is the `force-push or rebase` note (the usual cause of a dismissed approval), compare what the PR changes before and after: with the repo checked out, `git range-diff <old-base>..<old> <new-base>..<new>`. No change in the PR's own patches means "rebase only": no new findings, and step 2a still runs. If you cannot establish that, review the whole PR and say so.
-3. **Label** the new findings with the shaper's vocabulary (`nit` / `minor` / `major` / `question`). In a review-pipeline run, the labels are the shaped comments' labels; dropped findings do not count.
+3. **Label** the new findings with the same severity vocabulary your review uses (`nit` / `minor` / `major` / `question`); findings your review drops do not count.
 4. **Gate.** Both halves must hold:
    - **Comments resolved:** nothing is OPEN, and every comment that blocked (a `major`, or the reason for his CHANGES_REQUESTED) is ADDRESSED. ANSWERED and DEFERRED on the others count, and are listed for him to judge.
    - **Only nits or nothing:** every new finding is a `nit`, or there are none.

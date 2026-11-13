@@ -1,6 +1,6 @@
 ---
 name: monitor-gh-pr
-description: Watches a GitHub PR in the background and reports what needs attention, as author (CI and comments, then addresses them) or as reviewer (new activity, with an opt-in re-review of new pushes). Use for "watch my PR", "monitor PR #N", "tell me when CI is done", "tell me when they reply or push", "babysit this PR until it merges", "re-review if changes come in and re-approve if my comments are resolved". Not for running a review itself; use review-pipeline or mihai-code-review for that.
+description: Watches a GitHub PR in the background and reports what needs attention, as author (CI and comments, then addresses them) or as reviewer (new activity, with an opt-in re-review of new pushes). Use for "watch my PR", "monitor PR #N", "tell me when CI is done", "tell me when they reply or push", "babysit this PR until it merges", "re-review if changes come in and re-approve if my comments are resolved". Not for running a review itself; use your review process for that.
 metadata:
   category: github
 ---
