@@ -21,7 +21,7 @@ These never make it into a posted comment, regardless of how interesting the und
 - Same reasoning: if it's "for the compiler", it's not worth a comment
 
 **Already answered elsewhere**
-- Questions whose answer is in the PR description
+- Questions of fact the PR description answers: what the code does, whether a ticket exists, whether a choice was deliberate. It does not answer whether a deliberate choice is the right one. A finding that a deliberate choice departs from precedent, a rule or the REST contract is not dropped for being deliberate (the other drop rules still apply: already resolved with the author, already raised in an earlier round); it is kept at the severity the evidence supports (a deliberate spec/runtime disagreement is still `minor:` or `major:`); when the only open point is whether the choice was right, it is a `question:` or `discussion:`. Either way it cites the author's stated reason and carries `human call`: in its triage-log decision and as a one-line note under the shaped comment, so the reviewer decides whether to post it.
 - Things the author and reviewer already discussed and resolved in DMs or prior comments
 - Pre-existing code the PR only moves or touches incidentally — note it at most, don't block on it
 
