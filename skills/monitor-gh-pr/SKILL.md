@@ -1,90 +1,74 @@
 ---
 name: monitor-gh-pr
-description: Monitor a GitHub PR for actionable events. Two scripts, picked by role — author mode (monitor-gh-pr.sh) watches CI results and new comments after you push; reviewer mode (monitor-gh-pr-review.sh) watches a PR you are reviewing for merge/close, new commits, re-review requests, dismissed reviews, and new comments, with an opt-in re-review watch that re-reviews pushes and proposes a re-approval. Trigger phrases include "watch my PR", "monitor PR #N", "notify me when CI is done", "background CI watch", "let me know if there are new comments", "watch this PR for re-requests", "tell me when they push changes", "re-review if changes come in", "re-approve if my comments are resolved".
+description: Watches a GitHub PR in the background and reports what needs attention, as author (CI and comments, then addresses them) or as reviewer (new activity, with an opt-in re-review of new pushes). Use for "watch my PR", "monitor PR #N", "tell me when CI is done", "tell me when they reply or push", "babysit this PR until it merges", "re-review if changes come in and re-approve if my comments are resolved". Not for running a review itself; use review-pipeline or mihai-code-review for that.
 metadata:
   category: github
 ---
 
 # Monitor GitHub PR
 
-Two polling scripts, picked by your role on the PR. Both run until something actionable happens, print a summary to stdout, and exit 0.
-
-| Your role | Script | Watches |
-|---|---|---|
-| **Author** — you wrote/pushed the PR | `./scripts/monitor-gh-pr.sh` | CI failures, CI success, new comments |
-| **Reviewer** — you are reviewing someone else's PR | `./scripts/monitor-gh-pr-review.sh` | merge/close, new commits (with subjects), re-review requests, dismissals of the reviewer's reviews, new comments and reviews |
-
-Picking wrong wastes the watch: the author script never notices pushed commits or your re-review being requested; the reviewer script never watches CI.
-
-## When to Use
-
-**Author mode**: after pushing to a branch when you want to keep working on something else while CI runs.
-
-**Reviewer mode**: after submitting review comments on someone else's PR, when you want to be told the author responded — pushed fix commits, replied, re-requested your review — or the PR merged/closed. Typical loop: review → start the watcher → on wake, assess the delta against your review → re-arm until merged.
-
-Either way the script handles the polling; your job is to run it in the background using whatever mechanism your harness provides and surface its output when it exits.
+A script polls the PR and exits 0 with a summary on stdout at the first actionable event. The watcher is that script running in the background: you launch it, act on its report, and re-arm it until the PR is done.
 
 ## Inputs
 
-| Input | Script | Description | Example |
-|-------|--------|-------------|---------|
-| `REPO` | both | `owner/repo` | `MaintainX/maintainx` |
-| `PR_NUMBER` | both | PR number | `38873` |
-| `--interval N` | both | Poll interval in seconds (author default: 60; reviewer default: 300 — review turnarounds are slower than CI) | `--interval 120` |
-| `--reviewer LOGIN` | reviewer only | Login whose re-review requests and dismissed reviews get flagged prominently (default: the gh-authenticated user) | `--reviewer MihaiOnSoftware` |
-| `--rereview MODE` | reviewer only | Re-review watch mode, `confirm` or `auto-approve`; only when the reviewer asked for it on this PR (see Re-review Watch) | `--rereview confirm` |
+| Flag | When to set it |
+|---|---|
+| `--interval N` | Author default 60s: 30 for fast pipelines, 120 for long ones. Reviewer default 300s for human turnaround: 1800 for a low-urgency watch. |
+| `--reviewer LOGIN` | Reviewer mode, when the review is not the gh user's own (default: the gh user). |
+| `--rereview MODE` | Reviewer mode, `confirm` or `auto-approve`, only when the reviewer asks for the re-review watch on this PR. |
 
-## Step 1 — Resolve REPO and PR_NUMBER
+## Step 1 — Resolve the PR and Your Role
 
-**From a URL** like `https://github.com/owner/repo/pull/123`: extract `owner/repo` and `123` directly.
+- **From a URL** like `https://github.com/owner/repo/pull/123`: take `owner/repo` and `123`.
+- **From a branch** (omit `<branch>` for the current one):
 
-**From the current branch:**
-```bash
-gh pr view --json number,baseRepository \
-  --jq '{number: .number, repo: (.baseRepository.owner.login + "/" + .baseRepository.name)}'
-```
+  ```bash
+  gh pr view [<branch>] --json number,author,baseRepository \
+    --jq '{number, author: .author.login, repo: (.baseRepository.owner.login + "/" + .baseRepository.name)}'
+  ```
 
-**From a branch name:**
-```bash
-gh pr view <branch-name> --json number,baseRepository \
-  --jq '{number: .number, repo: (.baseRepository.owner.login + "/" + .baseRepository.name)}'
-```
+Your role is **author** when the PR's author is the gh user (`gh api user --jq .login`), **reviewer** otherwise. If the user wants both CI and review events, ask which role to watch as.
 
-## Step 2 — Run the Script in the Background
+Done when you have the repo, the PR number and the role. If `gh pr view` finds no PR or the URL does not parse, ask the user for the PR URL. If `gh auth status` fails, report it and stop: the scripts read API failures as "nothing new" and would watch in silence.
 
-Run the role-appropriate script (`./scripts/monitor-gh-pr.sh <REPO> <PR_NUMBER> [--interval <N>]` or `./scripts/monitor-gh-pr-review.sh <REPO> <PR_NUMBER> [--interval <N>] [--reviewer <login>] [--rereview <mode>]`). If you have a monitoring tool available, use it — the script exits 0 with a human-readable summary on stdout when something actionable is detected, which makes it a natural fit. When it exits, read its output and report to the user. Author mode: (1) whether CI passed or failed (naming any failing checks); (2) the count and type of any new comments; (3) what you are doing about them: follow [references/address-comments.md](references/address-comments.md), which fixes the non-controversial comments, brings the controversial ones to the user, re-requests review and re-arms until the PR is approved, settled and green. Reviewer mode: (1) whether the PR merged/closed; (2) new commits and their subjects; (3) whether a re-review was requested; (4) dismissals of the reviewer's reviews; (5) new comments/reviews — then offer to assess the delta against the posted review, or, with `--rereview`, follow the re-review steps.
+## Step 2 — Launch the Watcher
+
+| Role | Command | Reports |
+|---|---|---|
+| Author | `./scripts/monitor-gh-pr.sh <REPO> <PR_NUMBER> [--interval N]` | CI failures, CI success, new comments and reviews |
+| Reviewer | `./scripts/monitor-gh-pr-review.sh <REPO> <PR_NUMBER> [--interval N] [--reviewer LOGIN] [--rereview MODE]` | merge/close, new commits with subjects, re-review requests, dismissals of the reviewer's reviews, new comments and reviews |
+
+Run it in the background (a monitoring tool if your harness has one). Done when the first poll has logged `Watching ...` and no error.
 
 ## Step 3 — Confirm to the User
 
-Tell the user:
-- The script is running and what it's watching (repo, PR number, poll interval)
-- Where to find the output (monitor ID, PID, or log file path, depending on harness)
-- How to stop it early (kill the PID, MonitorStop, or equivalent)
+Tell the user what the watcher is watching (repo, PR number, role, poll interval, and the re-review mode if armed), where its output goes (monitor ID, PID or log file), and how to stop it early (kill the PID, MonitorStop, or equivalent).
 
-## Optional: Re-review Watch (reviewer mode)
+## Step 4 — On Exit, Report and Act
 
-Off by default. With `--rereview`, every report ends with a `## Re-review` block (the reviewer's last verdict and its commit, the range to re-review, the threads the reviewer opened) and you re-review on each wake, then propose a re-approval when the reviewer's comments are resolved and the only new findings are nits or nothing. The script never posts; you post only on the reviewer's explicit go, except the one bodyless approval that `auto-approve` allows on a clean gate.
+Read the summary, report it, act, then re-arm by running the same command again. The baseline carries over, so only newer events fire.
 
-Read [references/rereview.md](references/rereview.md) before arming the re-review watch and on every wake. It covers the arming rules, the resolution check, the gate, how the confirmation reaches the reviewer, posting, and dismissed approvals. You may mention the option when you start a plain reviewer watch, and arm it only when the reviewer asks for it.
+**Author:**
+- Report whether CI passed or failed (naming failing checks) and the new comments by count and type.
+- Address them with [references/address-comments.md](references/address-comments.md), which defines non-controversial (fix, push, 👍, resolve) and controversial (investigate, bring to the user), fixes CI the PR broke and re-requests review.
+- Re-arm until the PR is approved, has no unresolved threads and CI passes, or until the user, or whoever started the watch, sets another stop point.
+
+**Reviewer:**
+- On merge/close, report it and end the watch.
+- Otherwise report new commits and their subjects, a re-review request, dismissals of the reviewer's reviews, and new comments and reviews.
+- Offer to assess the delta: each posted comment as addressed, unaddressed or a new concern, citing the commit. With `--rereview` armed, run the re-review watch instead (below).
+- Re-arm until merge/close or until the user says stop.
+
+## Re-review Watch (Reviewer, Opt-in)
+
+Arm `--rereview` only when the reviewer asks for it on this PR; you may mention the option when you start a plain reviewer watch. Each report then ends with a `## Re-review` block. On every such wake, follow [references/rereview.md](references/rereview.md), which owns the arming rules, the re-review, the approval gate and what may be posted.
 
 ## When the Watcher Misbehaves
 
-Your report rests on the script's output, so a broken script gets fixed at its source. Suspect a bug when:
+Suspect a bug in the script when:
 
 - The output carries a raw API body (`{"message": ...}`, `Not Found`, HTML) or a jq or bash error.
 - The script exits non-zero with no usage message, or dies mid-poll.
-- A report disagrees with live state: `gh pr view <n> --repo <repo>` and the API show something the script missed, or it fires on something that did not happen.
+- A report disagrees with live state: `gh pr view <n> --repo <repo>` and the API show something the watcher missed, or it fires on something that did not happen. [references/watcher-behaviour.md](references/watcher-behaviour.md) says what each event should do.
 
-Then confirm it with one read-only `gh` call that shows the disagreement, keep watching only if the rest of the output is still trustworthy, and tell the user what broke, the evidence and the impact on the watch. Offer to have a fresh subagent fix the script, and on the user's yes brief it from [references/fix-script.md](references/fix-script.md). Report only what the script and your `gh` check show.
-
-## Notes
-
-- **State is stored** in `/tmp/monitor-gh-pr-<slug>-<pr>/` (author) and `/tmp/monitor-gh-pr-review-<slug>-<pr>/` (reviewer, including the reviewer's review states that dismissals are compared against); override the root with `MONITOR_GH_PR_STATE_ROOT`. Delete the directory to reset the baseline so the next run re-reports existing events.
-- **Exits on first event.** Start a new monitor after handling an event to keep watching. Reviewer mode exits for good on merge/close — don't re-arm after that.
-- **The baseline swallows the current state.** The first run records existing comments (and, in reviewer mode, the current head and requested reviewers) without reporting them; only changes after that fire.
-- **CI results are reported once per head commit** (author mode). Restarting the monitor on the same commit won't re-report an unchanged CI pass or failure; a new push resets this, so the next CI result is reported even if it matches the last one.
-- **Poll interval guidance:** author — `--interval 30` for fast pipelines, `--interval 120` to reduce API calls on long ones; reviewer — the 300 default suits human turnaround, `--interval 1800` for a low-urgency background watch.
-- **No checks yet?** (author mode) If the PR has no CI checks, the monitor watches only for comments until checks appear.
-- **Dismissals fire on the state change.** A dismissed review keeps its id, so the watcher compares the reviewer's review states between polls; a review already dismissed at baseline never fires.
-- **Re-review flags fire on the transition into the requested set.** GitHub drops a reviewer from pending requests once they submit a review, so a request already pending at baseline never fires "re-review requested"; only a fresh re-request after the watch starts does.
-- **Tests:** `tests/test_monitor_gh_pr.sh` and `tests/test_monitor_gh_pr_review.sh` live in the source repo (`MihaiOnSoftware/.ai`), not in the installed skill directory; they cover both scripts with a stubbed `gh`.
+Then confirm it with one read-only `gh` call that shows the disagreement, keep watching only if the rest of the output is still trustworthy, and tell the user what broke, the evidence and the impact on the watch. Offer to have a fresh subagent fix the script at its source, and on the user's yes brief it from [references/fix-script.md](references/fix-script.md). Report only what the watcher and your `gh` check show.

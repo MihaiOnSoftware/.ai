@@ -121,7 +121,7 @@ plant_missing_agent() { rm "$1/agents/mihai-rules-review-agent.md"; }
 plant_unbound_lens() { replace_in "$1/agents/review-pipeline-agent.md" '`mihai-pattern-review-agent`' '`some-other-agent`'; }
 plant_missing_recipe() { replace_in "$1/skills/review-pipeline/references/phase-dispatch.md" 'agent: "mihai-rules-review-agent"' 'agent: "unbound-agent"'; }
 plant_sync_lens() { replace_in "$1/skills/review-pipeline/references/phase-dispatch.md" "$(printf 'agent: "mihai-pattern-review-agent",\n  async: true')" 'agent: "mihai-pattern-review-agent",'; }
-plant_dropped_source() { replace_in "$1/skills/review-pipeline/SKILL.md" '| rules' ''; }
+plant_dropped_source() { replace_in "$1/skills/review-pipeline/SKILL.md" ' | rules)' ')'; }
 plant_writing_lens() { replace_in "$1/agents/mihai-pattern-review-agent.md" 'tools: read' 'tools: write, read'; }
 plant_missing_lens_skill() { replace_in "$1/agents/mihai-rules-review-agent.md" 'skills: mihai-code-review' 'skills: no-such-skill'; }
 plant_dangling_rule() { rm "$1/rules/"*_testing.md; }

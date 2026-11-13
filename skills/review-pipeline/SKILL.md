@@ -1,6 +1,6 @@
 ---
 name: review-pipeline
-description: "Parallel code review pipeline: run adversarial-review-loop, mihai-code-review and two lens-scoped Mihai reviewers (patterns, rules) simultaneously, merge their findings, shape into postable comments, and present for user approval. Trigger on 'review pipeline', 'full review', 'pipeline review', or when the user asks for both adversarial and Mihai-style review of a branch or PR."
+description: "Orchestrates a four-reviewer parallel code review of a branch or PR, merges and shapes the findings, and presents the comments for the user's approval. Loaded by review-pipeline-agent when the user asks for the full review pipeline, adversarial and Mihai-style review together. Not for a single-reviewer pass; use mihai-code-review or adversarial-review-loop directly."
 license: MIT
 metadata:
   category: review
@@ -8,25 +8,30 @@ metadata:
 
 # Review Pipeline
 
-End-to-end code review orchestration. Four independent reviewers run in parallel so none anchors on another's framing: one adversarial, one full Mihai-style review, and two Mihai reviewers that each look through a single lens (patterns and conventions; Mihai's quality, testing and cleanup rules). A broad reviewer spreads its budget across everything; a lens reviewer spends all of it on one question, so it catches what the broad passes skim. Their findings merge into a single draft, shaped by a fresh-context comment shaper, then presented to the user for approval before anything is posted.
+Four independent reviewers run in parallel, their findings merge into one draft, a fresh shaper turns the draft into postable comments, and the user decides what gets posted.
 
 ## Scope
 
-This skill is loaded by `review-pipeline-agent` only. It is not self-selected — if this skill is running, the user has already decided to run the full review pipeline.
+`review-pipeline-agent` loads this skill once the user has chosen the full pipeline. You are the conductor: you dispatch, wait, merge and present. The reviewers produce every finding and the shaper writes every comment.
 
-You are the conductor. You do not review code yourself. You do not write comments yourself. You dispatch, wait, merge, and present.
+The four reviewers, by the names used throughout:
+
+| Phase | Reviewer | Skill | Source tag | Verdict it returns |
+|---|---|---|---|---|
+| 1a | adversarial loop | `adversarial-review-loop` | `adversarial` | termination reason |
+| 1b | Mihai review | `mihai-code-review`, full | `mihai` | APPROVE / APPROVE-WITH-COMMENTS / CHANGES_REQUESTED |
+| 1c | pattern lens | `mihai-code-review`, patterns and conventions only | `patterns` | same as 1b |
+| 1d | rules lens | `mihai-code-review`, Mihai's quality, testing and cleanup rules only | `rules` | same as 1b |
+
+"The four verdicts" below means that last column. [references/phase-dispatch.md](references/phase-dispatch.md) has the dispatch call for each phase.
 
 ## What You Need Before Starting
 
-Before dispatching any subagents, confirm you have:
-
-1. **Target** — a branch name, PR number, or diff path. If missing, ask the user before proceeding.
-2. **Repo root** — the absolute path to the checked-out repo. Needed by reviewers for `git grep`, `git show`, and precedent lookups.
-3. **Head commit SHA** — resolve it yourself from the target (e.g. `git rev-parse`). All reviewers must review the same pinned commit, and the shaper needs it to verify lines and build links.
-4. **PR description as text** — the reviewers work offline and must not fetch URLs. If the user gives a PR URL or number, resolve it to text yourself (e.g. `gh pr view`) before dispatching. If nothing is available, tell the reviewers to treat the commit messages as the description.
-5. **Run slug** — a short identifier for this run (branch name or PR number). All wip file names include it so two same-day runs don't collide.
-
-If any of these is missing and cannot be inferred, stop and ask the user. Do not start with incomplete inputs.
+1. **Target**: a branch name, PR number, or diff path.
+2. **Repo root**: the absolute path to the checked-out repo, for `git grep`, `git show` and precedent lookups.
+3. **Head commit SHA**: resolve it yourself from the target (e.g. `git rev-parse`). Every reviewer reviews this pinned commit, and the shaper uses it to verify lines and build links.
+4. **PR description as text**: reviewers work offline, so resolve a PR URL or number to text yourself (e.g. `gh pr view`). With nothing available, tell the reviewers to treat the commit messages as the description.
+5. **Run slug**: a short identifier (branch name or PR number). Every file this run writes is `<wip>-<name>.md`, where `<wip>` is `~/.ai/wip/review-pipeline-<slug>-<YYYY-MM-DD>`, so two same-day runs don't collide.
 
 On a `monitor-gh-pr` re-review wake (the request carries its `## Re-review` block), read [references/delta-rereview.md](references/delta-rereview.md) before Phase 1.
 
@@ -34,96 +39,62 @@ On a `monitor-gh-pr` re-review wake (the request carries its `## Re-review` bloc
 
 ```
 target (branch / PR / diff)
-  → [Phase 1a] adversarial-review-loop     (parallel, async)  → adversarial findings
-  → [Phase 1b] mihai-code-review           (parallel, async)  → mihai findings + sweep log
-  → [Phase 1c] Mihai pattern lens          (parallel, async)  → patterns findings + conformance table
-  → [Phase 1d] Mihai rules lens            (parallel, async)  → rules findings + rule log
-  → wait for all four to complete
-  → [Phase 2]  merge findings              (conductor)        → raw merged draft
-  → [Phase 3]  shape-review-comments       (fresh subagent)   → shaped comments
-  → PRESENT to user — wait for approval before doing anything else
+  → [Phase 1a] adversarial loop   (parallel, async)  → <wip>-adversarial-output.md
+  → [Phase 1b] Mihai review       (parallel, async)  → <wip>-mihai-output.md
+  → [Phase 1c] pattern lens       (parallel, async)  → <wip>-patterns-output.md
+  → [Phase 1d] rules lens         (parallel, async)  → <wip>-rules-output.md
+  → wait for all four
+  → [Phase 2]  merge findings     (conductor)        → <wip>-merged-draft.md
+  → [Phase 3]  shaper             (fresh subagent)   → <wip>-shaped-comments.md
+  → checkpoint: present to the user and wait
 ```
 
 ## Phase 1: Parallel Review Dispatch
 
-Dispatch **all four** reviewers simultaneously as async, fresh-context subagents. Do not wait for one to finish before launching the next.
+Launch all four reviewers in one turn, as async, fresh-context subagents, so none anchors on another's framing. Each gets the same three inputs (the diff at the pinned commit, the repo root, the PR description) and writes its output to its `<wip>` file. No reviewer sees another reviewer's output.
 
-### Phase 1a — Adversarial review loop
+- **1a, adversarial loop.** Findings-only mode: the code is someone else's, so it reports accepted findings and leaves the repo unchanged. Nothing changes between rounds, so the loop ends on "repeated findings"; that is the normal exit. Returns findings labelled `nit` / `minor` / `major` / `question`.
+- **1b, Mihai review.** Returns verdict, summary, line comments and the sweep log.
+- **1c, pattern lens.** Only fit with the codebase: does the diff use existing patterns, introduce new ones, cleave to existing conventions (documented and unwritten). Returns verdict, answers to the three questions, line comments with precedent links, and a conformance table classifying every construct FOLLOWS / DEVIATES / NEW.
+- **1d, rules lens.** Only Mihai's code quality, testing and cleanup rules (`~/.ai/rules`, the files his `AGENTS.md` is built from). Returns verdict, summary, line comments each citing the rule it breaks, and a rule log listing every rule with its findings or why it is clean.
 
-Dispatch the adversarial-review-loop reviewer. Pass:
-- The diff or branch under review (at the pinned commit, not a drifted working tree)
-- The repo root path
-- The PR description (or commit messages)
-- **Findings-only mode**: the artifact under review is someone else's code. The reviewer must NOT apply fixes to the repo. Accepted findings accumulate in its report instead of being fixed in place. Because nothing changes between rounds, the loop will terminate via "repeated findings"; that is expected, not a failure.
+Done when all four `<wip>` output files exist and each holds its verdict and its artifact (1b sweep log, 1c conformance table, 1d rule log). Only then start Phase 2.
 
-Expect back: a list of findings labelled with the shaper's severity vocabulary (nit / minor / major / question).
+## Phase 2: Merge Findings
 
-### Phase 1b — Mihai-style code review
-
-Dispatch the mihai-code-review reviewer. Pass:
-- The diff or branch under review (same commit as Phase 1a)
-- The repo root path
-- The PR description (or commit messages)
-
-Expect back: verdict, summary, line comments, and sweep log appendix.
-
-### Phase 1c — Mihai pattern lens
-
-Dispatch the Mihai pattern reviewer. It looks only at fit with the codebase: does the diff use existing patterns, does it introduce new ones, does it cleave closely to existing conventions (documented and unwritten). Pass the same three inputs as Phase 1b.
-
-Expect back: verdict, answers to the three questions, line comments with precedent links, and a conformance table appendix (every construct classified FOLLOWS / DEVIATES / NEW).
-
-### Phase 1d — Mihai rules lens
-
-Dispatch the Mihai rules reviewer. It looks only for violations of Mihai's code quality, testing and cleanup rules (`~/.ai/rules`, the rules his `AGENTS.md` is built from). Pass the same three inputs as Phase 1b.
-
-Expect back: verdict, summary, line comments each citing the rule it breaks, and a rule log appendix (every rule with its findings or why it is clean).
-
-### Async discipline
-
-All four subagents run concurrently. The conductor must not begin Phase 2 until all four have returned. If any fails or times out, stop, surface the failure to the user, and ask how to proceed — do not continue with a partial set of reviewer outputs.
-
-## Phase 2: Merge Findings (Conductor Work)
-
-Read all four outputs. Produce a single raw draft in this format for every surviving finding:
+Read all four outputs and write one raw draft, one line per finding:
 
 ```
 `path/to/file.ts:LINE` — severity: finding text (source: adversarial | mihai | patterns | rules)
 ```
 
-The source is every reviewer that raised the finding, comma-separated (e.g. `source: mihai, rules`).
+The source lists every reviewer that raised it, comma-separated (e.g. `source: mihai, rules`).
 
-Merge rules:
-- **Several reviewers flag the same issue**: collapse into one entry, list every source, use the sharper phrasing.
-- **Only one reviewer flags it**: keep as-is, note the source.
-- **One finding is a superset of another on the same line**: keep the fuller text, list both sources.
-- **Keep the evidence a lens attached**: a patterns finding keeps its precedent `file:line`; a rules finding keeps the rule it cites.
-- **Contradicting verdicts on severity**: use the higher severity; note the disagreement in the finding text.
+- **Same issue from several reviewers:** one entry, every source, the sharper phrasing.
+- **One finding is a superset of another on the same line:** keep the fuller text, list both sources.
+- **Lens evidence stays attached:** a patterns finding keeps its precedent `file:line`; a rules finding keeps the rule it cites.
+- **Severity disagreement:** the higher severity, with the disagreement noted in the text.
 
-After the findings, add the four reviewers' verdicts (Phase 1a termination reason, Phase 1b–1d verdicts) so the shaper sees where they disagree. The sweep log, conformance table and rule log stay in the reviewer output files; reference their paths instead of copying them in.
+After the findings, add the four verdicts so the shaper sees where reviewers disagree, and link the sweep log, conformance table and rule log by their output paths. Pass every finding through; dropping is the shaper's call.
 
-Do not triage or drop findings at this step — that is the shaper's job. Pass everything through.
-
-Write the merged draft to `~/.ai/wip/review-pipeline-<slug>-<YYYY-MM-DD>-merged-draft.md`.
+Done when every line comment from the four outputs appears in `<wip>-merged-draft.md`, as its own entry or as a listed source on a merged one, and the four verdicts follow.
 
 ## Phase 3: Shape Comments
 
-Dispatch a **fresh-context** comment shaper. Pass:
-- The path to the merged draft (`~/.ai/wip/review-pipeline-<slug>-<YYYY-MM-DD>-merged-draft.md`)
-- The repo root path (for line-number verification via `grep -n`)
-- The head commit SHA and branch name
-- The PR URL (or org/repo + PR number) so cross-file references become GitHub links at the head commit
+Dispatch a fresh-context shaper (`shape-review-comments`) with `<wip>-merged-draft.md`, the repo root (for `grep -n` line checks), the head SHA and branch, and the PR URL or `org/repo#number` so cross-file references become GitHub links at the head commit.
 
-The shaper is a leaf subagent with no user channel: for it, "present for approval" means **return the shaped comments and the triage log as its output**. It posts nothing and asks nobody. The conductor presents to the user at the checkpoint below.
+The shaper has no user channel: it returns the shaped comments and its triage log as output, posts nothing and asks nobody.
+
+Done when `<wip>-shaped-comments.md` exists and its triage log accounts for every merged-draft entry as kept, merged or dropped.
 
 ## Checkpoint: Surface and Wait
 
-After Phase 3 completes, the conductor surfaces to the user:
-- The shaped comments (or a path to them if the shaper wrote a file)
-- The verdicts from all four reviewers (Phase 1a termination reason + Phase 1b, 1c and 1d verdicts)
-- A brief summary: total findings going in, how many survived triage, source breakdown
+Surface to the user:
+- The shaped comments, or the path to `<wip>-shaped-comments.md`
+- The four verdicts
+- Findings going in, how many survived triage, and the source breakdown
 
-**Stop here.** Wait for explicit user direction before doing anything else. The user decides whether to post, revise, or discard.
+Then wait for the user's direction. The user decides whether to post, revise or discard, and posting happens only on the user's word.
 
 Once the user's review is up, you may offer the `monitor-gh-pr` re-review watch (its `references/rereview.md`), and start it only when the user asks.
 
@@ -131,16 +102,8 @@ Once the user's review is up, you may offer the `monitor-gh-pr` re-review watch 
 
 | Failure | Action |
 |---|---|
-| Missing target / repo / PR description | Ask the user before dispatching any subagent |
-| A Phase 1 subagent fails or times out | Stop pipeline, surface the error, ask the user how to proceed |
-| Phase 2 merged draft is empty | Tell the user; ask whether to close or re-run |
-| Phase 3 shaper cannot read both reference files | Stop and report; the shaper's own skill handles this — do not bypass it |
-| Any phase subagent is missing from the harness | Stop and surface to the user; do not fall back to a generic subagent |
-
-## Anti-Patterns
-
-- **Sequential review dispatch.** The whole point of parallel dispatch is that no reviewer anchors on another's framing. Launch Phases 1a–1d together; never wait for one before starting the next.
-- **Conductor doing review work.** If you find yourself reading the diff and writing findings, stop — that belongs to the phase subagents.
-- **Conductor doing shaping work.** Triage and voice decisions belong to the shaper. Pass the full merged draft; let the shaper drop what isn't worth saying.
-- **Posting without user approval.** The pipeline ends at "present for approval." Posting is always the user's call.
-- **Reusing reviewer context.** Each phase subagent starts fresh. Never pass one reviewer's output into another reviewer's context.
+| A required input is missing and cannot be inferred, or the target or head SHA does not resolve | Ask the user before dispatching anything |
+| A phase agent is missing from the harness | Stop and tell the user; a generic subagent is no substitute |
+| A Phase 1 reviewer fails or times out | Stop, surface the error, and ask the user how to proceed; a partial set of outputs does not go to Phase 2 |
+| The merged draft is empty | Tell the user and ask whether to close or re-run |
+| The shaper fails, times out, or cannot read `triage-rules.md` and `voice-guide.md` | Stop and report the error with the merged draft's path; the comments stay unwritten until the user decides |
