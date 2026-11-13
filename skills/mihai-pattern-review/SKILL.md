@@ -50,4 +50,4 @@ APPROVE | APPROVE-WITH-COMMENTS | CHANGES_REQUESTED
 | Construct | Closest precedent | FOLLOWS / DEVIATES / NEW | Note |
 ```
 
-Every row of the table that is DEVIATES or NEW has a line comment or a one-line reason it does not deserve one.
+Every DEVIATES or NEW row has a line comment or a one-line reason it does not deserve one. The reasons that hold are the Method's own: the construct matches what 10+ siblings do (except a legacy shape the docs have moved away from, which stays a DEVIATES comment), the codebase is itself split, no existing pattern could have done the job, or the profile lists it under what Mihai ignores (formatting, import order). The PR description, a code comment or the author calling the choice deliberate is not a reason: it says the author chose it, not that the choice fits. Keep the comment, quote the stated reason in it, keep the severity the evidence supports, and where the only open point is whether the deliberate choice is the right call, label it `question:` or `discussion:` and leave the call to whoever reads the review.
