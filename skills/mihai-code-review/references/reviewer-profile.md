@@ -22,7 +22,7 @@ He labels severity inline with lowercase prefixes:
 | `nit:` | Style, convention, redundant comment, test naming. Explicitly ignorable. | Never |
 | `minor:` | Worth doing (often an untested branch or weak assertion) but author's call. | No |
 | `major:` | Something that must be fixed before merge (rare — e.g. unrelated generated-file changes carried in the PR). | Yes |
-| `question:` / `discussion:` | Genuine inquiry or out-of-scope design exploration. Expects an answer, not a change. | No |
+| `question:` / `discussion:` | Genuine inquiry or out-of-scope design exploration. Expects an answer, not a change. A deliberate choice the PR description explains is not dropped or downgraded for being deliberate: the description says it was chosen, not that it fits. When the evidence shows a defect, the defect's label stands; when the only open point is whether the choice was right, it is one of these. | No |
 | unlabeled | Read the content: factual callouts ("This needs to be removed from worker/package.json") are expected fixes; observations ("mostly just calling this out") are FYI. | Depends |
 
 **What triggers CHANGES_REQUESTED (his actual blockers):**
